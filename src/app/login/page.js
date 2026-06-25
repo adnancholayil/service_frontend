@@ -8,7 +8,8 @@ import { Shield, Sparkles, Mail, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
-import { MOCK_USERS } from '../../constants/mockData';
+import { useMutation } from '@apollo/client/react';
+import { LOGIN_MUTATION } from '../../graphql/mutations/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -23,7 +24,9 @@ export default function LoginPage() {
 
   const redirectPath = searchParams.get('redirect') || '/';
 
-  const handleLoginSubmit = (e) => {
+  const [loginMut] = useMutation(LOGIN_MUTATION);
+
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       toast.error('Please enter email and password');
@@ -33,35 +36,39 @@ export default function LoginPage() {
     setIsLoading(true);
     dispatch(loginStart());
 
-    // Find in mock users
-    setTimeout(() => {
-      const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
+    try {
+      const { data } = await loginMut({
+        variables: { email, password }
+      });
       
-      if (user) {
+      if (data?.login) {
+        const { token, user } = data.login;
         // Set cookies for middleware
-        document.cookie = `auth_token=mock-jwt-token-12345; path=/; max-age=86400`;
+        document.cookie = `auth_token=${token}; path=/; max-age=86400`;
         document.cookie = `user_role=${user.role}; path=/; max-age=86400`;
+        localStorage.setItem('token', token);
         
-        dispatch(loginSuccess({ user, token: 'mock-jwt-token-12345' }));
+        dispatch(loginSuccess({ user, token }));
         toast.success(`Welcome back, ${user.name}!`);
-        setIsLoading(false);
 
         // Redirect based on role
         if (redirectPath !== '/') {
           router.push(redirectPath);
-        } else if (user.role === 'admin') {
+        } else if (user.role === 'ADMIN') {
           router.push('/admin/dashboard');
-        } else if (user.role === 'provider') {
+        } else if (user.role === 'PROVIDER') {
           router.push('/provider/dashboard');
         } else {
           router.push('/');
         }
-      } else {
-        dispatch(loginFailure('Invalid email or password'));
-        toast.error('User not found. Try one of the Quick Login options below!');
-        setIsLoading(false);
       }
-    }, 1000);
+    } catch (err) {
+      console.error(err);
+      dispatch(loginFailure(err.message || 'Invalid email or password'));
+      toast.error(err.message || 'User not found or invalid credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleQuickLogin = (userEmail) => {
@@ -71,21 +78,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    toast.loading('Connecting with Google...');
-    
-    setTimeout(() => {
-      toast.dismiss();
-      const customerUser = MOCK_USERS[0]; // John Doe
-      
-      document.cookie = `auth_token=mock-jwt-token-google; path=/; max-age=86400`;
-      document.cookie = `user_role=${customerUser.role}; path=/; max-age=86400`;
-      
-      dispatch(loginSuccess({ user: customerUser, token: 'mock-jwt-token-google' }));
-      toast.success(`Connected as ${customerUser.name}!`);
-      setIsLoading(false);
-      router.push('/');
-    }, 1200);
+    toast.error('Google login is not yet implemented with the backend.');
   };
 
   return (

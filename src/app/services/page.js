@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Star, Search, Filter, Sparkles, User, Calendar } from 'lucide-react';
 import Link from 'next/link';
 
-import { CATEGORIES, MOCK_SERVICES, MOCK_PROVIDERS } from '../../constants/mockData';
+import { useQuery } from '@apollo/client/react';
+import { GET_SERVICES_PAGE_DATA } from '../../graphql/queries/services';
 import Card, { CardBody } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
@@ -19,7 +20,6 @@ function ServicesContent() {
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [searchTerm, setSearchTerm] = useState(searchParam);
-  const [filteredServices, setFilteredServices] = useState([]);
 
   // Sync category state when query param changes
   useEffect(() => {
@@ -31,26 +31,16 @@ function ServicesContent() {
     setSearchTerm(searchParam);
   }, [searchParam]);
 
-  useEffect(() => {
-    let result = MOCK_SERVICES;
-
-    // Filter by Category
-    if (selectedCategory !== 'all') {
-      result = result.filter(srv => srv.category === selectedCategory);
+  // Fetch from GraphQL
+  const { data, loading, error } = useQuery(GET_SERVICES_PAGE_DATA, {
+    variables: { 
+      category: selectedCategory === 'all' ? null : selectedCategory,
+      search: searchTerm.trim() === '' ? null : searchTerm.trim()
     }
+  });
 
-    // Filter by Search Term
-    if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(
-        srv =>
-          srv.title.toLowerCase().includes(term) ||
-          srv.description.toLowerCase().includes(term)
-      );
-    }
-
-    setFilteredServices(result);
-  }, [selectedCategory, searchTerm]);
+  const categories = data?.categories || [];
+  const filteredServices = data?.globalServices || [];
 
   const handleCategorySelect = (catId) => {
     setSelectedCategory(catId);
@@ -76,10 +66,7 @@ function ServicesContent() {
     router.replace(`/services?${params.toString()}`);
   };
 
-  // Get matching providers for a service
-  const getServiceProviders = (serviceId) => {
-    return MOCK_PROVIDERS.filter(p => p.services.includes(serviceId) && p.status === 'verified');
-  };
+
 
   return (
     <div className="mx-auto w-full max-w-[1600px] px-2 sm:px-4 lg:px-4 py-6 sm:py-10 space-y-6 sm:space-y-8 flex-1">
@@ -119,12 +106,12 @@ function ServicesContent() {
           >
             All Services
           </button>
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.id}
-              onClick={() => handleCategorySelect(cat.id)}
+              onClick={() => handleCategorySelect(cat.slug || cat.id)}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
-                selectedCategory === cat.id
+                selectedCategory === (cat.slug || cat.id)
                   ? 'bg-brand text-white border-brand shadow-sm'
                   : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
               }`}
@@ -144,60 +131,57 @@ function ServicesContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredServices.map((srv) => {
-            const matchingProviders = getServiceProviders(srv.id);
+          {loading ? (
+            <div className="col-span-full py-10 flex justify-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+            </div>
+          ) : (
+          filteredServices.map((srv) => {
+            const provider = srv.provider;
             return (
               <Card key={srv.id} className="flex flex-col bg-card relative">
                 <CardBody className="p-4 sm:p-6 flex-1 flex flex-col space-y-3 sm:space-y-4">
-                  <div className="flex justify-between items-start gap-3 sm:gap-4">
-                    <div>
-                      <span className="text-[9px] sm:text-[10px] font-semibold tracking-wider uppercase bg-muted text-muted-foreground px-2 py-0.5 rounded-md">
-                        {srv.category.replace('-', ' ')}
-                      </span>
-                      <h3 className="text-base sm:text-lg font-bold text-foreground mt-1 sm:mt-2 leading-snug">{srv.title}</h3>
-                    </div>
-                    <span className="text-lg sm:text-xl font-extrabold text-brand shrink-0">${srv.price}</span>
+                  <div className="flex justify-between items-start gap-4 mb-3">
+                    <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-muted text-muted-foreground capitalize">
+                      {srv.category?.name || 'Service'}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                      <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-500 text-amber-500" /> {provider?.rating || 5.0}
+                    </span>
                   </div>
-
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{srv.description}</p>
+                  <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 leading-tight">{srv.name}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 sm:line-clamp-3 mb-4 sm:mb-6">{srv.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 sm:gap-4 text-[10px] sm:text-xs font-semibold text-muted-foreground py-2 border-y border-border">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3 sm:h-4 sm:w-4" /> Dur: {srv.duration}</span>
-                    <span className="flex items-center gap-1"><Star className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" /> {srv.rating} rating</span>
-                  </div>
-
-                  {/* Matching Providers */}
-                  <div className="pt-2">
-                    <p className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Service Providers:</p>
-                    {matchingProviders.length === 0 ? (
-                      <p className="text-[10px] sm:text-xs text-muted-foreground italic">No providers currently available for this service</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {matchingProviders.map((p) => (
-                          <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 sm:p-3 border border-brand/10 hover:border-brand/40 bg-brand/5 dark:bg-brand/10 hover:bg-brand/10 dark:hover:bg-brand/20 rounded-xl transition-all gap-2">
-                            <div className="flex items-center gap-2 sm:gap-3">
-                              <Avatar src={p.avatar} alt={p.name} size="sm" />
-                              <div>
-                                <p className="text-[11px] sm:text-xs font-bold text-foreground">{p.name}</p>
-                                <span className="flex items-center gap-0.5 text-[9px] sm:text-[10px] font-semibold text-amber-500">
-                                  <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3 fill-amber-500 text-amber-500" /> {p.rating}
-                                </span>
-                              </div>
-                            </div>
-                            <Link href={`/providers/${p.id}?service=${srv.id}&book=true`} className="w-full sm:w-auto">
-                              <Button size="sm" variant="outline" className="text-[10px] sm:text-xs py-1 px-3 rounded-lg border-border w-full sm:w-auto mt-1 sm:mt-0">
-                                Book Partner
-                              </Button>
-                            </Link>
+                  <div className="mt-auto space-y-4">
+                    {provider && (
+                      <div className="pt-4 border-t border-border">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Offered By</p>
+                        <div className="flex items-center gap-3">
+                          <Avatar src={provider.user?.avatar} alt={provider.businessName} size="sm" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg" />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs sm:text-sm font-bold text-foreground truncate leading-tight">{provider.businessName}</h4>
+                            <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight mt-0.5">{provider.user?.name}</p>
                           </div>
-                        ))}
+                        </div>
                       </div>
                     )}
+                    <div className="flex items-center justify-between pt-4">
+                      <p className="text-xl sm:text-2xl font-extrabold text-foreground">${srv.price}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link href={provider ? `/providers/${provider.id}` : '#'}>
+                        <Button variant="outline" size="sm" className="h-10 text-xs px-3">View Partner</Button>
+                      </Link>
+                      <Link href={provider ? `/providers/${provider.id}?book=true&service=${srv.id}` : '#'}>
+                        <Button size="sm" className="h-10 text-xs px-4">Book Now</Button>
+                      </Link>
+                    </div>
                   </div>
                 </CardBody>
               </Card>
             );
-          })}
+          })
+          )}
         </div>
       )}
     </div>

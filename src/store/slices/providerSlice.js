@@ -1,8 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { MOCK_PROVIDERS } from '../../constants/mockData';
 
 const initialState = {
-  providers: MOCK_PROVIDERS,
+  providers: [],
   loading: false,
   error: null,
 };

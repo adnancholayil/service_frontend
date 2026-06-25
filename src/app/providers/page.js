@@ -5,7 +5,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Star, Sparkles, CheckCircle2, SlidersHorizontal, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
-import { CATEGORIES, MOCK_PROVIDERS } from '../../constants/mockData';
+import { useQuery } from '@apollo/client/react';
+import { GET_PROVIDERS_PAGE_DATA } from '../../graphql/queries/provider';
 import Card, { CardBody } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
@@ -21,6 +22,15 @@ function ProvidersContent() {
   const [searchTerm, setSearchTerm] = useState(searchParam);
   const [filteredProviders, setFilteredProviders] = useState([]);
 
+  const categoryFilter = categoryParam === 'all' ? null : categoryParam;
+
+  const { data, loading, error } = useQuery(GET_PROVIDERS_PAGE_DATA, {
+    variables: { category: categoryFilter }
+  });
+
+  const CATEGORIES = data?.categories || [];
+  const providers = data?.providers || [];
+
   // Sync state when query params change
   useEffect(() => {
     setSelectedCategory(categoryParam);
@@ -31,26 +41,30 @@ function ProvidersContent() {
   }, [searchParam]);
 
   useEffect(() => {
-    let result = MOCK_PROVIDERS.filter(p => p.status === 'verified');
+    let result = providers.filter(p => p.verificationStatus === 'VERIFIED');
 
-    // Filter by Category
-    if (selectedCategory !== 'all') {
-      result = result.filter(p => p.categories.includes(selectedCategory));
-    }
-
-    // Filter by Search Term
+    // Filter by Search Term (Category is handled by API)
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         p =>
-          p.name.toLowerCase().includes(term) ||
-          p.title.toLowerCase().includes(term) ||
-          p.about.toLowerCase().includes(term)
+          p.businessName?.toLowerCase().includes(term) ||
+          p.category?.name?.toLowerCase().includes(term) ||
+          p.bio?.toLowerCase().includes(term) ||
+          p.user?.name?.toLowerCase().includes(term)
       );
     }
 
     setFilteredProviders(result);
-  }, [selectedCategory, searchTerm]);
+  }, [providers, searchTerm]);
+
+  if (loading) {
+    return (
+      <div className="flex-1 flex justify-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    );
+  }
 
   const handleCategorySelect = (catId) => {
     setSelectedCategory(catId);
@@ -141,30 +155,28 @@ function ProvidersContent() {
           {filteredProviders.map((p) => (
             <Card key={p.id} className="bg-card">
               <CardBody className="p-6 flex flex-col sm:flex-row gap-5 items-start">
-                <Avatar src={p.avatar} alt={p.name} size="xl" className="rounded-2xl shrink-0" />
+                <Avatar src={p.user?.avatar} alt={p.businessName} size="xl" className="rounded-2xl shrink-0" />
                 <div className="flex-1 space-y-2 w-full">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <h3 className="text-lg font-bold text-foreground flex items-center gap-1.5 leading-tight">
-                      {p.name}
+                      {p.businessName}
                       <CheckCircle2 className="h-4.5 w-4.5 text-emerald-500 fill-emerald-50" />
                     </h3>
                     <span className="flex items-center gap-1 text-sm font-semibold text-amber-500">
                       <Star className="h-4 w-4 fill-amber-500 text-amber-500" /> {p.rating} ({p.reviewsCount} reviews)
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-brand">{p.title}</p>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{p.about}</p>
+                  <p className="text-sm font-medium text-brand">{p.category?.name}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{p.bio || 'No biography available.'}</p>
 
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
                     <MapPin className="h-3.5 w-3.5 text-indigo-500" /> NY Metropolitan Area
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 pt-2">
-                    {p.categories.map((catId) => (
-                      <span key={catId} className="text-[10px] font-semibold px-2 py-0.5 bg-muted text-muted-foreground rounded capitalize">
-                        {catId.replace('-', ' ')}
+                      <span className="text-[10px] font-semibold px-2 py-0.5 bg-muted text-muted-foreground rounded capitalize">
+                        {p.category?.name}
                       </span>
-                    ))}
                   </div>
 
                   <div className="pt-4 flex items-center gap-3">

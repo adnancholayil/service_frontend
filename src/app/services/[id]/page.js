@@ -4,7 +4,8 @@ import React, { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Star, ShieldAlert, Sparkles, Clock, Check, Calendar, ArrowLeft } from 'lucide-react';
 
-import { MOCK_SERVICES, MOCK_PROVIDERS } from '../../../constants/mockData';
+const MOCK_SERVICES = [];
+const MOCK_PROVIDERS = [];
 import Card, { CardBody } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Avatar from '../../../components/ui/Avatar';

@@ -1,9 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { MOCK_NOTIFICATIONS } from '../../constants/mockData';
 
 const initialState = {
-  notifications: MOCK_NOTIFICATIONS,
-  unreadCount: MOCK_NOTIFICATIONS.filter(n => !n.read).length,
+  notifications: [],
+  unreadCount: 0,
 };
 
 const notificationSlice = createSlice({

@@ -1,46 +1,77 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { MessageSquare, Send, Sparkles, Smile, Image, Phone, Video } from 'lucide-react';
+import { useQuery, useMutation, useSubscription } from '@apollo/client/react';
 
 import Avatar from '../../components/ui/Avatar';
 import Button from '../../components/ui/Button';
-import { sendMessage, setActiveConversation } from '../../store/slices/chatSlice';
+import { setActiveConversation } from '../../store/slices/chatSlice';
+import { GET_CONVERSATIONS, GET_MESSAGES, SEND_MESSAGE, MESSAGE_SUBSCRIPTION } from '../../graphql/queries/chat';
 
 export default function MessagesPage() {
   const dispatch = useDispatch();
-  const { conversations, activeConversationId } = useSelector((state) => state.chat);
+  const { activeConversationId } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);
 
   const [messageText, setMessageText] = useState('');
 
-  const activeConversation = conversations.find(c => c.id === activeConversationId);
+  // GraphQL Queries
+  const { data: convData, loading: convLoading } = useQuery(GET_CONVERSATIONS);
+  const conversations = convData?.conversations || [];
 
-  const handleSendMessage = (e) => {
+  const { data: msgData, subscribeToMore } = useQuery(GET_MESSAGES, {
+    variables: { conversationId: activeConversationId },
+    skip: !activeConversationId,
+    fetchPolicy: 'cache-and-network'
+  });
+  
+  const [sendMessageMut] = useMutation(SEND_MESSAGE);
+
+  // Setup Subscription for real-time messages
+  React.useEffect(() => {
+    if (activeConversationId && subscribeToMore) {
+      const unsubscribe = subscribeToMore({
+        document: MESSAGE_SUBSCRIPTION,
+        variables: { conversationId: activeConversationId },
+        updateQuery: (prev, { subscriptionData }) => {
+          if (!subscriptionData.data) return prev;
+          const newMsg = subscriptionData.data.newMessage;
+          
+          // Don't add if already exists
+          if (prev.messages.some(m => m.id === newMsg.id)) return prev;
+
+          return Object.assign({}, prev, {
+            messages: [...prev.messages, newMsg]
+          });
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [activeConversationId, subscribeToMore]);
+
+  const activeConversation = conversations.find(c => c.id === activeConversationId);
+  const activeMessages = msgData?.messages || [];
+  
+  // Find the other participant for avatar/name
+  const otherParticipant = activeConversation?.participants?.find(p => p.id !== user?.id) || {};
+
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!messageText.trim() || !activeConversationId) return;
 
-    dispatch(sendMessage({
-      conversationId: activeConversationId,
-      text: messageText.trim(),
-      senderId: user?.id || 'cust-1'
-    }));
-
-    setMessageText('');
-
-    // Trigger mock auto-reply after 1.5 seconds for interactive feel
-    setTimeout(() => {
-      // Simulate socket or graphql subscription trigger
-      dispatch({
-        type: 'chat/receiveMessage',
-        payload: {
-          conversationId: activeConversationId,
-          text: 'Thanks for reaching out! Let me check the details and I will reply soon.',
-          senderId: activeConversation.user.id
+    try {
+      await sendMessageMut({
+        variables: {
+          recipientId: otherParticipant.id,
+          text: messageText.trim()
         }
       });
-    }, 1500);
+      setMessageText('');
+    } catch (err) {
+      console.error('Failed to send message:', err);
+    }
   };
 
   const handleBackToInbox = () => {
@@ -48,7 +79,7 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-0 sm:px-4 lg:px-4 flex flex-col h-[calc(100vh-4rem)] sm:h-[calc(100vh-4rem)] sm:py-6 overflow-hidden">
+    <div className="mx-auto w-full max-w-[1600px] px-0 sm:px-4 lg:px-4 flex flex-col h-[calc(100vh-4rem)] sm:h-[calc(100vh-4rem)] sm:py-6 overflow-hidden pb-16 sm:pb-0">
       
       {/* Title - Hide on mobile if conversation is active */}
       <div className={`px-4 sm:px-0 mb-2 sm:mb-4 shrink-0 pt-4 sm:pt-0 ${activeConversationId ? 'hidden sm:block' : 'block'}`}>
@@ -65,10 +96,14 @@ export default function MessagesPage() {
         <div className={`w-full sm:w-80 border-r border-border flex flex-col bg-card shrink-0 ${activeConversationId ? 'hidden sm:flex' : 'flex'}`}>
           <div className="p-4 border-b border-border font-bold text-foreground bg-muted/30">Inbox</div>
           <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-border/60">
-            {conversations.length === 0 ? (
+            {convLoading ? (
+              <div className="flex justify-center p-6"><div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent" /></div>
+            ) : conversations.length === 0 ? (
               <p className="text-xs text-muted-foreground text-center p-6 italic">No chats available</p>
             ) : (
-              conversations.map((conv) => (
+              conversations.map((conv) => {
+                const partner = conv.participants.find(p => p.id !== user?.id) || conv.participants[0];
+                return (
                 <div
                   key={conv.id}
                   onClick={() => dispatch(setActiveConversation(conv.id))}
@@ -76,23 +111,24 @@ export default function MessagesPage() {
                     activeConversationId === conv.id ? 'bg-muted' : ''
                   }`}
                 >
-                  <Avatar src={conv.user.avatar} alt={conv.user.name} size="md" />
+                  <Avatar src={partner?.avatar} alt={partner?.name} size="md" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-foreground truncate">{conv.user.name}</h4>
+                      <h4 className="text-sm font-bold text-foreground truncate">{partner?.name}</h4>
                       <span className="text-[10px] text-muted-foreground">
-                        {new Date(conv.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {conv.lastMessage ? new Date(parseInt(conv.updatedAt)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-1 leading-normal">
-                      {conv.lastMessage || 'Start conversation...'}
+                      {conv.lastMessage?.text || 'Start conversation...'}
                     </p>
                   </div>
-                  {conv.unread > 0 && (
+                  {conv.unreadCount > 0 && (
                     <span className="h-2 w-2 rounded-full bg-brand shrink-0" />
                   )}
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -111,10 +147,10 @@ export default function MessagesPage() {
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                   </button>
-                  <Avatar src={activeConversation.user.avatar} alt={activeConversation.user.name} size="sm" className="sm:h-10 sm:w-10 h-8 w-8" />
+                  <Avatar src={otherParticipant.avatar} alt={otherParticipant.name} size="sm" className="sm:h-10 sm:w-10 h-8 w-8" />
                   <div>
-                    <h4 className="text-sm font-bold text-foreground leading-tight sm:leading-snug">{activeConversation.user.name}</h4>
-                    <span className="text-[10px] text-muted-foreground capitalize">{activeConversation.user.role}</span>
+                    <h4 className="text-sm font-bold text-foreground leading-tight sm:leading-snug">{otherParticipant.name}</h4>
+                    <span className="text-[10px] text-muted-foreground capitalize">{otherParticipant.role}</span>
                   </div>
                 </div>
                 <div className="flex gap-1 sm:gap-2">
@@ -125,8 +161,8 @@ export default function MessagesPage() {
 
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-                {activeConversation.messages.map((msg) => {
-                  const isMe = msg.senderId === user?.id || msg.senderId === 'cust-1';
+                {activeMessages.map((msg) => {
+                  const isMe = msg.sender.id === user?.id;
                   return (
                     <div
                       key={msg.id}
@@ -145,7 +181,7 @@ export default function MessagesPage() {
                             isMe ? 'text-indigo-200 text-right' : 'text-muted-foreground text-right'
                           }`}
                         >
-                          {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(parseInt(msg.createdAt)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
                     </div>

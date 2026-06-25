@@ -2,21 +2,23 @@ import { gql } from '@apollo/client';
 
 export const GET_MY_BOOKINGS = gql`
   query GetMyBookings {
-    myBookings {
+    bookings {
       id
       service {
         id
-        title
+        name
         price
       }
       provider {
         id
-        name
-        avatar
+        businessName
+        user {
+          name
+          avatar
+        }
       }
       address
-      date
-      time
+      bookingDate
       notes
       status
       paymentStatus
@@ -27,19 +29,21 @@ export const GET_MY_BOOKINGS = gql`
 
 export const GET_BOOKING_BY_ID = gql`
   query GetBookingById($id: ID!) {
-    booking(id: $id) {
+    bookingDetails(id: $id) {
       id
       service {
         id
-        title
+        name
         price
         description
       }
       provider {
         id
-        name
-        avatar
-        title
+        businessName
+        user {
+          name
+          avatar
+        }
       }
       customer {
         id
@@ -47,8 +51,7 @@ export const GET_BOOKING_BY_ID = gql`
         email
       }
       address
-      date
-      time
+      bookingDate
       notes
       status
       paymentStatus

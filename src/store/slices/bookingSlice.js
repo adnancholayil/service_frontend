@@ -1,8 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { MOCK_BOOKINGS } from '../../constants/mockData';
 
 const initialState = {
-  bookings: MOCK_BOOKINGS,
+  bookings: [],
   currentBookingFlow: {
     step: 1, // 1 to 8
     service: null,

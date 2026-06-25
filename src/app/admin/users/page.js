@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MOCK_USERS } from '../../../constants/mockData';
+const MOCK_USERS = [];
 import { Sparkles, Users, UserCheck } from 'lucide-react';
 import Card, { CardBody } from '../../../components/ui/Card';
 import Avatar from '../../../components/ui/Avatar';

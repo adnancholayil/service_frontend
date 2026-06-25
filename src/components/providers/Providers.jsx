@@ -22,15 +22,15 @@ const queryClient = new QueryClient({
 
 export function Providers({ children }) {
   return (
-    <ReduxProvider store={store}>
-      <PersistGate loading={
-        <div className="flex h-screen items-center justify-center bg-background">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        </div>
-      } persistor={persistor}>
-        <ApolloProvider client={apolloClient}>
-          <QueryClientProvider client={queryClient}>
-            <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <ReduxProvider store={store}>
+        <PersistGate loading={
+          <div className="flex h-screen items-center justify-center bg-background">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          </div>
+        } persistor={persistor}>
+          <ApolloProvider client={apolloClient}>
+            <QueryClientProvider client={queryClient}>
               {children}
               <Toaster
                 position="top-right"
@@ -43,11 +43,11 @@ export function Providers({ children }) {
                   },
                 }}
               />
-            </ThemeProvider>
-          </QueryClientProvider>
-        </ApolloProvider>
-      </PersistGate>
-    </ReduxProvider>
+            </QueryClientProvider>
+          </ApolloProvider>
+        </PersistGate>
+      </ReduxProvider>
+    </ThemeProvider>
   );
 }
 

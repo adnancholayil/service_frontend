@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CATEGORIES } from '../../../constants/mockData';
+const CATEGORIES = [];
 import { Sparkles, Plus, Trash2, FolderTree } from 'lucide-react';
 import Card, { CardBody } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';

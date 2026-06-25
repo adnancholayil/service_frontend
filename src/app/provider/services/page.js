@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Sparkles, Plus, Check, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import { MOCK_SERVICES } from '../../../constants/mockData';
+const MOCK_SERVICES = [];
 import { addProviderService, removeProviderService } from '../../../store/slices/providerSlice';
 import Card, { CardBody } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';

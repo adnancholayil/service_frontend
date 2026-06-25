@@ -10,10 +10,13 @@ import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import { cancelBooking } from '../../store/slices/bookingSlice';
 import toast from 'react-hot-toast';
+import { useQuery } from '@apollo/client/react';
+import { GET_MY_BOOKINGS } from '../../graphql/queries/bookings';
 
 export default function BookingsPage() {
   const dispatch = useDispatch();
-  const bookings = useSelector((state) => state.booking.bookings);
+  const { data, loading, error } = useQuery(GET_MY_BOOKINGS);
+  const bookings = data?.bookings || [];
   const [filterStatus, setFilterStatus] = useState('all');
 
   const getStatusVariant = (status) => {
@@ -39,6 +42,14 @@ export default function BookingsPage() {
   const filteredBookings = filterStatus === 'all'
     ? bookings
     : bookings.filter(b => b.status === filterStatus);
+
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-[1600px] px-2 sm:px-4 lg:px-4 py-20 flex justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-[1600px] px-2 sm:px-4 lg:px-4 py-6 sm:py-10 space-y-6 sm:space-y-8 flex-1">
@@ -99,15 +110,15 @@ export default function BookingsPage() {
                 <div className="flex-1 space-y-4">
                   <div className="flex justify-between items-start gap-3">
                     <div>
-                      <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">{b.service.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">Service Partner: <span className="font-semibold text-brand">{b.providerName}</span></p>
+                      <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">{b.service.name}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">Service Partner: <span className="font-semibold text-brand">{b.provider.businessName}</span></p>
                     </div>
                   </div>
                   
                   {/* Info Grid */}
                   <div className="bg-brand/5 dark:bg-brand/10 border border-brand/10 rounded-xl p-3 grid grid-cols-2 gap-3 text-xs font-medium text-foreground/80">
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> {b.date}</span>
-                    <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {b.time}</span>
+                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleDateString()}</span>
+                    <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     <span className="flex items-center gap-1.5 col-span-2 text-wrap"><MapPin className="h-3.5 w-3.5 shrink-0 text-brand" /> {b.address}</span>
                   </div>
                 </div>

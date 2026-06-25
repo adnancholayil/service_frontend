@@ -1,8 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { MOCK_CONVERSATIONS } from '../../constants/mockData';
 
 const initialState = {
-  conversations: MOCK_CONVERSATIONS,
+  conversations: [],
   activeConversationId: null,
   loading: false,
   error: null,

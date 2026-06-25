@@ -1,43 +1,31 @@
 import { gql } from '@apollo/client';
 
-export const GET_SERVICES = gql`
-  query GetServices($category: String) {
-    services(category: $category) {
-      id
-      title
-      category
-      price
-      duration
-      rating
-      description
-    }
-  }
-`;
-
-export const GET_SERVICE_BY_ID = gql`
-  query GetServiceById($id: ID!) {
-    service(id: $id) {
-      id
-      title
-      category
-      price
-      duration
-      rating
-      description
-    }
-  }
-`;
-
-export const GET_PROVIDERS = gql`
-  query GetProviders($category: String) {
-    providers(category: $category) {
+export const GET_SERVICES_PAGE_DATA = gql`
+  query GetServicesPageData($category: ID, $search: String) {
+    categories {
       id
       name
-      title
-      avatar
-      rating
-      reviewsCount
-      categories
+      slug
+      icon
+    }
+    globalServices(category: $category, search: $search) {
+      id
+      name
+      description
+      price
+      category {
+        name
+      }
+      provider {
+        id
+        businessName
+        rating
+        reviewsCount
+        user {
+          name
+          avatar
+        }
+      }
     }
   }
 `;
