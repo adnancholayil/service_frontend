@@ -8,6 +8,8 @@ import { Sparkles, User, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
+import { useMutation } from '@apollo/client/react';
+import { REGISTER_MUTATION } from '../../graphql/mutations/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -15,46 +17,58 @@ export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useDispatch();
 
-  const [role, setRole] = useState('customer'); // customer, provider
+  const [role, setRole] = useState('CUSTOMER'); // CUSTOMER, PROVIDER
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegisterSubmit = (e) => {
+  const [registerMut] = useMutation(REGISTER_MUTATION);
+
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (!name || !email || !password) {
       toast.error('Please fill in all fields');
+      return;
+    }
+    if (password.length < 6) {
+      toast.error('Password must be at least 6 characters');
       return;
     }
 
     setIsLoading(true);
     dispatch(loginStart());
 
-    // Mock register
-    setTimeout(() => {
-      const newUser = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        role,
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150', // default avatar
-      };
+    try {
+      const { data } = await registerMut({
+        variables: { name, email, password, role }
+      });
 
-      // Set cookies for middleware
-      document.cookie = `auth_token=mock-jwt-token-registered; path=/; max-age=86400`;
-      document.cookie = `user_role=${role}; path=/; max-age=86400`;
+      if (data?.register) {
+        const { accessToken, refreshToken, user } = data.register;
 
-      dispatch(loginSuccess({ user: newUser, token: 'mock-jwt-token-registered' }));
-      toast.success(`Welcome to ServiceHub, ${name}!`);
-      setIsLoading(false);
+        // Set cookies for middleware
+        document.cookie = `auth_token=${accessToken}; path=/; max-age=86400`;
+        document.cookie = `user_role=${user.role}; path=/; max-age=86400`;
+        localStorage.setItem('token', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
 
-      if (role === 'provider') {
-        router.push('/provider/dashboard');
-      } else {
-        router.push('/');
+        dispatch(loginSuccess({ user, token: accessToken }));
+        toast.success(`Welcome to ServiceHub, ${user.name}! 🎉`);
+
+        if (user.role === 'PROVIDER') {
+          router.push('/provider/dashboard');
+        } else {
+          router.push('/');
+        }
       }
-    }, 1200);
+    } catch (err) {
+      console.error(err);
+      dispatch(loginFailure(err.message || 'Registration failed'));
+      toast.error(err.message || 'Could not create account. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -84,9 +98,9 @@ export default function RegisterPage() {
         <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
           <button
             type="button"
-            onClick={() => setRole('customer')}
+            onClick={() => setRole('CUSTOMER')}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-              role === 'customer'
+              role === 'CUSTOMER'
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
@@ -96,9 +110,9 @@ export default function RegisterPage() {
           </button>
           <button
             type="button"
-            onClick={() => setRole('provider')}
+            onClick={() => setRole('PROVIDER')}
             className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
-              role === 'provider'
+              role === 'PROVIDER'
                 ? 'bg-card text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
@@ -138,7 +152,7 @@ export default function RegisterPage() {
             type="password"
             label="Password"
             required
-            placeholder="••••••••"
+            placeholder="Min. 6 characters"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
@@ -148,7 +162,7 @@ export default function RegisterPage() {
             isLoading={isLoading}
             className="w-full justify-center mt-6"
           >
-            Sign Up as {role === 'provider' ? 'Service Partner' : 'Customer'}
+            Sign Up as {role === 'PROVIDER' ? 'Service Partner' : 'Customer'}
           </Button>
         </form>
 

@@ -20,28 +20,23 @@ export default function BookingsPage() {
   const [filterStatus, setFilterStatus] = useState('all');
 
   const getStatusVariant = (status) => {
-    switch (status) {
-      case 'completed':
-        return 'success';
-      case 'cancelled':
-        return 'danger';
-      case 'pending':
-        return 'warning';
-      default:
-        return 'primary';
+    switch (status?.toUpperCase()) {
+      case 'COMPLETED': return 'success';
+      case 'CANCELLED': return 'danger';
+      case 'PENDING': return 'warning';
+      case 'ACCEPTED': return 'primary';
+      case 'IN_PROGRESS': return 'primary';
+      default: return 'default';
     }
   };
 
   const handleCancelBooking = (bookingId) => {
-    if (window.confirm('Are you sure you want to cancel this booking?')) {
-      dispatch(cancelBooking(bookingId));
-      toast.success('Booking cancelled successfully');
-    }
+    toast.error('Cancel booking via backend is coming soon.');
   };
 
   const filteredBookings = filterStatus === 'all'
     ? bookings
-    : bookings.filter(b => b.status === filterStatus);
+    : bookings.filter(b => b.status?.toUpperCase() === filterStatus.toUpperCase());
 
   if (loading) {
     return (
@@ -65,7 +60,7 @@ export default function BookingsPage() {
 
       {/* Filter Tabs */}
       <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
-        {['all', 'pending', 'completed', 'cancelled'].map((status) => (
+        {['all', 'PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
@@ -100,8 +95,8 @@ export default function BookingsPage() {
                   </span>
                   <div className="flex gap-2">
                     <Badge variant={getStatusVariant(b.status)} className="text-[9px] sm:text-[10px] px-2 py-0.5">{b.status}</Badge>
-                    <Badge variant={b.paymentStatus === 'paid' ? 'success' : 'default'} className="text-[9px] sm:text-[10px] px-2 py-0.5">
-                      {b.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                    <Badge variant={b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'success' : 'default'} className="text-[9px] sm:text-[10px] px-2 py-0.5">
+                      {b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'Paid' : 'Unpaid'}
                     </Badge>
                   </div>
                 </div>
@@ -119,7 +114,7 @@ export default function BookingsPage() {
                   <div className="bg-brand/5 dark:bg-brand/10 border border-brand/10 rounded-xl p-3 grid grid-cols-2 gap-3 text-xs font-medium text-foreground/80">
                     <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleDateString()}</span>
                     <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    <span className="flex items-center gap-1.5 col-span-2 text-wrap"><MapPin className="h-3.5 w-3.5 shrink-0 text-brand" /> {b.address}</span>
+                    <span className="flex items-center gap-1.5 col-span-2 text-wrap"><MapPin className="h-3.5 w-3.5 shrink-0 text-brand" /> {b.location?.address || 'Address not set'}</span>
                   </div>
                 </div>
                 
@@ -127,7 +122,7 @@ export default function BookingsPage() {
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div>
                     <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Amount Paid</p>
-                    <p className="text-lg sm:text-xl font-extrabold text-brand">${b.service.price}</p>
+                    <p className="text-lg sm:text-xl font-extrabold text-brand">${b.totalPrice ?? b.service?.price ?? '—'}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/bookings/${b.id}`}>
@@ -135,7 +130,7 @@ export default function BookingsPage() {
                         <Eye className="h-3.5 w-3.5 mr-1" /> Details
                       </Button>
                     </Link>
-                    {b.status === 'pending' && (
+                    {(b.status === 'PENDING' || b.status === 'pending') && (
                       <Button
                         size="sm"
                         variant="danger"

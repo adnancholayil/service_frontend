@@ -247,11 +247,8 @@ export default function HomePage() {
                         <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                       </span>
                       <h3 className="font-semibold text-foreground mt-3 sm:mt-4 text-xs sm:text-sm group-hover:text-brand transition-colors">
-                        {cat.name}
+                      {cat.name}
                       </h3>
-                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 line-clamp-2">
-                        {cat.description}
-                      </p>
                     </div>
                   </Link>
                 </motion.div>

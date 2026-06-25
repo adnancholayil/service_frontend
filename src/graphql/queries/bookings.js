@@ -17,11 +17,14 @@ export const GET_MY_BOOKINGS = gql`
           avatar
         }
       }
-      address
+      location {
+        address
+      }
       bookingDate
       notes
       status
       paymentStatus
+      totalPrice
       createdAt
     }
   }

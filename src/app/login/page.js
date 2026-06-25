@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { Shield, Sparkles, Mail, Lock } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
@@ -13,7 +13,7 @@ import { LOGIN_MUTATION } from '../../graphql/mutations/auth';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
@@ -42,13 +42,14 @@ export default function LoginPage() {
       });
       
       if (data?.login) {
-        const { token, user } = data.login;
+        const { accessToken, refreshToken, user } = data.login;
         // Set cookies for middleware
-        document.cookie = `auth_token=${token}; path=/; max-age=86400`;
+        document.cookie = `auth_token=${accessToken}; path=/; max-age=86400`;
         document.cookie = `user_role=${user.role}; path=/; max-age=86400`;
-        localStorage.setItem('token', token);
+        localStorage.setItem('token', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
         
-        dispatch(loginSuccess({ user, token }));
+        dispatch(loginSuccess({ user, token: accessToken }));
         toast.success(`Welcome back, ${user.name}!`);
 
         // Redirect based on role
@@ -65,7 +66,7 @@ export default function LoginPage() {
     } catch (err) {
       console.error(err);
       dispatch(loginFailure(err.message || 'Invalid email or password'));
-      toast.error(err.message || 'User not found or invalid credentials.');
+      toast.error(err.message || 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -73,12 +74,8 @@ export default function LoginPage() {
 
   const handleQuickLogin = (userEmail) => {
     setEmail(userEmail);
-    setPassword('password');
+    setPassword('password123');
     toast.success('Fields pre-filled! Click Log In.');
-  };
-
-  const handleGoogleLogin = () => {
-    toast.error('Google login is not yet implemented with the backend.');
   };
 
   return (
@@ -146,59 +143,32 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        {/* Separator */}
-        <div className="relative flex py-2 items-center">
-          <div className="flex-grow border-t border-border"></div>
-          <span className="flex-shrink mx-4 text-xs text-muted-foreground">Or continue with</span>
-          <div className="flex-grow border-t border-border"></div>
-        </div>
-
-        {/* Google Login button */}
-        <Button
-          onClick={handleGoogleLogin}
-          variant="outline"
-          className="w-full flex items-center justify-center gap-2 border-border"
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24">
-            <path
-              fill="#EA4335"
-              d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.44 0-6.228-2.788-6.228-6.228 0-3.44 2.788-6.228 6.228-6.228 1.496 0 2.868.537 3.943 1.425l3.11-3.11C18.99 1.952 15.823 1 12.24 1c-6.075 0-11 4.925-11 11s4.925 11 11 11c5.62 0 10.22-3.985 10.22-9.68 0-.616-.055-1.228-.15-1.83H12.24z"
-            />
-          </svg>
-          Google
-        </Button>
-
-        {/* Quick Mock Login Buttons */}
-        <div className="border-t border-border pt-6 space-y-3">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">
-            Demo Quick Login
+        {/* Quick Login hint for demo */}
+        <div className="border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground text-center">
+            Use your registered email and password to log in.
           </p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('john@example.com')}
-              className="px-2 py-1.5 text-[10px] font-semibold border border-indigo-200 dark:border-indigo-900 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/20 text-indigo-700 dark:text-indigo-400 cursor-pointer"
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('alex@servicehub.com')}
-              className="px-2 py-1.5 text-[10px] font-semibold border border-emerald-200 dark:border-emerald-900 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 cursor-pointer"
-            >
-              Provider
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickLogin('admin@servicehub.com')}
-              className="px-2 py-1.5 text-[10px] font-semibold border border-rose-200 dark:border-rose-900 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-700 dark:text-rose-400 cursor-pointer"
-            >
-              Admin
-            </button>
-          </div>
+          <p className="text-xs text-muted-foreground text-center mt-1">
+            Don&apos;t have an account?{' '}
+            <Link href="/register" className="font-semibold text-brand">
+              Sign up here
+            </Link>
+          </p>
         </div>
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
