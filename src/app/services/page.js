@@ -123,7 +123,11 @@ function ServicesContent() {
       </div>
 
       {/* Grid listing */}
-      {filteredServices.length === 0 ? (
+      {loading ? (
+        <div className="py-20 flex justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        </div>
+      ) : filteredServices.length === 0 ? (
         <div className="text-center py-20 bg-card border border-border rounded-2xl flex flex-col items-center justify-center space-y-3">
           <Filter className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground opacity-40" />
           <h3 className="font-bold text-base sm:text-lg text-muted-foreground">No services found</h3>
@@ -131,12 +135,7 @@ function ServicesContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {loading ? (
-            <div className="col-span-full py-10 flex justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-            </div>
-          ) : (
-          filteredServices.map((srv) => {
+          {filteredServices.map((srv) => {
             const provider = srv.provider;
             return (
               <Card key={srv.id} className="flex flex-col bg-card relative">
@@ -146,7 +145,7 @@ function ServicesContent() {
                       {srv.category?.name || 'Service'}
                     </span>
                     <span className="flex items-center gap-1 text-xs sm:text-sm font-semibold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                      <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-500 text-amber-500" /> {provider?.rating || 5.0}
+                      <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-500 text-amber-500" /> {provider?.rating || '5.0'}
                     </span>
                   </div>
                   <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 leading-tight">{srv.name}</h3>
@@ -180,8 +179,7 @@ function ServicesContent() {
                 </CardBody>
               </Card>
             );
-          })
-          )}
+          })}
         </div>
       )}
     </div>

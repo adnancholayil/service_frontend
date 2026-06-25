@@ -1,20 +1,18 @@
 import { gql } from '@apollo/client';
 
 export const CREATE_BOOKING_MUTATION = gql`
-  mutation CreateBooking($input: CreateBookingInput!) {
-    createBooking(input: $input) {
+  mutation CreateBooking($serviceId: ID!, $bookingDate: String!, $address: String!, $coordinates: [Float!]!, $notes: String) {
+    createBooking(serviceId: $serviceId, bookingDate: $bookingDate, address: $address, coordinates: $coordinates, notes: $notes) {
       id
       service {
         id
-        title
+        name
       }
       provider {
         id
-        name
+        businessName
       }
-      address
-      date
-      time
+      bookingDate
       status
       paymentStatus
     }

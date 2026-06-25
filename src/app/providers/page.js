@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Star, Sparkles, CheckCircle2, SlidersHorizontal, MapPin } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +20,6 @@ function ProvidersContent() {
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [searchTerm, setSearchTerm] = useState(searchParam);
-  const [filteredProviders, setFilteredProviders] = useState([]);
 
   const categoryFilter = categoryParam === 'all' ? null : categoryParam;
 
@@ -40,22 +39,22 @@ function ProvidersContent() {
     setSearchTerm(searchParam);
   }, [searchParam]);
 
-  useEffect(() => {
+  // Derive filteredProviders without useEffect to avoid infinite loops
+  const filteredProviders = useMemo(() => {
     let result = providers.filter(p => p.verificationStatus === 'VERIFIED');
 
-    // Filter by Search Term (Category is handled by API)
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase();
       result = result.filter(
         p =>
           p.businessName?.toLowerCase().includes(term) ||
           p.category?.name?.toLowerCase().includes(term) ||
-          p.bio?.toLowerCase().includes(term) ||
+          p.description?.toLowerCase().includes(term) ||
           p.user?.name?.toLowerCase().includes(term)
       );
     }
 
-    setFilteredProviders(result);
+    return result;
   }, [providers, searchTerm]);
 
   if (loading) {

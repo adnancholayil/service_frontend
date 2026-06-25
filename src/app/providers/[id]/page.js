@@ -20,9 +20,10 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-import { useQuery } from '@apollo/client/react';
+import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_PROVIDER_DETAILS } from '../../../graphql/queries/provider';
-import { startBookingFlow, updateBookingStep, resetBookingFlow, createBooking } from '../../../store/slices/bookingSlice';
+import { CREATE_BOOKING_MUTATION } from '../../../graphql/mutations/bookings';
+import { startBookingFlow, updateBookingStep, resetBookingFlow } from '../../../store/slices/bookingSlice';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Avatar from '../../../components/ui/Avatar';
@@ -137,40 +138,32 @@ export default function ProviderDetailPage({ params }) {
     }
   };
 
-  const handleCompleteBooking = () => {
+  const [createBookingMut] = useMutation(CREATE_BOOKING_MUTATION);
+
+  const handleCompleteBooking = async () => {
     setIsSubmitting(true);
-    toast.loading('Processing payment...');
+    const loadingToast = toast.loading('Processing payment...');
 
-    setTimeout(() => {
-      toast.dismiss();
-      const newBookingId = `bk-${Math.floor(100 + Math.random() * 900)}`;
-      
-      const newBooking = {
-        id: newBookingId,
-        customerId: user?.id || 'cust-1',
-        customerName: user?.name || 'John Doe',
-        providerId: provider.id,
-        providerName: provider.name,
-        service: {
-          id: selectedService.id,
-          title: selectedService.title,
-          price: selectedService.price,
-        },
-        address: selectedAddress.address,
-        date: bookingDate,
-        time: bookingTime,
-        notes: bookingNotes,
-        status: 'pending',
-        paymentStatus: 'paid',
-        createdAt: new Date().toISOString()
-      };
-
-      dispatch(createBooking(newBooking));
-      setConfirmedBookingId(newBookingId);
+    try {
+      const { data: bookData } = await createBookingMut({
+        variables: {
+          serviceId: selectedService.id,
+          bookingDate: `${bookingDate}T${bookingTime === '09:00 AM' ? '09:00' : bookingTime === '11:00 AM' ? '11:00' : bookingTime === '02:00 PM' ? '14:00' : '16:00'}:00.000Z`,
+          address: selectedAddress?.address || 'Address not provided',
+          coordinates: [0, 0],
+          notes: bookingNotes
+        }
+      });
+      toast.dismiss(loadingToast);
+      setConfirmedBookingId(bookData?.createBooking?.id || 'N/A');
       setIsSubmitting(false);
-      setBookingStep(8); // success step
+      setBookingStep(8);
       toast.success('Booking created successfully!');
-    }, 1500);
+    } catch (err) {
+      toast.dismiss(loadingToast);
+      toast.error(err.message || 'Booking failed. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -201,11 +194,15 @@ export default function ProviderDetailPage({ params }) {
     <div className="flex-grow flex flex-col bg-background">
       {/* 1. Cover Image Header */}
       <div className="h-40 sm:h-64 w-full relative bg-muted">
-        <img
-          src={provider.coverImage}
-          alt={provider.name}
-          className="w-full h-full object-cover"
-        />
+        {provider.banner ? (
+          <img
+            src={provider.banner}
+            alt={provider.businessName}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-brand/40 via-indigo-500/30 to-purple-600/40" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/30" />
         
         {/* Back navigation inside cover */}
@@ -264,7 +261,7 @@ export default function ProviderDetailPage({ params }) {
               <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-1.5 sm:gap-2">
                 About {provider.businessName}
               </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{provider.about}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{provider.description || 'No biography available.'}</p>
             </div>
 
             {/* Services catalog offered */}
@@ -317,38 +314,27 @@ export default function ProviderDetailPage({ params }) {
             {/* Reviews */}
             <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-5">
               <h2 className="text-base sm:text-lg font-black text-foreground">Customer Reviews</h2>
-              <div className="space-y-3 sm:space-y-4 divide-y divide-border/50">
-                {provider.reviews.map((rev) => (
-                  <div key={rev.id} className="pt-3 sm:pt-4 first:pt-0 space-y-2 sm:space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <Avatar src={`https://ui-avatars.com/api/?name=${rev.user}&background=random`} alt={rev.user} size="sm" className="h-6 w-6 sm:h-8 sm:w-8 rounded-full" />
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-foreground">{rev.user}</h4>
-                          <div className="flex items-center gap-0.5 text-amber-500 mt-0.5">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-2.5 w-2.5 sm:h-3 sm:w-3 ${
-                                  i < Math.floor(rev.rating) ? 'fill-amber-500' : 'text-zinc-300 dark:text-zinc-700'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                      <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium bg-muted px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md">{rev.date}</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed pl-8 sm:pl-11">&ldquo;{rev.comment}&rdquo;</p>
+              {provider.reviewsCount > 0 ? (
+                <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
+                  <div className="flex items-center gap-1 text-amber-500">
+                    <Star className="h-5 w-5 fill-amber-500" />
+                    <span className="text-xl font-black text-foreground">{provider.rating}</span>
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{provider.reviewsCount} Reviews</p>
+                    <p className="text-xs text-muted-foreground">Based on verified bookings</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">No reviews yet. Be the first to book!</p>
+              )}
             </div>
           </div>
 
           {/* Right Column: Sidebar Availability */}
           <div className="lg:col-span-4 space-y-4 sm:space-y-6">
             <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-5 sticky top-20 sm:top-24">
+              {/* No availability data in backend, show a static placeholder */}
               <div className="bg-brand/5 border border-brand/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 text-brand">
                 <div className="p-1.5 sm:p-2 bg-brand/10 rounded-lg sm:rounded-xl">
                   <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -363,18 +349,15 @@ export default function ProviderDetailPage({ params }) {
                 <div className="space-y-1 sm:space-y-1.5">
                   <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Operating Days</span>
                   <div className="flex flex-wrap gap-1 sm:gap-1.5">
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                      <span key={day} className={`text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border font-semibold ${provider.availability.days.includes(day) ? 'bg-background text-foreground border-border' : 'bg-muted/30 text-muted-foreground/30 border-transparent line-through'}`}>
-                        {day.substring(0, 3)}
-                      </span>
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <span key={day} className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border font-semibold bg-background text-foreground border-border">{day}</span>
                     ))}
                   </div>
                 </div>
                 <div className="space-y-1 sm:space-y-1.5 pt-1 sm:pt-2 border-t border-border/50">
                   <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Working Hours</span>
                   <div className="flex items-center gap-1.5 sm:gap-2 font-bold text-foreground text-xs sm:text-sm bg-muted/40 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-border/50">
-                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand" />
-                    {provider.availability.hours[0]}
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand" /> 09:00 AM – 06:00 PM
                   </div>
                 </div>
               </div>
@@ -394,7 +377,7 @@ export default function ProviderDetailPage({ params }) {
       </div>
 
       {/* 3. MULTI-STEP BOOKING WIZARD MODAL (8 steps) */}
-      <Modal isOpen={isBookingModalOpen} onClose={handleCloseModal} title={`Book ${provider.name}`}>
+      <Modal isOpen={isBookingModalOpen} onClose={handleCloseModal} title={`Book ${provider.businessName}`}>
         <div className="space-y-6">
           
           {/* Progress Indicator Bar */}
@@ -419,7 +402,7 @@ export default function ProviderDetailPage({ params }) {
               <div className="space-y-4">
                 <div>
                   <h4 className="font-bold text-foreground">Select Service</h4>
-                  <p className="text-xs text-muted-foreground mt-0.5">Which service do you need {provider.name} to perform?</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Which service do you need {provider.businessName} to perform?</p>
                 </div>
                 <div className="space-y-2">
                   {services.map((srv) => (
@@ -433,8 +416,8 @@ export default function ProviderDetailPage({ params }) {
                       }`}
                     >
                       <div>
-                        <p className="text-sm font-semibold">{srv.title}</p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{provider.bio || 'No biography available.'}</p>
+                        <p className="text-sm font-semibold">{srv.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{srv.description}</p>
                       </div>
                       <span className="font-bold text-foreground">${srv.price}</span>
                     </div>
@@ -547,11 +530,11 @@ export default function ProviderDetailPage({ params }) {
                 <div className="border border-border rounded-xl divide-y divide-border bg-zinc-50/40 dark:bg-zinc-900/20 overflow-hidden text-xs">
                   <div className="p-3 flex justify-between">
                     <span className="font-semibold text-muted-foreground">Provider</span>
-                    <span className="font-bold text-foreground">{provider.name}</span>
+                    <span className="font-bold text-foreground">{provider.businessName}</span>
                   </div>
                   <div className="p-3 flex justify-between">
                     <span className="font-semibold text-muted-foreground">Service Item</span>
-                    <span className="font-bold text-foreground">{selectedService?.title}</span>
+                    <span className="font-bold text-foreground">{selectedService?.name}</span>
                   </div>
                   <div className="p-3 flex justify-between">
                     <span className="font-semibold text-muted-foreground">Scheduled Time</span>
@@ -621,7 +604,7 @@ export default function ProviderDetailPage({ params }) {
                   <p className="text-xs text-muted-foreground">Your appointment ID is <span className="font-bold text-foreground">{confirmedBookingId}</span></p>
                 </div>
                 <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                  Alex Mercer has been notified and will arrive on <span className="font-semibold text-foreground">{bookingDate}</span> at <span className="font-semibold text-foreground">{bookingTime}</span>.
+                  {provider.businessName} has been notified and will arrive on <span className="font-semibold text-foreground">{bookingDate}</span> at <span className="font-semibold text-foreground">{bookingTime}</span>.
                 </p>
                 <div className="pt-4 flex gap-2">
                   <Button variant="outline" className="flex-1 rounded-xl" onClick={handleCloseModal}>
