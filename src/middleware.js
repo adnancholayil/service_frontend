@@ -5,7 +5,7 @@ export function middleware(request) {
   
   // Retrieve token and role from cookies
   const token = request.cookies.get('auth_token')?.value;
-  const role = request.cookies.get('user_role')?.value;
+  const role = request.cookies.get('user_role')?.value?.toLowerCase();
 
   // Paths requiring authentication
   const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password') || pathname.startsWith('/reset-password') || pathname.startsWith('/verify-otp');

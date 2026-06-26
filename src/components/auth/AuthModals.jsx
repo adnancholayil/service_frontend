@@ -82,9 +82,10 @@ export default function AuthModals() {
         const redirectPath = searchParams.get('redirect');
         if (redirectPath) {
           router.push(redirectPath);
-        } else if (pathname === '/') {
+        } else {
           if (user.role === 'ADMIN') router.push('/admin/dashboard');
           else if (user.role === 'PROVIDER') router.push('/provider/dashboard');
+          else router.push('/');
         }
       }
     } catch (err) {
@@ -144,6 +145,8 @@ export default function AuthModals() {
 
         if (user.role === 'PROVIDER') {
           router.push('/provider/dashboard');
+        } else {
+          router.push('/');
         }
       }
     } catch (err) {
@@ -178,9 +181,10 @@ export default function AuthModals() {
         const redirectPath = searchParams.get('redirect');
         if (redirectPath) {
           router.push(redirectPath);
-        } else if (pathname === '/') {
+        } else {
           if (user.role === 'ADMIN') router.push('/admin/dashboard');
           else if (user.role === 'PROVIDER') router.push('/provider/dashboard');
+          else router.push('/');
         }
       }
     } catch (err) {
@@ -234,26 +238,30 @@ export default function AuthModals() {
           </p>
         </div>
 
-        <div className="flex justify-center w-full py-2">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => toast.error('Google Login failed')}
-            useOneTap
-            shape="rectangular"
-            theme="outline"
-            text={authModalType === 'login' ? 'signin_with' : 'signup_with'}
-            size="large"
-          />
-        </div>
+        {!(authModalType === 'register' && role === 'PROVIDER') && (
+          <>
+            <div className="flex justify-center w-full py-2">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google Login failed')}
+                useOneTap
+                shape="rectangular"
+                theme="outline"
+                text={authModalType === 'login' ? 'signin_with' : 'signup_with'}
+                size="large"
+              />
+            </div>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
-          </div>
-        </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
+              </div>
+            </div>
+          </>
+        )}
 
         {authModalType === 'login' ? (
           <form onSubmit={handleLoginSubmit} className="space-y-4">

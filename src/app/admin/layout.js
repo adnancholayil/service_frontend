@@ -12,7 +12,8 @@ import {
   Star,
   Image,
   FileBarChart2,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
@@ -30,29 +31,30 @@ export default function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex-1 flex flex-col md:flex-row bg-slate-50 min-h-screen text-slate-900 font-sans">
       
       {/* Sidebar navigation */}
-      <aside className="hidden md:flex w-full md:w-64 border-r border-border bg-card shrink-0 p-4 md:sticky md:top-16 md:h-[calc(100vh-4rem)] flex-col justify-between">
-        <div className="space-y-6">
+      <aside className="hidden md:flex w-full md:w-64 border-r border-slate-200 bg-white shrink-0 py-8 px-5 md:sticky md:top-16 md:h-[calc(100vh-4rem)] flex-col justify-between shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
+        <div className="space-y-8">
           <div className="px-3">
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 bg-rose-500/10 text-rose-600 rounded-full">
-              <ShieldAlert className="h-3.5 w-3.5" /> Admin Control
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-indigo-500" />
+              Admin Portal
             </span>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-1.5">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
               return (
                 <Link key={item.href} href={item.href}>
-                  <span className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold rounded-lg transition-all cursor-pointer ${
+                  <span className={`group flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
                     isActive
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-indigo-50 text-indigo-700'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                   }`}>
-                    <Icon className="h-4.5 w-4.5" />
+                    <Icon className={`h-4.5 w-4.5 ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
                     {item.label}
                   </span>
                 </Link>
@@ -61,13 +63,22 @@ export default function AdminLayout({ children }) {
           </nav>
         </div>
 
-        <div className="p-3 border-t border-border mt-auto hidden md:block">
-          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">ServiceHub Admin Console</p>
+        <div className="px-3 pb-2 mt-auto hidden md:block">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">ServiceHub</p>
+              <p className="text-xs font-semibold text-slate-800">Admin Console</p>
+            </div>
+          </div>
         </div>
       </aside>
 
       {/* Main dashboard content */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto no-scrollbar">
+      <main className="flex-1 p-6 md:p-10 lg:p-12 overflow-y-auto relative">
+        <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-50/50 to-transparent -z-10 pointer-events-none" />
         {children}
       </main>
 

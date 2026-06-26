@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useSelector } from 'react-redux';
+import { useQuery } from '@apollo/client/react';
 import {
   Users,
   Briefcase,
@@ -9,136 +9,152 @@ import {
   AlertTriangle,
   Sparkles,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  Activity,
+  CheckCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
-import Card, { CardBody } from '../../../components/ui/Card';
+import { ADMIN_DASHBOARD_STATS_QUERY, ADMIN_PROVIDERS_QUERY } from '../../../graphql/queries/admin';
 import Avatar from '../../../components/ui/Avatar';
 
 export default function AdminDashboard() {
-  const providers = useSelector((state) => state.provider.providers);
-  const bookings = useSelector((state) => state.booking.bookings);
-  
-  const pendingVerificationProviders = providers.filter(p => p.status === 'pending');
+  const { data: statsData, loading: statsLoading } = useQuery(ADMIN_DASHBOARD_STATS_QUERY);
+  const { data: providersData, loading: providersLoading } = useQuery(ADMIN_PROVIDERS_QUERY);
+
+  const stats = statsData?.adminDashboardStats || {
+    usersCount: 0,
+    bookingsCount: 0,
+    disputesCount: 0,
+    totalRevenue: 0,
+  };
+
+  const pendingProviders = providersData?.adminProviders?.filter(p => p.status === 'PENDING') || [];
+  const onlineProviders = providersData?.adminProviders?.filter(p => p.verificationStatus === 'VERIFIED') || [];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-          Admin Console Dashboard <Sparkles className="h-6 w-6 text-brand" />
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Platform overview metrics, pending verifications, and user registrations.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Overview</h1>
+          <p className="text-slate-500 mt-2 text-sm font-medium">Platform metrics, pending verifications, and user registrations.</p>
+        </div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 shadow-sm">
+          <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          System Online
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Users</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">1,240</p>
-              <span className="text-[10px] text-emerald-500 font-semibold flex items-center gap-0.5 mt-1">
-                <TrendingUp className="h-3 w-3" /> +8% new registrations
-              </span>
-            </div>
-            <span className="p-2.5 bg-indigo-50 dark:bg-indigo-950/20 text-brand rounded-xl"><Users className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Partners Online</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">{providers.length}</p>
-              <span className="text-[10px] text-muted-foreground mt-1 block">Active service providers</span>
-            </div>
-            <span className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 rounded-xl"><Briefcase className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider font-semibold">Monthly Escrow</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">$18,420</p>
-              <span className="text-[10px] text-muted-foreground mt-1 block">Platform-wide transaction volumes</span>
-            </div>
-            <span className="p-2.5 bg-rose-50 dark:bg-rose-950/20 text-rose-600 rounded-xl"><DollarSign className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Disputes</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">2</p>
-              <span className="text-[10px] text-rose-500 font-semibold mt-1 block">Awaiting platform intervention</span>
-            </div>
-            <span className="p-2.5 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl"><AlertTriangle className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          title="Total Users" 
+          value={statsLoading ? "..." : stats.usersCount} 
+          icon={Users} 
+          trendColor="text-emerald-600"
+          trendIcon="↑"
+          trend="+8%"
+        />
+        <StatCard 
+          title="Partners Online" 
+          value={statsLoading ? "..." : onlineProviders.length} 
+          icon={Briefcase} 
+          trendColor="text-emerald-600"
+          trendIcon="↑"
+          trend="Active"
+        />
+        <StatCard 
+          title="Total Escrow" 
+          value={statsLoading ? "..." : `$${stats.totalRevenue.toLocaleString()}`} 
+          icon={DollarSign} 
+          trendColor="text-indigo-600"
+          trendIcon="↗"
+          trend="Steady"
+        />
+        <StatCard 
+          title="Active Disputes" 
+          value={statsLoading ? "..." : stats.disputesCount} 
+          icon={AlertTriangle} 
+          trendColor={stats.disputesCount > 0 ? "text-rose-600" : "text-emerald-600"}
+          trendIcon={stats.disputesCount > 0 ? "!" : "✓"}
+          trend={stats.disputesCount > 0 ? "Action required" : "All clear"}
+        />
       </div>
 
-      {/* Verification and Log queues */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        {/* Verification Queue */}
-        <div className="space-y-4">
-          <h3 className="font-bold text-foreground flex items-center justify-between">
-            <span>Pending Partner Verifications</span>
-            <Link href="/admin/providers" className="text-xs font-semibold text-brand hover:underline flex items-center">
-              View All <ArrowUpRight className="h-3.5 w-3.5" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Pending Providers */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-bold text-slate-800">Pending Verifications</h2>
+            <Link href="/admin/providers" className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 hover:underline">
+              View All
             </Link>
-          </h3>
-
-          <div className="space-y-3">
-            {pendingVerificationProviders.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic p-6 border border-border bg-card rounded-2xl text-center">No providers awaiting verification</p>
-            ) : (
-              pendingVerificationProviders.map((p) => (
-                <div key={p.id} className="p-4 border border-border bg-card rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Avatar src={p.avatar} alt={p.name} size="sm" />
-                    <div>
-                      <p className="text-xs font-bold">{p.name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate max-w-xs">{p.title}</p>
-                    </div>
-                  </div>
-                  <Link href="/admin/providers">
-                    <Button size="sm" variant="outline" className="text-xs py-1 border-border">
-                      Review Docs
-                    </Button>
-                  </Link>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+            {providersLoading ? (
+              <div className="p-12 text-center text-slate-400 text-sm font-medium">Loading...</div>
+            ) : pendingProviders.length === 0 ? (
+              <div className="p-12 flex flex-col items-center justify-center text-center">
+                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center mb-3">
+                  <CheckCircle className="h-6 w-6 text-emerald-500" />
                 </div>
-              ))
+                <p className="text-sm font-semibold text-slate-600">No providers awaiting verification.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {pendingProviders.slice(0, 5).map(provider => (
+                  <div key={provider.id} className="flex items-center justify-between p-5 hover:bg-slate-50/80 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <Avatar src={provider.user?.avatar} alt={provider.user?.name} size="md" />
+                      <div>
+                        <p className="font-bold text-sm text-slate-900">{provider.businessName}</p>
+                        <p className="text-xs font-medium text-slate-500">{provider.user?.email}</p>
+                      </div>
+                    </div>
+                    <Link href="/admin/providers" className="px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-xs font-bold transition-colors">
+                      Review
+                    </Link>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Global Recent Bookings Logs */}
+        {/* System Status */}
         <div className="space-y-4">
-          <h3 className="font-bold text-foreground flex items-center justify-between">
-            <span>Recent Platform Transactions</span>
-            <Link href="/admin/bookings" className="text-xs font-semibold text-brand hover:underline flex items-center">
-              View All <ArrowUpRight className="h-3.5 w-3.5" />
-            </Link>
-          </h3>
-
-          <div className="space-y-3">
-            {bookings.slice(0, 3).map((b) => (
-              <div key={b.id} className="p-4 border border-border bg-card rounded-xl flex items-center justify-between text-xs">
-                <div>
-                  <p className="font-bold">{b.service.title}</p>
-                  <p className="text-muted-foreground leading-normal mt-0.5">Customer: {b.customerName} • Partner: {b.providerName}</p>
-                </div>
-                <span className="font-bold text-foreground">${b.service.price}</span>
-              </div>
-            ))}
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-bold text-slate-800">Activity</h2>
+          </div>
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 text-center flex flex-col items-center justify-center h-[calc(100%-2rem)] min-h-[250px]">
+            <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center mb-4">
+              <Activity className="h-6 w-6 text-indigo-600" />
+            </div>
+            <p className="text-sm font-semibold text-slate-700">Transaction Monitoring</p>
+            <p className="text-xs text-slate-500 mt-2 max-w-[200px]">Live monitoring will be connected in the next platform update.</p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
 
+function StatCard({ title, value, icon: Icon, trendColor, trendIcon, trend }) {
+  return (
+    <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all flex flex-col justify-between group">
+      <div className="flex justify-between items-start mb-4">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">{title}</p>
+        <div className="p-2.5 rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+      <div>
+        <h3 className="text-3xl font-black text-slate-900 tracking-tight">{value}</h3>
+        <p className={`text-xs font-semibold mt-2 flex items-center gap-1 ${trendColor}`}>
+          <span>{trendIcon}</span> {trend}
+        </p>
       </div>
     </div>
   );

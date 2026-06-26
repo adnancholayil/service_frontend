@@ -1,65 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sparkles, Plus, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-
-import Card, { CardBody } from '../../../components/ui/Card';
-import Button from '../../../components/ui/Button';
+import React from 'react';
+import { Image as ImageIcon, Plus } from 'lucide-react';
 
 export default function AdminBanners() {
-  const [banners, setBanners] = useState([
-    { id: 'b-1', title: 'Summer Cleaning Offer', imageUrl: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500', desc: 'Get 20% off on all deep cleaning services.' },
-    { id: 'b-2', title: 'Monsoon AC Special', imageUrl: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500', desc: 'AC tune-ups and servicing at flat rates.' }
-  ]);
-
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this banner from carousel database?')) {
-      setBanners(prev => prev.filter(b => b.id !== id));
-      toast.success('Promo banner deleted');
-    }
-  };
-
-  const handleAdd = () => {
-    toast.success('Simulated banner upload successfully!');
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            Promotion Banners Console <Sparkles className="h-6 w-6 text-brand" />
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            Promo Banners <ImageIcon className="h-6 w-6 text-indigo-500" />
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">Configure client-side home page slider advertisements and promo banners.</p>
+          <p className="text-slate-500 mt-2 text-sm font-medium">Manage homepage marketing banners and promotional campaigns.</p>
         </div>
-        <Button onClick={handleAdd} className="flex items-center gap-1.5 rounded-xl text-xs py-2">
-          <Plus className="h-4 w-4" /> Create Banner
-        </Button>
+        <button className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-500/20">
+          <Plus className="h-4 w-4" /> Upload Banner
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {banners.map((b) => (
-          <Card key={b.id} className="bg-card">
-            <div className="h-40 w-full bg-zinc-200 dark:bg-zinc-800">
-              <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" />
-            </div>
-            <CardBody className="p-5 flex justify-between items-start gap-4">
-              <div>
-                <h4 className="font-bold text-foreground text-sm">{b.title}</h4>
-                <p className="text-xs text-muted-foreground mt-1">{b.desc}</p>
-              </div>
-              <button
-                onClick={() => handleDelete(b.id)}
-                className="p-1.5 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-md transition-colors cursor-pointer"
-              >
-                <Trash2 className="h-4.5 w-4.5" />
-              </button>
-            </CardBody>
-          </Card>
-        ))}
+      {/* Content Area */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[500px] flex flex-col items-center justify-center text-center p-12">
+        <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4 border-2 border-dashed border-slate-200">
+          <ImageIcon className="h-8 w-8 text-slate-300" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">No active banners</h2>
+        <p className="text-sm font-medium text-slate-500 mt-2 max-w-md">Upload your first promotional banner to display it to customers on the main landing page.</p>
       </div>
+
     </div>
   );
 }

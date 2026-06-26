@@ -20,8 +20,8 @@ export const CREATE_BOOKING_MUTATION = gql`
 `;
 
 export const UPDATE_BOOKING_STATUS_MUTATION = gql`
-  mutation UpdateBookingStatus($id: ID!, $status: String!) {
-    updateBookingStatus(id: $id, status: $status) {
+  mutation UpdateBookingStatus($id: ID!, $status: BookingStatus!) {
+    updateBookingStatus(bookingId: $id, status: $status) {
       id
       status
     }

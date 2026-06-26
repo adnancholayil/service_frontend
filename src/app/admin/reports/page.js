@@ -1,94 +1,62 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, DollarSign, Calendar, BarChart3, TrendingUp } from 'lucide-react';
-
-import Card, { CardBody } from '../../../components/ui/Card';
+import { FileBarChart2, Download, TrendingUp, DollarSign } from 'lucide-react';
 
 export default function AdminReports() {
-  const chartData = [
-    { label: 'Q1', revenue: 45000 },
-    { label: 'Q2', revenue: 58000 },
-    { label: 'Q3', revenue: 74000 },
-    { label: 'Q4', revenue: 92000 }
-  ];
-
-  const maxVal = Math.max(...chartData.map(d => d.revenue));
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-          Platform Reports & Payouts <Sparkles className="h-6 w-6 text-brand" />
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Review revenue growth indexes, commission balances, and escrow distributions.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            Reports & Payouts <FileBarChart2 className="h-6 w-6 text-indigo-500" />
+          </h1>
+          <p className="text-slate-500 mt-2 text-sm font-medium">Monitor platform revenue, process provider withdrawals, and generate financial reports.</p>
+        </div>
+        <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm">
+          <Download className="h-4 w-4" /> Export Financials
+        </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Gross Platform GMV</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">$269,000</p>
-            </div>
-            <span className="p-2.5 bg-indigo-50 dark:bg-indigo-950/20 text-brand rounded-xl"><DollarSign className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Net Commission (15%)</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">$40,350</p>
-            </div>
-            <span className="p-2.5 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 rounded-xl"><TrendingUp className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
-
-        <Card className="bg-card">
-          <CardBody className="p-5 flex items-center justify-between">
-            <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Pending Partner Payouts</p>
-              <p className="text-2xl font-extrabold text-foreground mt-1">$4,820</p>
-            </div>
-            <span className="p-2.5 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-xl"><Calendar className="h-5.5 w-5.5" /></span>
-          </CardBody>
-        </Card>
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+            Gross Merchandise Value <TrendingUp className="h-4 w-4 text-emerald-500" />
+          </p>
+          <h3 className="text-3xl font-black text-slate-900">$0.00</h3>
+          <p className="text-xs font-medium text-slate-400 mt-2">Total volume processed</p>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-gradient-to-br from-indigo-600 to-indigo-900">
+          <p className="text-xs font-bold text-indigo-200 uppercase tracking-widest mb-2 flex items-center justify-between">
+            Platform Commissions <DollarSign className="h-4 w-4 text-indigo-300" />
+          </p>
+          <h3 className="text-3xl font-black text-white">$0.00</h3>
+          <p className="text-xs font-medium text-indigo-200 mt-2">Net revenue earned</p>
+        </div>
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Pending Payouts</p>
+          <h3 className="text-3xl font-black text-slate-900">0</h3>
+          <p className="text-xs font-medium text-slate-400 mt-2">Awaiting processing</p>
+        </div>
       </div>
 
-      {/* Growth Card */}
-      <Card className="bg-card">
-        <CardBody className="p-6 space-y-6">
-          <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
-            <BarChart3 className="h-4.5 w-4.5 text-brand" /> Quarterly Platform GMV (Gross Merchandise Value)
-          </h3>
-
-          <div className="h-64 flex items-end gap-6 pt-6 border-b border-border">
-            {chartData.map((d, i) => {
-              const heightPct = Math.round((d.revenue / maxVal) * 100);
-              return (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2 group h-full justify-end">
-                  <div className="text-[10px] font-bold text-foreground opacity-0 group-hover:opacity-100 transition-opacity pb-1">
-                    ${d.revenue.toLocaleString()}
-                  </div>
-                  <div
-                    className="w-full bg-brand rounded-t-lg transition-all duration-500 hover:bg-brand-hover relative"
-                    style={{ height: `${heightPct}%`, minHeight: '15%' }}
-                  >
-                    {/* Tooltip */}
-                    <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-950 dark:bg-zinc-50 dark:text-zinc-950 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow opacity-0 pointer-events-none transition-opacity">
-                      ${d.revenue.toLocaleString()}
-                    </span>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground font-semibold pt-1">{d.label}</span>
-                </div>
-              );
-            })}
+      {/* Content Area */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-800">Withdrawal Requests</h2>
+        </div>
+        <div className="min-h-[300px] flex flex-col items-center justify-center text-center p-12">
+          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+            <DollarSign className="h-8 w-8 text-slate-300" />
           </div>
-        </CardBody>
-      </Card>
+          <h2 className="text-xl font-bold text-slate-800">No pending requests</h2>
+          <p className="text-sm font-medium text-slate-500 mt-2 max-w-md">All provider payouts have been processed successfully.</p>
+        </div>
+      </div>
+
     </div>
   );
 }

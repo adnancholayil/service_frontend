@@ -36,7 +36,7 @@ const LinkedinIcon = (props) => (
 export function Footer() {
   const pathname = usePathname();
 
-  if (pathname && pathname.startsWith('/messages')) {
+  if (pathname && (pathname.startsWith('/messages') || pathname.startsWith('/admin') || pathname.startsWith('/provider'))) {
     return null;
   }
 

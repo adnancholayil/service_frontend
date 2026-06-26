@@ -1,82 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useSelector } from 'react-redux';
-import { Sparkles, Star, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-
-import Card, { CardBody } from '../../../components/ui/Card';
+import React from 'react';
+import { Star, MessageSquareX, CheckCircle } from 'lucide-react';
 
 export default function AdminReviews() {
-  const providers = useSelector((state) => state.provider.providers);
-  
-  // Aggregate all reviews across all providers
-  const [allReviews, setAllReviews] = useState(() => {
-    return providers.flatMap(p => 
-      p.reviews.map(r => ({
-        ...r,
-        providerName: p.name,
-        providerId: p.id
-      }))
-    );
-  });
-
-  const handleDelete = (revId) => {
-    if (window.confirm('Delete this review from platform registry?')) {
-      setAllReviews(prev => prev.filter(r => r.id !== revId));
-      toast.success('Review deleted (moderated)');
-    }
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-          Platform Reviews Moderation <Sparkles className="h-6 w-6 text-brand" />
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Audit customer ratings logs, filter flags, and delete inappropriate content reviews.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            Platform Reviews <Star className="h-6 w-6 text-indigo-500" />
+          </h1>
+          <p className="text-slate-500 mt-2 text-sm font-medium">Moderate customer feedback and maintain quality standards.</p>
+        </div>
       </div>
 
-      {/* List */}
-      <div className="space-y-4 max-w-4xl">
-        {allReviews.map((rev) => (
-          <Card key={rev.id} className="bg-card">
-            <CardBody className="p-5 flex justify-between items-start gap-4">
-              <div className="space-y-2 flex-1">
-                <div className="flex justify-between items-start gap-4">
-                  <div>
-                    <h4 className="font-bold text-foreground text-sm">{rev.user}</h4>
-                    <p className="text-[10px] text-muted-foreground">Provider: <span className="font-semibold text-brand">{rev.providerName}</span></p>
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{rev.date}</span>
-                </div>
-                
-                <div className="flex items-center gap-0.5 text-amber-500">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-3.5 w-3.5 ${
-                        i < rev.rating ? 'fill-amber-500 text-amber-500' : 'text-zinc-300 dark:text-zinc-700'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <p className="text-xs text-muted-foreground leading-relaxed italic">&ldquo;{rev.comment}&rdquo;</p>
-              </div>
-
-              <button
-                onClick={() => handleDelete(rev.id)}
-                className="p-2 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-all shrink-0 cursor-pointer"
-                title="Delete/Moderate review"
-              >
-                <Trash2 className="h-4.5 w-4.5" />
-              </button>
-            </CardBody>
-          </Card>
-        ))}
+      {/* Content Area */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[500px] flex flex-col items-center justify-center text-center p-12">
+        <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+          <CheckCircle className="h-8 w-8 text-emerald-400" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">All caught up</h2>
+        <p className="text-sm font-medium text-slate-500 mt-2 max-w-md">There are no flagged or pending reviews that require administrative moderation at this time.</p>
       </div>
+
     </div>
   );
 }

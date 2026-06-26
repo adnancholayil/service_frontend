@@ -75,6 +75,11 @@ export function Navbar() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  // Do not render Navbar on admin or provider dashboard routes since they have their own layouts
+  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/provider'))) {
+    return null;
+  }
+
   // 1. Links for desktop navigation (header)
   const getNavLinks = () => {
     if (!isAuthenticated) {
@@ -83,7 +88,7 @@ export function Navbar() {
         { label: 'Find Providers', href: '/providers' },
       ];
     }
-    if (user?.role === 'admin') {
+    if (user?.role?.toLowerCase() === 'admin') {
       return [
         { label: 'Admin Panel', href: '/admin/dashboard' },
         { label: 'Users', href: '/admin/users' },
@@ -91,7 +96,7 @@ export function Navbar() {
         { label: 'Bookings', href: '/admin/bookings' },
       ];
     }
-    if (user?.role === 'provider') {
+    if (user?.role?.toLowerCase() === 'provider') {
       return [
         { label: 'Provider Portal', href: '/provider/dashboard' },
         { label: 'My Bookings', href: '/provider/bookings' },
@@ -118,7 +123,7 @@ export function Navbar() {
       ];
     }
 
-    if (user?.role === 'admin') {
+    if (user?.role?.toLowerCase() === 'admin') {
       return [
         { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
         { label: 'Users', href: '/admin/users', icon: Users },
@@ -127,7 +132,7 @@ export function Navbar() {
       ];
     }
 
-    if (user?.role === 'provider') {
+    if (user?.role?.toLowerCase() === 'provider') {
       return [
         { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
         { label: 'Bookings', href: '/provider/bookings', icon: Calendar },
@@ -236,14 +241,14 @@ export function Navbar() {
                           </div>
                           <div className="py-1">
                             <Link
-                              href={user?.role === 'customer' ? '/profile' : `/${user?.role}/profile`}
+                              href={user?.role?.toLowerCase() === 'customer' ? '/profile' : `/${user?.role?.toLowerCase()}/profile`}
                               onClick={() => setUserDropdownOpen(false)}
                               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                             >
                               <User className="h-4 w-4" />
                               My Profile
                             </Link>
-                            {user?.role === 'customer' && (
+                            {user?.role?.toLowerCase() === 'customer' && (
                               <Link
                                 href="/bookings"
                                 onClick={() => setUserDropdownOpen(false)}
@@ -254,7 +259,7 @@ export function Navbar() {
                               </Link>
                             )}
                             <Link
-                              href={user?.role === 'customer' ? '/profile/edit' : `/${user?.role}/settings`}
+                              href={user?.role?.toLowerCase() === 'customer' ? '/profile/edit' : `/${user?.role?.toLowerCase()}/settings`}
                               onClick={() => setUserDropdownOpen(false)}
                               className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
                             >

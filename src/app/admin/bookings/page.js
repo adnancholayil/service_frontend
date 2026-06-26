@@ -1,67 +1,63 @@
 'use client';
 
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { Sparkles, CalendarDays } from 'lucide-react';
-
-import Card, { CardBody } from '../../../components/ui/Card';
-import Badge from '../../../components/ui/Badge';
+import { CalendarDays, Filter, Search } from 'lucide-react';
 
 export default function AdminBookings() {
-  const bookings = useSelector((state) => state.booking.bookings);
-
-  const getStatusVariant = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'cancelled': return 'danger';
-      case 'pending': return 'warning';
-      default: return 'primary';
-    }
-  };
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-          Global Bookings Logs <Sparkles className="h-6 w-6 text-brand" />
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">Platform wide audit trail logs for client appointment bookings.</p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+            Global Bookings <CalendarDays className="h-6 w-6 text-indigo-500" />
+          </h1>
+          <p className="text-slate-500 mt-2 text-sm font-medium">Monitor all service transactions and booking statuses across the platform.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search booking ID..." 
+              className="pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-sm transition-all"
+            />
+          </div>
+          <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-sm font-bold hover:bg-slate-50 transition-all shadow-sm">
+            <Filter className="h-4 w-4" /> Filter
+          </button>
+        </div>
       </div>
 
-      {/* Directory listing table */}
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto no-scrollbar">
-          <table className="w-full text-left text-xs divide-y divide-border">
-            <thead className="bg-muted/40 font-bold text-muted-foreground uppercase tracking-wider">
+      {/* Content Area */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-slate-50/50 border-b border-slate-100 text-slate-500 uppercase tracking-wider text-[10px] font-bold">
               <tr>
                 <th className="px-6 py-4">Booking ID</th>
-                <th className="px-6 py-4">Service</th>
+                <th className="px-6 py-4">Service & Provider</th>
                 <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Provider</th>
-                <th className="px-6 py-4">Schedule</th>
+                <th className="px-6 py-4">Date</th>
                 <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Price</th>
+                <th className="px-6 py-4 text-right">Amount</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/60">
-              {bookings.map((b) => (
-                <tr key={b.id} className="hover:bg-muted/30">
-                  <td className="px-6 py-4 font-bold text-foreground">#{b.id}</td>
-                  <td className="px-6 py-4 font-semibold">{b.service.title}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{b.customerName}</td>
-                  <td className="px-6 py-4 text-brand font-semibold">{b.providerName}</td>
-                  <td className="px-6 py-4 text-muted-foreground">{b.date} • {b.time}</td>
-                  <td className="px-6 py-4">
-                    <Badge variant={getStatusVariant(b.status)}>{b.status}</Badge>
-                  </td>
-                  <td className="px-6 py-4 font-extrabold text-foreground">${b.service.price}</td>
-                </tr>
-              ))}
+            <tbody className="divide-y divide-slate-100">
+              <tr>
+                <td colSpan="6" className="px-6 py-16 text-center text-slate-400 font-medium text-sm">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <CalendarDays className="h-8 w-8 text-slate-300" />
+                    <p>No bookings found matching current criteria.</p>
+                  </div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
+
     </div>
   );
 }
