@@ -226,23 +226,22 @@ export default function ProviderDetailPage({ params }) {
             </div>
 
             <div className="shrink-0 flex flex-col gap-2 w-full md:w-48 mt-4 md:mt-0">
-              <Button variant="primary" className="w-full font-semibold rounded-lg" onClick={handleStartBooking}>
+              <Button variant="primary" className="w-full font-semibold rounded-lg hidden md:block" onClick={handleStartBooking}>
                 Book Now
               </Button>
-              <p className="text-xs text-center text-muted-foreground font-medium">Responds quickly</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Container */}
-      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Content Centered */}
+        <div className="space-y-8">
           
-          {/* Left Column: Details */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Details */}
+          <div className="space-y-8 pb-20 md:pb-0">
             
             {/* About */}
             <div className="space-y-3">
@@ -284,23 +283,7 @@ export default function ProviderDetailPage({ params }) {
               </div>
             </div>
 
-            <hr className="border-border" />
 
-            {/* Portfolio Gallery */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">Work Portfolio</h2>
-              <div className="grid grid-cols-3 gap-3">
-                {(provider.portfolio || [
-                  'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300&h=300&fit=crop',
-                  'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300&h=300&fit=crop',
-                  'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=300&h=300&fit=crop'
-                ]).map((imgUrl, i) => (
-                  <div key={i} className="aspect-square rounded-xl overflow-hidden bg-muted border border-border relative">
-                    <img src={imgUrl} alt={`Portfolio work ${i + 1}`} className="w-full h-full object-cover" />
-                  </div>
-                ))}
-              </div>
-            </div>
 
             <hr className="border-border" />
 
@@ -323,42 +306,14 @@ export default function ProviderDetailPage({ params }) {
               )}
             </div>
           </div>
-
-          {/* Right Column: Sidebar Availability */}
-          <div className="lg:col-span-1">
-            <div className="p-5 bg-card border border-border rounded-xl space-y-6 sticky top-24">
-              <div className="space-y-4">
-                <h3 className="font-bold text-base text-foreground">Availability</h3>
-                
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase">Operating Days</span>
-                  <div className="flex flex-wrap gap-2">
-                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <span key={day} className="text-xs px-2 py-1 rounded-md border border-border bg-background text-foreground">{day}</span>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="space-y-2 pt-2 border-t border-border">
-                  <span className="text-xs font-semibold text-muted-foreground uppercase">Working Hours</span>
-                  <div className="flex items-center gap-2 font-medium text-sm text-foreground">
-                    <Clock className="h-4 w-4 text-muted-foreground" /> 09:00 AM – 06:00 PM
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-border space-y-3">
-                <Button variant="primary" className="w-full font-semibold rounded-lg" onClick={handleStartBooking}>
-                  Book Appointment
-                </Button>
-                <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground font-medium">
-                  <ShieldCheck className="h-4 w-4" /> Protected by Escrow
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
+      </div>
 
+      {/* Floating Bottom Booking Bar (Mobile Only) */}
+      <div className="md:hidden fixed bottom-[calc(4rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 bg-card/90 backdrop-blur-md border-t border-border p-3 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
+        <Button variant="primary" className="w-full font-bold shadow-lg py-3 rounded-xl" onClick={handleStartBooking}>
+          Book Now
+        </Button>
       </div>
 
       {/* 3. MULTI-STEP BOOKING WIZARD MODAL (8 steps) */}

@@ -159,10 +159,10 @@ export function Navbar() {
   return (
     <>
       {/* ================================================= */}
-      {/* DESKTOP HEADER & MOBILE TOP BRAND BAR             */}
+      {/* DESKTOP HEADER (Hidden on mobile)                 */}
       {/* ================================================= */}
-      <nav className="sticky top-0 z-40 w-full border-b border-border bg-card/85 backdrop-blur-md">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
+      <nav className="hidden md:block sticky top-0 z-40 w-full border-b border-border bg-card/85 backdrop-blur-md">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             
             {/* Logo */}
