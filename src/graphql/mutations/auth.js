@@ -32,6 +32,22 @@ export const REGISTER_MUTATION = gql`
   }
 `;
 
+export const GOOGLE_LOGIN_MUTATION = gql`
+  mutation GoogleLogin($token: String!, $role: UserRole) {
+    googleLogin(token: $token, role: $role) {
+      accessToken
+      refreshToken
+      user {
+        id
+        name
+        email
+        role
+        avatar
+      }
+    }
+  }
+`;
+
 export const SEND_OTP_MUTATION = gql`
   mutation SendOtp($email: String!) {
     sendOtp(email: $email) {

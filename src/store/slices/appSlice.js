@@ -6,6 +6,7 @@ const initialState = {
   themeMode: 'light', // synced with next-themes if needed
   sidebarOpen: false,
   notificationDrawerOpen: false,
+  authModalType: null, // 'login', 'register', or null
 };
 
 const appSlice = createSlice({
@@ -32,6 +33,12 @@ const appSlice = createSlice({
     },
     setNotificationDrawerOpen(state, action) {
       state.notificationDrawerOpen = action.payload;
+    },
+    openAuthModal(state, action) {
+      state.authModalType = action.payload;
+    },
+    closeAuthModal(state) {
+      state.authModalType = null;
     }
   }
 });
@@ -43,6 +50,8 @@ export const {
   toggleSidebar,
   setSidebarOpen,
   toggleNotificationDrawer,
-  setNotificationDrawerOpen
+  setNotificationDrawerOpen,
+  openAuthModal,
+  closeAuthModal
 } = appSlice.actions;
 export default appSlice.reducer;

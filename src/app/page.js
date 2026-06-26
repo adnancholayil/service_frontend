@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import {
   Zap,
@@ -29,6 +30,7 @@ import {
 
 import { useQuery } from '@apollo/client/react';
 import { GET_HOME_DATA } from '../graphql/queries/home';
+import { openAuthModal } from '../store/slices/appSlice';
 import Card, { CardBody } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Avatar from '../components/ui/Avatar';
@@ -49,6 +51,7 @@ const iconMap = {
 
 export default function HomePage() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data, loading, error } = useQuery(GET_HOME_DATA);
@@ -112,25 +115,25 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             {/* Left Column: Typography and Search Box */}
-            <div className="lg:col-span-8 space-y-6 sm:space-y-8 text-left">
+            <div className="lg:col-span-7 xl:col-span-8 space-y-6 sm:space-y-8 text-left">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="space-y-4 sm:space-y-5"
+                className="space-y-4 sm:space-y-6"
               >
-                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] sm:text-sm font-semibold shadow-sm">
-                  <Award className="h-3 w-3 sm:h-4 sm:w-4 text-amber-400" /> Premium Local Services at Your Fingertips
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-sm font-semibold shadow-sm">
+                  <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-amber-400" /> Premium Local Services at Your Fingertips
                 </div>
                 
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.15]">
+                <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-extrabold tracking-tight text-white leading-[1.2]">
                   Quality services. <br className="hidden sm:block"/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-hover to-indigo-400">
                     Exceptional results.
                   </span>
                 </h1>
                 
-                <p className="text-sm sm:text-lg md:text-xl text-zinc-300 max-w-2xl leading-relaxed font-medium">
+                <p className="text-sm sm:text-base lg:text-lg text-zinc-300 max-w-2xl leading-relaxed font-medium">
                   Book certified plumbers, AC mechanics, house deep cleaners, and experts at upfront flat rates. Zero negotiations. Zero stress.
                 </p>
               </motion.div>
@@ -141,19 +144,19 @@ export default function HomePage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 onSubmit={handleSearchSubmit}
-                className="p-1.5 sm:p-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full max-w-2xl"
+                className="p-2 sm:p-3 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-xl sm:rounded-2xl flex flex-col sm:flex-row items-center gap-2 sm:gap-3 w-full max-w-[40rem]"
               >
-                <div className="w-full flex-1 flex items-center bg-white rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-0 h-10 sm:h-14">
+                <div className="w-full flex-1 flex items-center bg-white rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-0 h-11 sm:h-14">
                   <Search className="h-4 w-4 sm:h-5 sm:w-5 text-zinc-400 shrink-0" />
                   <input
                     type="text"
                     placeholder="What do you need help with?"
-                    className="w-full bg-transparent border-none text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-0 text-xs sm:text-base ml-2 sm:ml-3"
+                    className="w-full bg-transparent border-none text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-0 text-sm sm:text-base ml-2 sm:ml-3"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                <Button type="submit" className="w-full sm:w-auto h-10 sm:h-14 rounded-lg sm:rounded-xl shrink-0 font-bold px-6 sm:px-8 shadow-md text-xs sm:text-base">
+                <Button type="submit" className="w-full sm:w-auto h-11 sm:h-14 rounded-lg sm:rounded-xl shrink-0 font-bold px-6 sm:px-8 shadow-md text-sm sm:text-base">
                   Find Service
                 </Button>
               </motion.form>
@@ -163,49 +166,49 @@ export default function HomePage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
-                className="flex flex-wrap items-center gap-x-4 sm:gap-x-8 gap-y-2 sm:gap-y-3 pt-2 sm:pt-4 text-[10px] sm:text-sm font-semibold text-zinc-300"
+                className="flex flex-wrap items-center gap-x-4 sm:gap-x-6 gap-y-3 pt-2 sm:pt-4 text-xs sm:text-sm font-semibold text-zinc-300"
               >
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <ShieldCheck className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-emerald-400" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-400" />
                   <span>100% Background Verified</span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Sparkles className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-brand" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-brand" />
                   <span>Quality Guarantee</span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <Star className="h-3.5 w-3.5 sm:h-5 sm:w-5 text-amber-400" />
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
                   <span>4.9/5 Average Rating</span>
                 </div>
               </motion.div>
             </div>
 
-            {/* Right Column: Floating Stats/Card (Optional, adds professional flair) */}
-            <div className="lg:col-span-4 hidden lg:flex justify-end relative h-full items-center">
+            {/* Right Column: Floating Stats/Card */}
+            <div className="lg:col-span-5 xl:col-span-4 hidden lg:flex justify-end relative h-full items-center">
                <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ type: 'spring', damping: 20, delay: 0.5 }}
-                className="w-[280px] p-5 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl relative overflow-hidden"
+                className="w-full max-w-[340px] xl:max-w-[380px] p-6 sm:p-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl shadow-2xl relative overflow-hidden"
               >
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand to-accent" />
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center shrink-0">
-                    <CheckCircle className="h-6 w-6 text-emerald-500" />
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand to-accent" />
+                <div className="flex items-center gap-4 sm:gap-5 mb-6">
+                  <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-full bg-white flex items-center justify-center shrink-0 shadow-inner">
+                    <CheckCircle className="h-7 w-7 sm:h-8 sm:w-8 text-emerald-500" />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-lg">10k+</h4>
-                    <p className="text-zinc-300 text-xs font-medium">Jobs Completed</p>
+                    <h4 className="text-white font-extrabold text-2xl sm:text-3xl">10k+</h4>
+                    <p className="text-zinc-300 text-sm font-medium">Jobs Completed</p>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="bg-white/10 rounded-lg p-3 flex justify-between items-center">
-                     <span className="text-xs text-zinc-300">Customer Satisfaction</span>
-                     <span className="text-sm font-bold text-white">99%</span>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="bg-white/10 rounded-xl p-3.5 sm:p-4 flex justify-between items-center transition-colors hover:bg-white/15 cursor-default">
+                     <span className="text-sm text-zinc-300 font-medium">Customer Satisfaction</span>
+                     <span className="text-base font-bold text-white">99%</span>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-3 flex justify-between items-center">
-                     <span className="text-xs text-zinc-300">Verified Providers</span>
-                     <span className="text-sm font-bold text-white">500+</span>
+                  <div className="bg-white/10 rounded-xl p-3.5 sm:p-4 flex justify-between items-center transition-colors hover:bg-white/15 cursor-default">
+                     <span className="text-sm text-zinc-300 font-medium">Verified Providers</span>
+                     <span className="text-base font-bold text-white">500+</span>
                   </div>
                 </div>
               </motion.div>
@@ -428,9 +431,7 @@ export default function HomePage() {
             Partner with ServiceHub to grow your customer base, manage appointments via custom calendars, and receive direct digital payouts weekly.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 pt-2 sm:pt-4">
-            <Link href="/register?role=provider" className="w-full sm:w-auto">
-              <Button className="w-full sm:w-auto h-10 sm:h-12">Join as Service Partner</Button>
-            </Link>
+            <Button onClick={() => dispatch(openAuthModal('register'))} className="w-full sm:w-auto h-10 sm:h-12">Join as Service Partner</Button>
             <Link href="/services" className="w-full sm:w-auto">
               <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-12">Find Services</Button>
             </Link>

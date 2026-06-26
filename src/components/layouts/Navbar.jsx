@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from 'next-themes';
 import {
@@ -27,13 +27,14 @@ import {
 import toast from 'react-hot-toast';
 
 import { logout } from '../../store/slices/authSlice';
-import { toggleNotificationDrawer } from '../../store/slices/appSlice';
+import { toggleNotificationDrawer, openAuthModal } from '../../store/slices/appSlice';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -49,7 +50,15 @@ export function Navbar() {
       document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     }
-  }, [isAuthenticated]);
+
+    // Check for auth query params
+    const authQuery = searchParams.get('auth');
+    if (authQuery === 'login') {
+      dispatch(openAuthModal('login'));
+    } else if (authQuery === 'register') {
+      dispatch(openAuthModal('register'));
+    }
+  }, [isAuthenticated, searchParams, dispatch]);
 
   const handleLogout = () => {
     // Clear the Redux state
@@ -105,7 +114,7 @@ export function Navbar() {
         { label: 'Home', href: '/', icon: Home },
         { label: 'Services', href: '/services', icon: Search },
         { label: 'Providers', href: '/providers', icon: Users },
-        { label: 'Log In', href: '/login', icon: User },
+        { label: 'Log In', href: '#login', onClick: () => dispatch(openAuthModal('login')), icon: User },
       ];
     }
 
@@ -269,8 +278,8 @@ export function Navbar() {
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => router.push('/login')}>Log In</Button>
-                  <Button variant="primary" size="sm" onClick={() => router.push('/register')}>Sign Up</Button>
+                  <Button variant="outline" size="sm" onClick={() => dispatch(openAuthModal('login'))}>Log In</Button>
+                  <Button variant="primary" size="sm" onClick={() => dispatch(openAuthModal('register'))}>Sign Up</Button>
                 </div>
               )}
 
@@ -286,6 +295,20 @@ export function Navbar() {
         {getMobileBottomLinks().map((tab) => {
           const Icon = tab.icon;
           const isActive = checkActive(tab.href);
+
+          if (tab.onClick) {
+            return (
+              <button key={tab.label} onClick={tab.onClick} className="flex-1 flex flex-col items-center justify-center cursor-pointer">
+                <span className={`flex flex-col items-center justify-center gap-1 text-[10px] font-bold transition-colors ${
+                  isActive ? 'text-brand' : 'text-muted-foreground hover:text-foreground'
+                }`}>
+                  <Icon className="h-5 w-5 transition-transform group-active:scale-95" />
+                  <span>{tab.label}</span>
+                </span>
+              </button>
+            );
+          }
+
           return (
             <Link key={tab.href} href={tab.href} className="flex-1 flex flex-col items-center justify-center">
               <span className={`flex flex-col items-center justify-center gap-1 text-[10px] font-bold transition-colors ${

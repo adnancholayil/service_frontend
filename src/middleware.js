@@ -13,9 +13,10 @@ export function middleware(request) {
   const isProviderRoute = pathname.startsWith('/provider');
   const isCustomerProtectedRoute = pathname.startsWith('/bookings') || pathname.startsWith('/profile') || pathname.startsWith('/messages') || pathname.startsWith('/notifications');
 
-  // 1. If trying to access protected routes but not authenticated, redirect to /login
+  // 1. If trying to access protected routes but not authenticated, redirect to /?auth=login
   if ((isAdminRoute || isProviderRoute || isCustomerProtectedRoute) && !token) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL('/', request.url);
+    loginUrl.searchParams.set('auth', 'login');
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@apollo/client": "^4.2.3",
+    "@react-oauth/google": "^0.13.5",
     "@reduxjs/toolkit": "^2.12.0",
     "@tanstack/react-query": "^5.101.1",
     "axios": "^1.18.1",
@@ -24,6 +25,7 @@
     "react-hook-form": "^7.80.0",
     "react-hot-toast": "^2.6.0",
     "react-redux": "^9.3.0",
+    "react-select": "^5.10.2",
     "redux-persist": "^6.0.0",
     "socket.io-client": "^4.8.3",
     "zod": "^4.4.3"
