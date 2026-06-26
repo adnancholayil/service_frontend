@@ -17,10 +17,10 @@ export const LOGIN_MUTATION = gql`
 `;
 
 export const REGISTER_MUTATION = gql`
-  mutation Register($name: String!, $email: String!, $password: String!, $role: UserRole!) {
-    register(name: $name, email: $email, password: $password, role: $role) {
+  mutation Register($name: String!, $email: String!, $password: String!, $role: UserRole!, $providerDetails: ProviderRegisterInput) {
+    register(name: $name, email: $email, password: $password, role: $role, providerDetails: $providerDetails) {
       accessToken
-      refreshTok
+      refreshToken
       user {
         id
         name

@@ -8,8 +8,9 @@ import { Sparkles, User, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
-import { useMutation } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import { REGISTER_MUTATION } from '../../graphql/mutations/auth';
+import { GET_CATEGORIES } from '../../graphql/queries/categories';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -22,6 +23,14 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const [businessName, setBusinessName] = useState('');
+  const [description, setDescription] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [address, setAddress] = useState('');
+
+  const { data: catData } = useQuery(GET_CATEGORIES);
+  const categories = catData?.categories || [];
 
   const [registerMut] = useMutation(REGISTER_MUTATION);
 
@@ -40,9 +49,24 @@ export default function RegisterPage() {
     dispatch(loginStart());
 
     try {
-      const { data } = await registerMut({
-        variables: { name, email, password, role }
-      });
+      const variables = { name, email, password, role };
+      
+      if (role === 'PROVIDER') {
+        if (!businessName || !description || !categoryId || !address) {
+          toast.error('Please fill in all provider details');
+          setIsLoading(false);
+          return;
+        }
+        variables.providerDetails = {
+          businessName,
+          description,
+          category: categoryId,
+          address,
+          coordinates: [0, 0] // Default dummy coordinates
+        };
+      }
+
+      const { data } = await registerMut({ variables });
 
       if (data?.register) {
         const { accessToken, refreshToken, user } = data.register;
@@ -156,6 +180,58 @@ export default function RegisterPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+
+          {role === 'PROVIDER' && (
+            <div className="space-y-4 pt-4 border-t border-border mt-4">
+              <h3 className="text-sm font-semibold text-foreground">Provider Details</h3>
+              <Input
+                id="businessName"
+                name="businessName"
+                type="text"
+                label="Business Name"
+                required
+                placeholder="Your Service Business"
+                value={businessName}
+                onChange={(e) => setBusinessName(e.target.value)}
+              />
+              <Input
+                id="description"
+                name="description"
+                type="text"
+                label="Description"
+                required
+                placeholder="What services do you provide?"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+              <div className="space-y-1">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Category
+                </label>
+                <select
+                  required
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="block w-full rounded-xl border border-input bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-colors focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring"
+                >
+                  <option value="" disabled>Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <Input
+                id="address"
+                name="address"
+                type="text"
+                label="Address"
+                required
+                placeholder="City, Area or Street"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+          )}
 
           <Button
             type="submit"

@@ -69,7 +69,7 @@ function ServicesContent() {
 
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-2 sm:px-4 lg:px-4 py-6 sm:py-10 space-y-6 sm:space-y-8 flex-1">
+    <div className="mx-auto w-full max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48 py-6 sm:py-10 space-y-6 sm:space-y-8 flex-1">
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">

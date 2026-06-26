@@ -79,7 +79,7 @@ export default function MessagesPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] px-0 sm:px-4 lg:px-4 flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100vh-4rem)] sm:py-6 overflow-hidden">
+    <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-12 lg:px-24 xl:px-40 2xl:px-48 flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100vh-4rem)] sm:py-6 overflow-hidden">
       
       {/* Title - Hide on mobile if conversation is active */}
       <div className={`px-4 sm:px-0 mb-2 sm:mb-4 shrink-0 pt-4 sm:pt-0 ${activeConversationId ? 'hidden sm:block' : 'block'}`}>

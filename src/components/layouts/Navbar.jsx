@@ -44,10 +44,19 @@ export function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Self-healing: if Redux says not authenticated, ensure cookies are actually cleared to prevent redirect loops
+    if (!isAuthenticated) {
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+  }, [isAuthenticated]);
 
   const handleLogout = () => {
+    // Clear the Redux state
     dispatch(logout());
+    // Crucially clear the auth cookies so Next.js middleware doesn't redirect us back
+    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setUserDropdownOpen(false);
     toast.success('Logged out successfully');
     router.push('/login');
@@ -139,7 +148,7 @@ export function Navbar() {
       {/* DESKTOP HEADER & MOBILE TOP BRAND BAR             */}
       {/* ================================================= */}
       <nav className="sticky top-0 z-40 w-full border-b border-border bg-card/85 backdrop-blur-md">
-        <div className="mx-auto max-w-[1600px] px-2 sm:px-4 lg:px-4">
+        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
           <div className="flex h-16 items-center justify-between">
             
             {/* Logo */}
@@ -260,12 +269,8 @@ export function Navbar() {
                 </>
               ) : (
                 <div className="hidden md:flex items-center gap-2">
-                  <Link href="/login">
-                    <Button variant="outline" size="sm">Log In</Button>
-                  </Link>
-                  <Link href="/register">
-                    <Button variant="primary" size="sm">Sign Up</Button>
-                  </Link>
+                  <Button variant="outline" size="sm" onClick={() => router.push('/login')}>Log In</Button>
+                  <Button variant="primary" size="sm" onClick={() => router.push('/register')}>Sign Up</Button>
                 </div>
               )}
 

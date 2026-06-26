@@ -216,7 +216,7 @@ export default function ProviderDetailPage({ params }) {
       </div>
 
       {/* Main Content container overlapping the banner */}
-      <div className="mx-auto w-full max-w-5xl px-3 sm:px-6 -mt-16 sm:-mt-20 relative z-10 pb-20 space-y-4 sm:space-y-6">
+      <div className="mx-auto w-full max-w-5xl px-8 sm:px-16 md:px-24 lg:px-32 xl:px-48 -mt-16 sm:-mt-20 relative z-10 pb-20 space-y-4 sm:space-y-6">
         
         {/* Profile Card Header */}
         <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row gap-4 sm:gap-6 md:items-center justify-between">

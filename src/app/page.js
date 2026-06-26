@@ -108,7 +108,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30 dark:from-black/90 dark:via-black/70 dark:to-black/50" />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1600px] px-3 sm:px-4 lg:px-4 py-8 sm:py-20 lg:py-32">
+        <div className="relative z-10 mx-auto w-full max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48 py-8 sm:py-20 lg:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             {/* Left Column: Typography and Search Box */}
@@ -219,7 +219,7 @@ export default function HomePage() {
       {/* 2. CATEGORIES CAROUSEL GRID                      */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 border-t border-border bg-card">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-4">
+        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
           <div className="flex items-end justify-between mb-6 sm:mb-10">
             <div>
               <h2 className="text-lg sm:text-3xl font-bold text-foreground">Explore Categories</h2>
@@ -262,7 +262,7 @@ export default function HomePage() {
       {/* 3. POPULAR SERVICES                              */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 bg-background">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-4">
+        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
           <div className="mb-6 sm:mb-10 flex items-center justify-between">
             <div>
               <h2 className="text-lg sm:text-3xl font-bold text-foreground">Popular Services</h2>
@@ -308,7 +308,7 @@ export default function HomePage() {
       {/* 4. TOP RATED PROVIDERS                            */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 border-t border-border bg-card">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-4">
+        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
           <div className="mb-6 sm:mb-10">
             <h2 className="text-lg sm:text-3xl font-bold text-foreground">Top-Rated Partners</h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">Verified experts with outstanding reviews</p>
@@ -358,7 +358,7 @@ export default function HomePage() {
       {/* 5. TESTIMONIALS                                  */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 bg-background">
-        <div className="mx-auto max-w-[1600px] px-3 sm:px-4 lg:px-4">
+        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-xl sm:text-3xl font-bold text-foreground">Loved by thousands</h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">See what our home service users have to say</p>
@@ -420,7 +420,7 @@ export default function HomePage() {
       {/* 6. CTA SECTION                                   */}
       {/* ================================================= */}
       <section className="py-12 sm:py-20 border-t border-border bg-gradient-to-t from-indigo-50/40 via-card to-card dark:from-indigo-950/15 text-center">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+        <div className="mx-auto max-w-4xl px-6 sm:px-16 lg:px-24 xl:px-40 2xl:px-48 space-y-4 sm:space-y-6">
           <h2 className="text-xl sm:text-4xl font-extrabold text-foreground">
             Are you a service professional?
           </h2>
