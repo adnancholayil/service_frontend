@@ -2,11 +2,22 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../store/slices/authSlice';
+import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut } from 'lucide-react';
 
 export default function ProviderLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    localStorage.removeItem('token');
+    document.cookie = 'user_token=; Max-Age=0; path=/;';
+    router.push('/');
+  };
 
   const menuItems = [
     { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
@@ -51,9 +62,16 @@ export default function ProviderLayout({ children }) {
           </nav>
         </div>
 
-        <div className="px-3 pb-2 mt-auto hidden md:block">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/20">
+        <div className="px-3 pb-2 mt-auto hidden md:flex flex-col gap-4">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 rounded-xl text-sm font-bold transition-all"
+          >
+            <LogOut className="h-4 w-4" /> Log Out
+          </button>
+          
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+            <div className="h-8 w-8 rounded-full bg-emerald-600 flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
               <Wrench className="h-4 w-4 text-white" />
             </div>
             <div>

@@ -5,7 +5,7 @@ export const GET_PROVIDER_DETAILS = gql`
     providerDetails(id: $id) {
       id
       businessName
-      bio
+      description
       rating
       reviewsCount
       verificationStatus
@@ -39,7 +39,7 @@ export const GET_PROVIDERS_PAGE_DATA = gql`
     providers(category: $category) {
       id
       businessName
-      bio
+      description
       rating
       reviewsCount
       verificationStatus

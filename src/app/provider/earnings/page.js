@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { BarChart3, Download, TrendingUp, DollarSign } from 'lucide-react';
-import { useQuery } from '@apollo/client/react';
+import { useQuery, useMutation } from '@apollo/client/react';
+import toast from 'react-hot-toast';
 import { PROVIDER_DASHBOARD_STATS_QUERY } from '../../../graphql/queries/provider';
+import { REQUEST_PAYOUT } from '../../../graphql/mutations/provider';
 
 export default function ProviderEarnings() {
   const { data, loading } = useQuery(PROVIDER_DASHBOARD_STATS_QUERY);
@@ -12,6 +14,25 @@ export default function ProviderEarnings() {
     totalEarnings: 0,
     pendingTasks: 0,
     completedJobs: 0,
+  };
+
+  const [requestPayout, { loading: requesting }] = useMutation(REQUEST_PAYOUT, {
+    onCompleted: () => {
+      toast.success('Payout requested successfully! It will be processed soon.');
+    },
+    onError: (err) => toast.error(err.message || 'Failed to request payout'),
+  });
+
+  const handleWithdraw = async () => {
+    if (stats.totalEarnings <= 0) {
+      toast.error('No funds available for withdrawal.');
+      return;
+    }
+    try {
+      await requestPayout({ variables: { amount: stats.totalEarnings } });
+    } catch (err) {
+      // Error handled by mutation onError
+    }
   };
 
   return (
@@ -35,8 +56,16 @@ export default function ProviderEarnings() {
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Available Balance</p>
           <h3 className="text-3xl font-black text-slate-900">{loading ? '...' : `$${stats.totalEarnings.toLocaleString()}`}</h3>
-          <button className="mt-4 w-full bg-slate-900 text-white rounded-lg py-2 text-xs font-bold hover:bg-slate-800 transition-colors opacity-50 cursor-not-allowed">
-            Withdraw Funds
+          <button 
+            onClick={handleWithdraw}
+            disabled={requesting || loading || stats.totalEarnings <= 0}
+            className={`mt-4 w-full bg-slate-900 text-white rounded-lg py-2 text-xs font-bold transition-colors shadow-md shadow-slate-900/20 ${
+              requesting || loading || stats.totalEarnings <= 0 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:bg-slate-800'
+            }`}
+          >
+            {requesting ? 'Processing...' : 'Withdraw Funds'}
           </button>
         </div>
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">

@@ -76,7 +76,7 @@ export function Navbar() {
   };
 
   // Do not render Navbar on admin or provider dashboard routes since they have their own layouts
-  if (pathname && (pathname.startsWith('/admin') || pathname.startsWith('/provider'))) {
+  if (pathname && (pathname.startsWith('/admin') || pathname === '/provider' || pathname.startsWith('/provider/'))) {
     return null;
   }
 

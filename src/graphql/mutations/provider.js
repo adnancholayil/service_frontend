@@ -14,6 +14,18 @@ export const UPDATE_PROVIDER_PROFILE = gql`
   }
 `;
 
+export const CHANGE_PASSWORD = gql`
+  mutation ChangePassword($oldPassword: String!, $newPassword: String!) {
+    changePassword(oldPassword: $oldPassword, newPassword: $newPassword)
+  }
+`;
+
+export const REQUEST_PAYOUT = gql`
+  mutation RequestPayout($amount: Float!) {
+    requestPayout(amount: $amount)
+  }
+`;
+
 export const UPDATE_LOCATION = gql`
   mutation UpdateLocation($longitude: Float!, $latitude: Float!) {
     updateLocation(longitude: $longitude, latitude: $latitude) {

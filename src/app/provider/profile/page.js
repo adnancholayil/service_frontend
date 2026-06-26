@@ -43,7 +43,7 @@ export default function ProviderProfile() {
         variables: { businessName, description, address }
       });
     } catch (e) {
-      console.error(e);
+      // Error handled by mutation onError
     }
   };
 

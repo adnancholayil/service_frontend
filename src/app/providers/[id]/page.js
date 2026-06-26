@@ -192,97 +192,85 @@ export default function ProviderDetailPage({ params }) {
 
   return (
     <div className="flex-grow flex flex-col bg-background">
-      {/* 1. Cover Image Header */}
-      <div className="h-40 sm:h-64 w-full relative bg-muted">
-        {provider.banner ? (
-          <img
-            src={provider.banner}
-            alt={provider.businessName}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-brand/40 via-indigo-500/30 to-purple-600/40" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-black/30" />
-        
-        {/* Back navigation inside cover */}
-        <div className="absolute top-4 sm:top-6 left-3 sm:left-8 z-10">
-          <Link href="/providers">
-            <button className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 bg-background/80 hover:bg-background backdrop-blur-md text-foreground text-[10px] sm:text-xs font-bold rounded-lg sm:rounded-xl border border-border shadow-sm transition-all cursor-pointer">
-              <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" /> Back
+      {/* 1. Flat Header Section */}
+      <div className="w-full border-b border-border bg-card">
+        <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
+          {/* Back Navigation */}
+          <Link href="/providers" className="inline-block mb-6">
+            <button className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
+              <ArrowLeft className="h-4 w-4" /> Back to Providers
             </button>
           </Link>
+
+          {/* Profile Info */}
+          <div className="flex flex-col md:flex-row gap-6 md:items-start justify-between">
+            <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start text-center sm:text-left">
+              <Avatar src={provider.user?.avatar} alt={provider.businessName} size="xl" className="h-24 w-24 rounded-full border border-border shrink-0" />
+              <div className="space-y-2 mt-2">
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{provider.businessName}</h1>
+                  {provider.verificationStatus === 'VERIFIED' && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 text-xs font-bold uppercase tracking-wide">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Verified Pro
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center justify-center sm:justify-start gap-3 text-sm font-medium text-muted-foreground">
+                  <span className="text-brand">{provider.category?.name}</span>
+                  <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> NY Metropolitan Area</span>
+                  <span className="flex items-center gap-1 text-amber-600">
+                    <Star className="h-4 w-4 fill-amber-500 text-amber-500" /> {provider.rating} ({provider.reviewsCount} reviews)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="shrink-0 flex flex-col gap-2 w-full md:w-48 mt-4 md:mt-0">
+              <Button variant="primary" className="w-full font-semibold rounded-lg" onClick={handleStartBooking}>
+                Book Now
+              </Button>
+              <p className="text-xs text-center text-muted-foreground font-medium">Responds quickly</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Content container overlapping the banner */}
-      <div className="mx-auto w-full max-w-5xl px-8 sm:px-16 md:px-24 lg:px-32 xl:px-48 -mt-16 sm:-mt-20 relative z-10 pb-20 space-y-4 sm:space-y-6">
+      {/* Main Content Container */}
+      <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* Profile Card Header */}
-        <div className="bg-card/80 backdrop-blur-xl border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl flex flex-col md:flex-row gap-4 sm:gap-6 md:items-center justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-center sm:items-start text-center sm:text-left">
-            <Avatar src={provider.user?.avatar} alt={provider.businessName} size="xl" className="h-20 w-20 sm:h-28 sm:w-28 rounded-full border-4 border-background shadow-lg shrink-0 -mt-12 sm:mt-0" />
-            <div className="space-y-1 sm:space-y-2">
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2">
-                {provider.verificationStatus === 'VERIFIED' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-brand/10 text-brand text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wide">
-                    <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Verified Pro
-                  </span>
-                )}
-                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-400 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full">
-                  <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5 fill-amber-500 text-amber-500" /> {provider.rating} ({provider.reviewsCount})
-                </span>
-              </div>
-              <h1 className="text-xl sm:text-3xl font-black text-foreground tracking-tight">{provider.businessName}</h1>
-              <p className="text-xs sm:text-sm font-semibold text-muted-foreground">{provider.category?.name}</p>
-              <div className="flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold text-muted-foreground pt-0.5 sm:pt-1">
-                <span className="flex items-center gap-1 sm:gap-1.5"><MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-brand" /> NY Metropolitan Area</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="shrink-0 flex flex-col gap-1.5 sm:gap-2 w-full md:w-auto mt-2 md:mt-0">
-            <Button variant="primary" className="w-full md:w-40 font-bold shadow-lg shadow-brand/25 text-xs sm:text-sm py-3 sm:py-5 rounded-xl sm:rounded-2xl cursor-pointer" onClick={handleStartBooking}>
-              Book Now
-            </Button>
-            <p className="text-[9px] sm:text-[10px] text-center text-muted-foreground font-semibold uppercase tracking-wider">Responds quickly</p>
-          </div>
-        </div>
-
-        {/* Content Tabs Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 pt-1 sm:pt-2">
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Left Column: Details */}
-          <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          <div className="lg:col-span-2 space-y-8">
             
             {/* About */}
-            <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-2 sm:space-y-3 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 sm:w-2 h-full bg-brand" />
-              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-1.5 sm:gap-2">
-                About {provider.businessName}
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{provider.description || 'No biography available.'}</p>
+            <div className="space-y-3">
+              <h2 className="text-lg font-bold text-foreground">About {provider.businessName}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{provider.description || 'No biography available.'}</p>
             </div>
 
+            <hr className="border-border" />
+
             {/* Services catalog offered */}
-            <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-5">
-              <h2 className="text-base sm:text-lg font-black text-foreground">Services Offered</h2>
-              <div className="space-y-2 sm:space-y-3">
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-foreground">Services Offered</h2>
+              <div className="space-y-3">
                 {services.map((srv) => (
-                  <div key={srv.id} className="p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-border/60 bg-muted/20 hover:bg-muted/40 transition-colors flex items-center justify-between gap-3 sm:gap-4 group">
-                    <div className="space-y-1 sm:space-y-1.5">
-                      <h3 className="text-base sm:text-lg font-bold text-foreground mb-1 leading-snug">{srv.name}</h3>
-                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{srv.description}</p>
-                      <div className="flex items-center gap-2 sm:gap-3 text-[9px] sm:text-[10px] text-muted-foreground font-semibold pt-0.5 sm:pt-1">
-                        <span className="flex items-center gap-1 bg-background px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border border-border/50"><Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-brand" /> {srv.duration}</span>
+                  <div key={srv.id} className="p-4 rounded-xl border border-border bg-card flex items-start justify-between gap-4 group">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-semibold text-foreground">{srv.name}</h3>
+                      <p className="text-sm text-muted-foreground">{srv.description}</p>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium pt-1">
+                        <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {srv.duration} mins</span>
                       </div>
                     </div>
-                    <div className="text-right shrink-0 flex flex-col items-end gap-1.5 sm:gap-2">
-                      <p className="font-black text-base sm:text-lg text-foreground">${srv.price}</p>
+                    <div className="text-right shrink-0 flex flex-col items-end gap-2">
+                      <p className="font-bold text-lg text-foreground">${srv.price}</p>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-[10px] sm:text-xs rounded-lg sm:rounded-xl px-3 sm:px-4 py-1 sm:py-1.5 border-border shadow-sm hover:border-brand hover:text-brand"
+                        className="text-xs rounded-lg px-4 border-border"
                         onClick={() => {
                           setSelectedService(srv);
                           handleStartBooking();
@@ -296,29 +284,34 @@ export default function ProviderDetailPage({ params }) {
               </div>
             </div>
 
+            <hr className="border-border" />
+
             {/* Portfolio Gallery */}
-            <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-4">
-              <h2 className="text-base sm:text-lg font-black text-foreground">Work Portfolio</h2>
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                {provider.portfolio.map((imgUrl, i) => (
-                  <div key={i} className="aspect-square rounded-xl sm:rounded-2xl overflow-hidden bg-muted border border-border hover:shadow-md transition-shadow group relative cursor-pointer">
-                    <img src={imgUrl} alt={`Portfolio work ${i + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Sparkles className="h-4 w-4 sm:h-6 sm:w-6 text-white" />
-                    </div>
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-foreground">Work Portfolio</h2>
+              <div className="grid grid-cols-3 gap-3">
+                {(provider.portfolio || [
+                  'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=300&h=300&fit=crop',
+                  'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300&h=300&fit=crop',
+                  'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=300&h=300&fit=crop'
+                ]).map((imgUrl, i) => (
+                  <div key={i} className="aspect-square rounded-xl overflow-hidden bg-muted border border-border relative">
+                    <img src={imgUrl} alt={`Portfolio work ${i + 1}`} className="w-full h-full object-cover" />
                   </div>
                 ))}
               </div>
             </div>
 
+            <hr className="border-border" />
+
             {/* Reviews */}
-            <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-5">
-              <h2 className="text-base sm:text-lg font-black text-foreground">Customer Reviews</h2>
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-foreground">Customer Reviews</h2>
               {provider.reviewsCount > 0 ? (
-                <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
+                <div className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border">
                   <div className="flex items-center gap-1 text-amber-500">
-                    <Star className="h-5 w-5 fill-amber-500" />
-                    <span className="text-xl font-black text-foreground">{provider.rating}</span>
+                    <Star className="h-6 w-6 fill-amber-500" />
+                    <span className="text-2xl font-bold text-foreground">{provider.rating}</span>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-foreground">{provider.reviewsCount} Reviews</p>
@@ -332,42 +325,34 @@ export default function ProviderDetailPage({ params }) {
           </div>
 
           {/* Right Column: Sidebar Availability */}
-          <div className="lg:col-span-4 space-y-4 sm:space-y-6">
-            <div className="p-4 sm:p-6 bg-card border border-border rounded-2xl sm:rounded-3xl shadow-sm space-y-3 sm:space-y-5 sticky top-20 sm:top-24">
-              {/* No availability data in backend, show a static placeholder */}
-              <div className="bg-brand/5 border border-brand/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-3 text-brand">
-                <div className="p-1.5 sm:p-2 bg-brand/10 rounded-lg sm:rounded-xl">
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xs sm:text-sm">Booking Availability</h3>
-                  <p className="text-[9px] sm:text-[10px] uppercase tracking-wider font-semibold opacity-80">Currently Accepting Jobs</p>
-                </div>
-              </div>
-              
-              <div className="space-y-3 sm:space-y-4 pt-1 sm:pt-2 text-xs sm:text-sm">
-                <div className="space-y-1 sm:space-y-1.5">
-                  <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Operating Days</span>
-                  <div className="flex flex-wrap gap-1 sm:gap-1.5">
+          <div className="lg:col-span-1">
+            <div className="p-5 bg-card border border-border rounded-xl space-y-6 sticky top-24">
+              <div className="space-y-4">
+                <h3 className="font-bold text-base text-foreground">Availability</h3>
+                
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Operating Days</span>
+                  <div className="flex flex-wrap gap-2">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <span key={day} className="text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border font-semibold bg-background text-foreground border-border">{day}</span>
+                      <span key={day} className="text-xs px-2 py-1 rounded-md border border-border bg-background text-foreground">{day}</span>
                     ))}
                   </div>
                 </div>
-                <div className="space-y-1 sm:space-y-1.5 pt-1 sm:pt-2 border-t border-border/50">
-                  <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Working Hours</span>
-                  <div className="flex items-center gap-1.5 sm:gap-2 font-bold text-foreground text-xs sm:text-sm bg-muted/40 p-2 sm:p-2.5 rounded-lg sm:rounded-xl border border-border/50">
-                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand" /> 09:00 AM – 06:00 PM
+                
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">Working Hours</span>
+                  <div className="flex items-center gap-2 font-medium text-sm text-foreground">
+                    <Clock className="h-4 w-4 text-muted-foreground" /> 09:00 AM – 06:00 PM
                   </div>
                 </div>
               </div>
 
-              <div className="pt-3 sm:pt-4 border-t border-border/50">
-                <Button variant="primary" className="w-full font-bold shadow-md shadow-brand/20 py-3 sm:py-5 text-xs sm:text-sm rounded-xl sm:rounded-2xl" onClick={handleStartBooking}>
+              <div className="pt-4 border-t border-border space-y-3">
+                <Button variant="primary" className="w-full font-semibold rounded-lg" onClick={handleStartBooking}>
                   Book Appointment
                 </Button>
-                <div className="flex items-center justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4 text-[9px] sm:text-[10px] text-muted-foreground font-semibold">
-                  <ShieldCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Payments protected by Escrow
+                <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground font-medium">
+                  <ShieldCheck className="h-4 w-4" /> Protected by Escrow
                 </div>
               </div>
             </div>
