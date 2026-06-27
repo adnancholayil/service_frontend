@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { GET_PROVIDER_PROFILE } from '../../../graphql/queries/provider';
 import { GET_CATEGORIES } from '../../../graphql/queries/categories';
 import { CREATE_SERVICE, UPDATE_SERVICE, DELETE_SERVICE } from '../../../graphql/mutations/services';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 
 export default function ProviderServices() {
   const { user } = useSelector((state) => state.auth);
@@ -24,6 +25,8 @@ export default function ProviderServices() {
     price: '',
     duration: '',
   });
+
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   const { data: profileData, loading: profileLoading, refetch: refetchProfile } = useQuery(GET_PROVIDER_PROFILE, {
     variables: { userId: user?.id },
@@ -85,10 +88,15 @@ export default function ProviderServices() {
     setFormData({ name: '', description: '', category: '', price: '', duration: '' });
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
+  const handleDelete = (id) => {
+    setServiceToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (serviceToDelete) {
       try {
-        await deleteService({ variables: { id } });
+        await deleteService({ variables: { id: serviceToDelete } });
+        setServiceToDelete(null);
       } catch (e) {
         console.error(e);
       }
@@ -278,6 +286,15 @@ export default function ProviderServices() {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={!!serviceToDelete} 
+        onClose={() => setServiceToDelete(null)}
+        onConfirm={confirmDelete}
+        title="Delete Service"
+        message="Are you sure you want to delete this service? This action cannot be undone."
+        confirmText="Delete"
+      />
 
     </div>
   );

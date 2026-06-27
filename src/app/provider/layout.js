@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch } from 'react-redux';
-import { logout } from '../../store/slices/authSlice';
+import { openLogoutModal } from '../../store/slices/appSlice';
 import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut } from 'lucide-react';
 
 export default function ProviderLayout({ children }) {
@@ -13,10 +13,7 @@ export default function ProviderLayout({ children }) {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-    dispatch(logout());
-    localStorage.removeItem('token');
-    document.cookie = 'user_token=; Max-Age=0; path=/;';
-    router.push('/');
+    dispatch(openLogoutModal());
   };
 
   const menuItems = [
@@ -26,7 +23,6 @@ export default function ProviderLayout({ children }) {
     { label: 'Reviews', href: '/provider/reviews', icon: Star },
     { label: 'Earnings Analytics', href: '/provider/earnings', icon: BarChart3 },
     { label: 'Business Profile', href: '/provider/profile', icon: User },
-    { label: 'Settings', href: '/provider/settings', icon: Settings },
   ];
 
   return (

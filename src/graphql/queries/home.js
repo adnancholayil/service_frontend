@@ -31,5 +31,21 @@ export const GET_HOME_DATA = gql`
         }
       }
     }
+    publicReviews(limit: 3) {
+      id
+      rating
+      comment
+      createdAt
+      customer {
+        name
+        avatar
+      }
+    }
+    publicBanners {
+      id
+      title
+      imageUrl
+      link
+    }
   }
 `;

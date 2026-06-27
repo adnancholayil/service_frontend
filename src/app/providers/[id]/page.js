@@ -24,6 +24,7 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_PROVIDER_DETAILS } from '../../../graphql/queries/provider';
 import { CREATE_BOOKING_MUTATION } from '../../../graphql/mutations/bookings';
 import { startBookingFlow, updateBookingStep, resetBookingFlow } from '../../../store/slices/bookingSlice';
+import { openAuthModal } from '../../../store/slices/appSlice';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Avatar from '../../../components/ui/Avatar';
@@ -86,7 +87,7 @@ export default function ProviderDetailPage({ params }) {
   const handleStartBooking = () => {
     if (!isAuthenticated) {
       toast.error('Please log in to book services');
-      router.push(`/login?redirect=/providers/${id}`);
+      dispatch(openAuthModal('login'));
       return;
     }
     
@@ -194,7 +195,7 @@ export default function ProviderDetailPage({ params }) {
     <div className="flex-grow flex flex-col bg-background">
       {/* 1. Flat Header Section */}
       <div className="w-full border-b border-border bg-card">
-        <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
           {/* Back Navigation */}
           <Link href="/providers" className="inline-block mb-6">
             <button className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
@@ -235,7 +236,7 @@ export default function ProviderDetailPage({ params }) {
       </div>
 
       {/* Main Content Container */}
-      <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
         {/* Content Centered */}
         <div className="space-y-8">

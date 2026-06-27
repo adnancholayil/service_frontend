@@ -5,6 +5,11 @@ export const GET_CATEGORIES = gql`
     categories {
       id
       name
+      slug
+      icon
+      isActive
+      createdAt
+      updatedAt
     }
   }
 `;

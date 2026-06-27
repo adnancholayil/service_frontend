@@ -27,7 +27,7 @@ import {
 import toast from 'react-hot-toast';
 
 import { logout } from '../../store/slices/authSlice';
-import { toggleNotificationDrawer, openAuthModal } from '../../store/slices/appSlice';
+import { toggleNotificationDrawer, openAuthModal, openLogoutModal } from '../../store/slices/appSlice';
 import Avatar from '../ui/Avatar';
 import Button from '../ui/Button';
 
@@ -61,14 +61,8 @@ export function Navbar() {
   }, [isAuthenticated, searchParams, dispatch]);
 
   const handleLogout = () => {
-    // Clear the Redux state
-    dispatch(logout());
-    // Crucially clear the auth cookies so Next.js middleware doesn't redirect us back
-    document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     setUserDropdownOpen(false);
-    toast.success('Logged out successfully');
-    router.push('/login');
+    dispatch(openLogoutModal());
   };
 
   const toggleTheme = () => {
@@ -258,14 +252,6 @@ export function Navbar() {
                                 My Bookings
                               </Link>
                             )}
-                            <Link
-                              href={user?.role?.toLowerCase() === 'customer' ? '/profile/edit' : `/${user?.role?.toLowerCase()}/settings`}
-                              onClick={() => setUserDropdownOpen(false)}
-                              className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <Settings className="h-4 w-4" />
-                              Settings
-                            </Link>
                           </div>
                           <div className="border-t border-border p-1">
                             <button

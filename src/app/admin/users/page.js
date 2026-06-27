@@ -39,25 +39,38 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {users.map((usr) => (
-                <tr key={usr.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-8 py-5 flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0">
-                      {usr.avatar ? <Avatar src={usr.avatar} alt={usr.name} size="sm" /> : usr.name.charAt(0)}
-                    </div>
-                    <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{usr.name}</span>
-                  </td>
-                  <td className="px-8 py-5 text-slate-500 font-medium">{usr.email}</td>
-                  <td className="px-8 py-5">
-                    <span className="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 capitalize">
-                      {usr.role}
-                    </span>
-                  </td>
-                  <td className="px-8 py-5 text-slate-500 font-medium text-right">
-                    {new Date(usr.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                  </td>
-                </tr>
-              ))}
+              {users.map((usr) => {
+                const joinedDate = isNaN(Number(usr.createdAt)) 
+                  ? new Date(usr.createdAt) 
+                  : new Date(Number(usr.createdAt));
+                const isValidDate = !isNaN(joinedDate.getTime());
+
+                return (
+                  <tr key={usr.id} className="hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-8 py-5 flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold shrink-0">
+                        {usr.avatar ? <Avatar src={usr.avatar} alt={usr.name} size="sm" /> : usr.name.charAt(0)}
+                      </div>
+                      <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{usr.name}</span>
+                    </td>
+                    <td className="px-8 py-5 text-slate-500 font-medium">{usr.email}</td>
+                    <td className="px-8 py-5">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold capitalize ${
+                        usr.role?.toUpperCase() === 'ADMIN' ? 'bg-purple-100 text-purple-700' :
+                        usr.role?.toUpperCase() === 'PROVIDER' ? 'bg-amber-100 text-amber-700' :
+                        'bg-emerald-100 text-emerald-700'
+                      }`}>
+                        {usr.role?.toLowerCase()}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5 text-slate-500 font-medium text-right">
+                      {isValidDate 
+                        ? joinedDate.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+                        : 'Unknown Date'}
+                    </td>
+                  </tr>
+                );
+              })}
               {users.length === 0 && (
                 <tr>
                   <td colSpan="4" className="px-8 py-16 text-center text-slate-400">

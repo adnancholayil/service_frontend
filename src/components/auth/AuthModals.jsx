@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect } from 'react';
 import { Sparkles, User, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
@@ -25,7 +26,14 @@ export default function AuthModals() {
   const searchParams = useSearchParams();
   
   const { authModalType } = useSelector((state) => state.app);
+  const { isAuthenticated } = useSelector((state) => state.auth);
   const isOpen = authModalType !== null;
+
+  useEffect(() => {
+    if (isAuthenticated && isOpen) {
+      dispatch(closeAuthModal());
+    }
+  }, [isAuthenticated, isOpen, dispatch]);
 
   // --- Common ---
   const [email, setEmail] = useState('');
@@ -63,9 +71,13 @@ export default function AuthModals() {
     dispatch(loginStart());
 
     try {
-      const { data } = await loginMut({
+      const { data, errors } = await loginMut({
         variables: { email, password }
       });
+      
+      if (errors && errors.length > 0) {
+        throw new Error(errors[0].message);
+      }
       
       if (data?.login) {
         const { accessToken, refreshToken, user } = data.login;
@@ -129,7 +141,11 @@ export default function AuthModals() {
         };
       }
 
-      const { data } = await registerMut({ variables });
+      const { data, errors } = await registerMut({ variables });
+
+      if (errors && errors.length > 0) {
+        throw new Error(errors[0].message);
+      }
 
       if (data?.register) {
         const { accessToken, refreshToken, user } = data.register;
@@ -244,7 +260,6 @@ export default function AuthModals() {
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => toast.error('Google Login failed')}
-                useOneTap
                 shape="rectangular"
                 theme="outline"
                 text={authModalType === 'login' ? 'signin_with' : 'signup_with'}

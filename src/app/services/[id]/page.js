@@ -28,7 +28,7 @@ export default function ServiceDetailPage({ params }) {
 
   if (!service) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center flex flex-col items-center justify-center space-y-4 flex-1">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center space-y-4 flex-1">
         <ShieldAlert className="h-10 w-10 text-rose-500" />
         <h2 className="text-xl font-bold">Service Not Found</h2>
         <p className="text-sm text-muted-foreground">The service ID you requested is invalid or has been archived.</p>
@@ -40,7 +40,7 @@ export default function ServiceDetailPage({ params }) {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8 space-y-8 flex-1">
+    <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 space-y-8 flex-1">
       {/* Back button */}
       <div>
         <Link href="/services" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-foreground">

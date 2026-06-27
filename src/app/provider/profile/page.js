@@ -3,14 +3,17 @@
 import React, { useState, useEffect } from 'react';
 import { User, Image as ImageIcon, MapPin, Briefcase, Plus } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 
 import { GET_PROVIDER_PROFILE } from '../../../graphql/queries/provider';
 import { UPDATE_PROVIDER_PROFILE } from '../../../graphql/mutations/provider';
+import { updateProfile as updateReduxProfile } from '../../../store/slices/authSlice';
+import ImageUpload from '../../../components/ui/ImageUpload';
 
 export default function ProviderProfile() {
   const { user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
@@ -127,22 +130,29 @@ export default function ProviderProfile() {
             </div>
             <div>
               <h3 className="font-bold text-slate-900">Profile Photo</h3>
-              <p className="text-xs text-slate-500 mt-1">Recommended size: 400x400px</p>
+              <p className="text-xs text-slate-500 mt-1 mb-4">Recommended size: 400x400px</p>
             </div>
-            <button className="w-full bg-slate-50 border border-slate-200 text-slate-700 rounded-lg py-2 text-xs font-bold hover:bg-slate-100 transition-colors">
-              Upload New Image
-            </button>
+            <ImageUpload 
+              label="Upload New Image" 
+              variant="button"
+              onUpload={(url) => {
+                dispatch(updateReduxProfile({ avatar: url }));
+                toast.success('Avatar updated in session. (Backend save may require another mutation)');
+              }} 
+            />
           </div>
           
           <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 space-y-4">
             <h3 className="font-bold text-slate-900 flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-slate-400" /> Portfolio Gallery
             </h3>
-            <p className="text-xs text-slate-500">Showcase your past work to attract more customers.</p>
-            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-colors cursor-pointer group">
-              <Plus className="h-6 w-6 text-slate-300 group-hover:text-emerald-500 transition-colors mb-2" />
-              <span className="text-xs font-bold text-slate-500 group-hover:text-slate-700">Add Photos</span>
-            </div>
+            <p className="text-xs text-slate-500 mb-2">Showcase your past work to attract more customers.</p>
+            <ImageUpload 
+              label=""
+              onUpload={(url) => {
+                toast.success('Photo added to portfolio! (Visual demo)');
+              }}
+            />
           </div>
         </div>
 

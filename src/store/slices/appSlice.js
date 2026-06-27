@@ -7,6 +7,7 @@ const initialState = {
   sidebarOpen: false,
   notificationDrawerOpen: false,
   authModalType: null, // 'login', 'register', or null
+  logoutModalOpen: false,
 };
 
 const appSlice = createSlice({
@@ -39,6 +40,12 @@ const appSlice = createSlice({
     },
     closeAuthModal(state) {
       state.authModalType = null;
+    },
+    openLogoutModal(state) {
+      state.logoutModalOpen = true;
+    },
+    closeLogoutModal(state) {
+      state.logoutModalOpen = false;
     }
   }
 });
@@ -52,6 +59,8 @@ export const {
   toggleNotificationDrawer,
   setNotificationDrawerOpen,
   openAuthModal,
-  closeAuthModal
+  closeAuthModal,
+  openLogoutModal,
+  closeLogoutModal
 } = appSlice.actions;
 export default appSlice.reducer;

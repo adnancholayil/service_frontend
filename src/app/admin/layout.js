@@ -2,7 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { useApolloClient } from '@apollo/client/react';
+import { openLogoutModal } from '../../store/slices/appSlice';
 import {
   LayoutDashboard,
   Users,
@@ -13,11 +16,19 @@ import {
   Image,
   FileBarChart2,
   ShieldAlert,
-  Sparkles
+  Sparkles,
+  LogOut
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const client = useApolloClient();
+
+  const handleLogout = () => {
+    dispatch(openLogoutModal());
+  };
 
   const menuItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -63,8 +74,16 @@ export default function AdminLayout({ children }) {
           </nav>
         </div>
 
-        <div className="px-3 pb-2 mt-auto hidden md:block">
-          <div className="flex items-center gap-3">
+        <div className="px-3 pb-2 mt-auto hidden md:flex flex-col gap-4">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2.5 text-sm font-semibold rounded-lg text-red-600 hover:bg-red-50 transition-all duration-200 w-full text-left"
+          >
+            <LogOut className="h-4 w-4 text-red-500" />
+            Log Out
+          </button>
+          
+          <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
             <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
               <Sparkles className="h-4 w-4 text-white" />
             </div>

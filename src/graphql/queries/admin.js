@@ -30,6 +30,7 @@ export const ADMIN_USERS_QUERY = gql`
       role
       avatar
       createdAt
+      password
     }
   }
 `;
@@ -41,6 +42,27 @@ export const ADMIN_DASHBOARD_STATS_QUERY = gql`
       bookingsCount
       disputesCount
       totalRevenue
+    }
+  }
+`;
+
+export const GET_REVIEWS = gql`
+  query GetAdminReviews {
+    adminReviews {
+      id
+      rating
+      comment
+      createdAt
+      customer {
+        id
+        name
+        email
+        avatar
+      }
+      provider {
+        id
+        businessName
+      }
     }
   }
 `;

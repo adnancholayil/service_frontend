@@ -58,6 +58,8 @@ export default function HomePage() {
 
   const categories = data?.categories || [];
   const providers = data?.providers || [];
+  const publicReviews = data?.publicReviews || [];
+  const publicBanners = data?.publicBanners || [];
   
   // Extract all services from providers to show in "Popular Services"
   const allServices = providers.flatMap(p => 
@@ -111,7 +113,7 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/30 dark:from-black/90 dark:via-black/70 dark:to-black/50" />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48 py-8 sm:py-20 lg:py-32">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-20 lg:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
             
             {/* Left Column: Typography and Search Box */}
@@ -219,10 +221,77 @@ export default function HomePage() {
       </section>
 
       {/* ================================================= */}
+      {/* 1.5 PROMO BANNERS                                */}
+      {/* ================================================= */}
+      {publicBanners.length > 0 && (
+        <section className="py-10 sm:py-16 bg-background relative overflow-hidden">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-6 sm:mb-8">
+              <div>
+                <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">Special Offers</h2>
+                <p className="text-muted-foreground mt-1 text-sm sm:text-base font-medium">Exclusive deals for your home needs</p>
+              </div>
+            </div>
+            
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-6 -mx-6 px-6 sm:mx-0 sm:px-0 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {publicBanners.map(banner => {
+                const BannerContent = (
+                  <>
+                    <img 
+                      src={banner.imageUrl} 
+                      alt={banner.title} 
+                      className="w-full h-full object-cover transition-transform duration-1000 ease-in-out group-hover:scale-105"
+                      onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x400?text=Promo'; }}
+                    />
+                    {/* Elegant overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent flex flex-col justify-center p-6 sm:p-10 w-full md:w-3/4 lg:w-2/3">
+                      <div className="max-w-xl">
+                        <span className="inline-block px-2.5 py-1 mb-3 text-[10px] sm:text-xs font-bold text-white bg-brand rounded shadow-sm uppercase tracking-wider">
+                          Promo
+                        </span>
+                        <h3 className="text-white font-extrabold text-2xl sm:text-3xl lg:text-4xl leading-snug mb-4 drop-shadow-md">
+                          {banner.title}
+                        </h3>
+                        {banner.link && (
+                          <div className="inline-flex items-center justify-center px-5 py-2.5 bg-white text-zinc-900 font-bold text-sm rounded-lg shadow-sm hover:bg-brand hover:text-white transition-colors duration-200 gap-1.5 mt-2">
+                            Claim Offer <ArrowRight className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                );
+
+                const Wrapper = banner.link ? Link : 'div';
+                const wrapperProps = banner.link ? { 
+                  href: banner.link,
+                  className: "block relative rounded-2xl overflow-hidden shadow-md group cursor-pointer w-[85vw] sm:w-[60vw] md:w-[700px] lg:w-[800px] shrink-0 snap-center h-[280px] sm:h-[320px] lg:h-[360px] bg-zinc-900 ring-1 ring-border/50"
+                } : {
+                  className: "block relative rounded-2xl overflow-hidden shadow-md group w-[85vw] sm:w-[60vw] md:w-[700px] lg:w-[800px] shrink-0 snap-center h-[280px] sm:h-[320px] lg:h-[360px] bg-zinc-900 ring-1 ring-border/50"
+                };
+
+                return (
+                  <Wrapper key={banner.id} {...wrapperProps}>
+                    {BannerContent}
+                  </Wrapper>
+                );
+              })}
+            </div>
+          </div>
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}} />
+        </section>
+      )}
+
+      {/* ================================================= */}
       {/* 2. CATEGORIES CAROUSEL GRID                      */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 border-t border-border bg-card">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-6 sm:mb-10">
             <div>
               <h2 className="text-lg sm:text-3xl font-bold text-foreground">Explore Categories</h2>
@@ -265,7 +334,7 @@ export default function HomePage() {
       {/* 3. POPULAR SERVICES                              */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 bg-background">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 sm:mb-10 flex items-center justify-between">
             <div>
               <h2 className="text-lg sm:text-3xl font-bold text-foreground">Popular Services</h2>
@@ -311,7 +380,7 @@ export default function HomePage() {
       {/* 4. TOP RATED PROVIDERS                            */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 border-t border-border bg-card">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-6 sm:mb-10">
             <h2 className="text-lg sm:text-3xl font-bold text-foreground">Top-Rated Partners</h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">Verified experts with outstanding reviews</p>
@@ -361,60 +430,38 @@ export default function HomePage() {
       {/* 5. TESTIMONIALS                                  */}
       {/* ================================================= */}
       <section className="py-10 sm:py-16 bg-background">
-        <div className="mx-auto max-w-[1600px] px-6 sm:px-12 lg:px-24 xl:px-40 2xl:px-48">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-xl sm:text-3xl font-bold text-foreground">Loved by thousands</h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1 sm:mt-2">See what our home service users have to say</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-            <div className="p-5 sm:p-6 border border-border bg-card rounded-xl sm:rounded-2xl space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-1 text-amber-500">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground italic leading-snug">
-                &ldquo;Booking a cleaner through ServiceHub was incredibly straightforward. The provider was right on time and did an exceptional job deep cleaning my kitchen!&rdquo;
-              </p>
-              <div className="flex items-center gap-2 pt-2">
-                <Avatar alt="Robert Downey" size="sm" className="h-8 w-8" />
-                <div>
-                  <p className="text-xs font-bold leading-tight">Robert Downey</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">New York, NY</p>
+            {publicReviews.length > 0 ? (
+              publicReviews.map((review) => (
+                <div key={review.id} className="p-5 sm:p-6 border border-border bg-card rounded-xl sm:rounded-2xl flex flex-col h-full shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-1 text-amber-500 mb-3 sm:mb-4">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className={`h-4 w-4 ${star <= review.rating ? 'fill-amber-500 text-amber-500' : 'text-zinc-300 fill-zinc-300 dark:text-zinc-700 dark:fill-zinc-700'}`} />
+                    ))}
+                  </div>
+                  <p className="text-xs sm:text-sm text-muted-foreground italic leading-relaxed flex-1">
+                    &ldquo;{review.comment}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-3 pt-4 mt-4 border-t border-border/50">
+                    <Avatar src={review.customer?.avatar} alt={review.customer?.name} size="sm" className="h-9 w-9 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold leading-tight text-foreground line-clamp-1">{review.customer?.name || 'Anonymous User'}</p>
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{new Date(Number(review.createdAt)).toLocaleDateString()}</p>
+                    </div>
+                  </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full py-8 text-center text-muted-foreground text-sm">
+                No reviews yet. Be the first to leave one!
               </div>
-            </div>
-
-            <div className="p-5 sm:p-6 border border-border bg-card rounded-xl sm:rounded-2xl space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-1 text-amber-500">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground italic leading-snug">
-                &ldquo;The AC servicing is top-notch. Flat rates are clear upfront, so I didn&apos;t have to negotiate or argue. Alex Mercer was professional, polite, and quick!&rdquo;
-              </p>
-              <div className="flex items-center gap-2 pt-2">
-                <Avatar alt="Emily Watson" size="sm" className="h-8 w-8" />
-                <div>
-                  <p className="text-xs font-bold leading-tight">Emily Watson</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">Brooklyn, NY</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-6 border border-border bg-card rounded-xl sm:rounded-2xl space-y-3 sm:space-y-4">
-              <div className="flex items-center gap-1 text-amber-500">
-                <Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4 w-4 fill-amber-500 text-amber-500" /><Star className="h-4.5 w-4.5 text-zinc-300 fill-zinc-300 dark:text-zinc-700 dark:fill-zinc-700" />
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground italic leading-snug">
-                &ldquo;Excellent interface and high-quality profiles. The custom calendar availability was very convenient to plan bookings around my office schedule.&rdquo;
-              </p>
-              <div className="flex items-center gap-2 pt-2">
-                <Avatar alt="Marcus Aurelius" size="sm" className="h-8 w-8" />
-                <div>
-                  <p className="text-xs font-bold leading-tight">Marcus Aurelius</p>
-                  <p className="text-[10px] text-muted-foreground leading-tight">Queens, NY</p>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

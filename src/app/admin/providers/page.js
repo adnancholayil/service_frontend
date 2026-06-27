@@ -10,10 +10,12 @@ import { VERIFY_PROVIDER_MUTATION } from '../../../graphql/mutations/admin';
 import Avatar from '../../../components/ui/Avatar';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 
 export default function AdminProviders() {
   const { data, loading, error, refetch } = useQuery(ADMIN_PROVIDERS_QUERY);
   const [verifyProvider] = useMutation(VERIFY_PROVIDER_MUTATION);
+  const [providerToReject, setProviderToReject] = React.useState(null);
 
   const providers = data?.adminProviders || [];
 
@@ -27,11 +29,16 @@ export default function AdminProviders() {
     }
   };
 
-  const handleSuspend = async (provId) => {
-    if (window.confirm('Suspend or reject this partner?')) {
+  const handleSuspend = (provId) => {
+    setProviderToReject(provId);
+  };
+
+  const confirmSuspend = async () => {
+    if (providerToReject) {
       try {
-        await verifyProvider({ variables: { providerId: provId, status: 'REJECTED' } });
+        await verifyProvider({ variables: { providerId: providerToReject, status: 'REJECTED' } });
         toast.error('Partner status set to rejected/suspended');
+        setProviderToReject(null);
         refetch();
       } catch (err) {
         toast.error(err.message || 'Error rejecting partner');
@@ -144,6 +151,15 @@ export default function AdminProviders() {
           </table>
         </div>
       </div>
+
+      <ConfirmModal 
+        isOpen={!!providerToReject} 
+        onClose={() => setProviderToReject(null)}
+        onConfirm={confirmSuspend}
+        title="Reject or Suspend Partner"
+        message="Are you sure you want to suspend or reject this service partner? They will not be able to accept new bookings."
+        confirmText="Reject Partner"
+      />
     </div>
   );
 }

@@ -18,10 +18,12 @@ import toast from 'react-hot-toast';
 import { PROVIDER_DASHBOARD_STATS_QUERY } from '../../../graphql/queries/provider';
 import { GET_MY_BOOKINGS } from '../../../graphql/queries/bookings';
 import { UPDATE_BOOKING_STATUS_MUTATION } from '../../../graphql/mutations/bookings';
+import ConfirmModal from '../../../components/ui/ConfirmModal';
 
 export default function ProviderDashboard() {
   const { data: statsData, loading: statsLoading } = useQuery(PROVIDER_DASHBOARD_STATS_QUERY);
   const { data: bookingsData, loading: bookingsLoading, refetch } = useQuery(GET_MY_BOOKINGS);
+  const [bookingToReject, setBookingToReject] = React.useState(null);
   
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS_MUTATION, {
     onCompleted: () => {
@@ -52,11 +54,16 @@ export default function ProviderDashboard() {
     }
   };
 
-  const handleReject = async (bookingId) => {
-    if (window.confirm('Are you sure you want to reject this booking request?')) {
+  const handleReject = (bookingId) => {
+    setBookingToReject(bookingId);
+  };
+
+  const confirmReject = async () => {
+    if (bookingToReject) {
       try {
-        await updateBookingStatus({ variables: { id: bookingId, status: 'REJECTED' } });
+        await updateBookingStatus({ variables: { id: bookingToReject, status: 'REJECTED' } });
         toast.success('Booking rejected');
+        setBookingToReject(null);
       } catch (e) {
         console.error(e);
       }
@@ -175,10 +182,10 @@ export default function ProviderDashboard() {
                   )}
 
                   <div className="flex gap-3 pt-2 justify-end">
-                    <button onClick={() => handleReject(b.id)} className="px-4 py-2 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 rounded-xl text-xs font-bold transition-all shadow-sm">
+                    <button onClick={() => handleReject(b.id)} className="px-4 py-2 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer">
                       Decline
                     </button>
-                    <button onClick={() => handleAccept(b.id)} className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20">
+                    <button onClick={() => handleAccept(b.id)} className="px-4 py-2 bg-emerald-500 text-white hover:bg-emerald-600 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 cursor-pointer">
                       Accept Request
                     </button>
                   </div>
@@ -223,6 +230,15 @@ export default function ProviderDashboard() {
         </div>
 
       </div>
+
+      <ConfirmModal 
+        isOpen={!!bookingToReject} 
+        onClose={() => setBookingToReject(null)}
+        onConfirm={confirmReject}
+        title="Reject Booking"
+        message="Are you sure you want to decline this booking request? The customer will be notified."
+        confirmText="Decline"
+      />
     </div>
   );
 }

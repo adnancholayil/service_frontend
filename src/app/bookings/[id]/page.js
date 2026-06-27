@@ -25,7 +25,7 @@ export default function BookingDetailPage({ params }) {
 
   if (!booking) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-20 text-center flex flex-col items-center justify-center space-y-4 flex-1">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center space-y-4 flex-1">
         <AlertTriangle className="h-10 w-10 text-rose-500" />
         <h2 className="text-xl font-bold">Booking Not Found</h2>
         <p className="text-sm text-muted-foreground">The booking ID you requested is invalid.</p>
@@ -44,7 +44,7 @@ export default function BookingDetailPage({ params }) {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8 space-y-8 flex-1">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-10 space-y-8 flex-1">
       {/* Back Link */}
       <div>
         <Link href="/bookings" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground">
