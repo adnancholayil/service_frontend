@@ -35,12 +35,14 @@ export default function Providers({ children }) {
                 <LogoutConfirmModal />
                 <Toaster
                   position="top-right"
+                  containerStyle={{ zIndex: 999999 }}
                   toastOptions={{
                     duration: 4000,
                     style: {
                       background: 'var(--card)',
                       color: 'var(--foreground)',
                       border: '1px solid var(--border)',
+                      zIndex: 999999,
                     },
                   }}
                 >

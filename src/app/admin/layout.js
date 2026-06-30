@@ -17,7 +17,8 @@ import {
   FileBarChart2,
   ShieldAlert,
   Sparkles,
-  LogOut
+  LogOut,
+  MessageCircle
 } from 'lucide-react';
 
 export default function AdminLayout({ children }) {
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }) {
     { label: 'Users', href: '/admin/users', icon: Users },
     { label: 'Providers Verification', href: '/admin/providers', icon: Briefcase },
     { label: 'Global Bookings', href: '/admin/bookings', icon: CalendarDays },
+    { label: 'Message Tracking', href: '/admin/messages', icon: MessageCircle },
     { label: 'Category CRUD Manager', href: '/admin/categories', icon: FolderTree },
     { label: 'Platform Reviews', href: '/admin/reviews', icon: Star },
     { label: 'Promo Banners', href: '/admin/banners', icon: Image },

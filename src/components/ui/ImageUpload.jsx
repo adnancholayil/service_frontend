@@ -9,9 +9,7 @@ export default function ImageUpload({ onUpload, initialImage = '', label = 'Uplo
   const fileInputRef = useRef(null);
 
   React.useEffect(() => {
-    if (initialImage) {
-      setPreview(initialImage);
-    }
+    setPreview(initialImage || '');
   }, [initialImage]);
 
   const handleDragOver = (e) => {

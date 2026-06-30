@@ -62,3 +62,33 @@ export const GET_BOOKING_BY_ID = gql`
     }
   }
 `;
+
+export const BOOKING_SUBSCRIPTION = gql`
+  subscription OnBookingStatusChanged($userId: ID!) {
+    bookingStatusChanged(userId: $userId) {
+      id
+      service {
+        id
+        name
+        price
+      }
+      provider {
+        id
+        businessName
+        user {
+          name
+          avatar
+        }
+      }
+      location {
+        address
+      }
+      bookingDate
+      notes
+      status
+      paymentStatus
+      totalPrice
+      createdAt
+    }
+  }
+`;

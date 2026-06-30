@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { openLogoutModal } from '../../store/slices/appSlice';
-import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut } from 'lucide-react';
+import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut, MessageCircle } from 'lucide-react';
 
 export default function ProviderLayout({ children }) {
   const pathname = usePathname();
@@ -20,6 +20,7 @@ export default function ProviderLayout({ children }) {
     { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
     { label: 'Manage Bookings', href: '/provider/bookings', icon: CalendarRange },
     { label: 'My Services', href: '/provider/services', icon: Wrench },
+    { label: 'Messages', href: '/messages', icon: MessageCircle },
     { label: 'Reviews', href: '/provider/reviews', icon: Star },
     { label: 'Earnings Analytics', href: '/provider/earnings', icon: BarChart3 },
     { label: 'Business Profile', href: '/provider/profile', icon: User },

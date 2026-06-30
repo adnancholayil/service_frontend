@@ -71,3 +71,12 @@ export const VERIFY_OTP_MUTATION = gql`
     }
   }
 `;
+
+export const REFRESH_TOKEN_MUTATION = gql`
+  mutation RefreshToken($token: String!) {
+    refreshToken(token: $token) {
+      accessToken
+      refreshToken
+    }
+  }
+`;

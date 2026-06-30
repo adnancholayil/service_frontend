@@ -3,14 +3,47 @@
 import React, { useState } from 'react';
 import { CalendarRange, Calendar, CheckCircle, Clock, XCircle, MapPin } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
+import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 
-import { GET_MY_BOOKINGS } from '../../../graphql/queries/bookings';
+import { GET_MY_BOOKINGS, BOOKING_SUBSCRIPTION } from '../../../graphql/queries/bookings';
 import { UPDATE_BOOKING_STATUS_MUTATION } from '../../../graphql/mutations/bookings';
 
 export default function ProviderBookings() {
+  const { user } = useSelector((state) => state.auth);
   const [filter, setFilter] = useState('ALL'); // ALL, PENDING, ACCEPTED, COMPLETED
-  const { data, loading, refetch } = useQuery(GET_MY_BOOKINGS);
+  
+  const { data, loading, refetch, subscribeToMore } = useQuery(GET_MY_BOOKINGS, {
+    fetchPolicy: 'network-only',
+  });
+  
+  React.useEffect(() => {
+    if (user?.id && subscribeToMore) {
+      const unsubscribe = subscribeToMore({
+        document: BOOKING_SUBSCRIPTION,
+        variables: { userId: user.id },
+        updateQuery: (prev, { subscriptionData }) => {
+          if (!subscriptionData.data) return prev;
+          const updatedBooking = subscriptionData.data.bookingStatusChanged;
+          
+          const existingIndex = prev.bookings.findIndex(b => b.id === updatedBooking.id);
+          
+          if (existingIndex > -1) {
+            // Update existing booking
+            const newBookings = [...prev.bookings];
+            newBookings[existingIndex] = updatedBooking;
+            return Object.assign({}, prev, { bookings: newBookings });
+          } else {
+            // Add new booking
+            return Object.assign({}, prev, {
+              bookings: [updatedBooking, ...prev.bookings]
+            });
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user?.id, subscribeToMore]);
   
   const [updateStatus] = useMutation(UPDATE_BOOKING_STATUS_MUTATION, {
     onCompleted: () => refetch(),

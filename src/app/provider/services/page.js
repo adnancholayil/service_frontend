@@ -10,6 +10,7 @@ import { GET_PROVIDER_PROFILE } from '../../../graphql/queries/provider';
 import { GET_CATEGORIES } from '../../../graphql/queries/categories';
 import { CREATE_SERVICE, UPDATE_SERVICE, DELETE_SERVICE } from '../../../graphql/mutations/services';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
+import SelectSearch from '../../../components/ui/SelectSearch';
 
 export default function ProviderServices() {
   const { user } = useSelector((state) => state.auth);
@@ -34,6 +35,7 @@ export default function ProviderServices() {
   });
 
   const { data: categoryData } = useQuery(GET_CATEGORIES);
+  const categoryOptions = categoryData?.categories?.map(c => ({ value: c.id, label: c.name })) || [];
 
   const [createService, { loading: creating }] = useMutation(CREATE_SERVICE, {
     onCompleted: () => {
@@ -105,7 +107,7 @@ export default function ProviderServices() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.category || !formData.price) {
+    if (!formData.name || !formData.category || !formData.price || !formData.description) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -223,17 +225,12 @@ export default function ProviderServices() {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Category *</label>
-                <select 
-                  required
+                <SelectSearch 
+                  options={categoryOptions}
                   value={formData.category}
-                  onChange={e => setFormData({...formData, category: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                >
-                  <option value="">Select a category</option>
-                  {categoryData?.categories?.map(c => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
+                  onChange={value => setFormData({...formData, category: value})}
+                  placeholder="Select a category"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -264,8 +261,9 @@ export default function ProviderServices() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Description</label>
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Description *</label>
                 <textarea 
+                  required
                   rows={3}
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}

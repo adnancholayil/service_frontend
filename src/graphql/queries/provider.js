@@ -86,8 +86,14 @@ export const GET_PROVIDER_PROFILE = gql`
       services {
         id
         name
+        description
         price
+        duration
         isActive
+        category {
+          id
+          name
+        }
       }
     }
   }

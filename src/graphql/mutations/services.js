@@ -19,8 +19,8 @@ export const CREATE_SERVICE = gql`
 `;
 
 export const UPDATE_SERVICE = gql`
-  mutation UpdateService($id: ID!, $name: String, $description: String, $price: Float, $duration: Int, $images: [String!], $isActive: Boolean) {
-    updateService(id: $id, name: $name, description: $description, price: $price, duration: $duration, images: $images, isActive: $isActive) {
+  mutation UpdateService($id: ID!, $category: ID, $name: String, $description: String, $price: Float, $duration: Int, $images: [String!], $isActive: Boolean) {
+    updateService(id: $id, category: $category, name: $name, description: $description, price: $price, duration: $duration, images: $images, isActive: $isActive) {
       id
       name
       description
@@ -28,6 +28,10 @@ export const UPDATE_SERVICE = gql`
       duration
       isActive
       images
+      category {
+        id
+        name
+      }
     }
   }
 `;

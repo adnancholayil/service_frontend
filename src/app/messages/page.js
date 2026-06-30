@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { MessageSquare, Send, Sparkles, Smile, Image, Phone, Video } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { MessageSquare, Send, Sparkles, Smile, Image, Phone, Video, Mic, Square } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
 
 import Avatar from '../../components/ui/Avatar';
@@ -12,14 +13,32 @@ import { GET_CONVERSATIONS, GET_MESSAGES, SEND_MESSAGE, MESSAGE_SUBSCRIPTION } f
 
 export default function MessagesPage() {
   const dispatch = useDispatch();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { activeConversationId } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);
 
   const [messageText, setMessageText] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [isUploadingVoice, setIsUploadingVoice] = useState(false);
+  const audioChunksRef = React.useRef([]);
+  const recordingTimerRef = React.useRef(null);
+  const messagesEndRef = React.useRef(null);
 
   // GraphQL Queries
   const { data: convData, loading: convLoading } = useQuery(GET_CONVERSATIONS);
   const conversations = convData?.conversations || [];
+
+  useEffect(() => {
+    const cid = searchParams.get('conversationId');
+    if (cid && cid !== activeConversationId) {
+      dispatch(setActiveConversation(cid));
+      // Remove it from URL cleanly
+      router.replace('/messages');
+    }
+  }, [searchParams, dispatch, activeConversationId, router]);
 
   const { data: msgData, subscribeToMore } = useQuery(GET_MESSAGES, {
     variables: { conversationId: activeConversationId },
@@ -52,10 +71,95 @@ export default function MessagesPage() {
   }, [activeConversationId, subscribeToMore]);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-  const activeMessages = msgData?.messages || [];
+  // Create a copy and reverse the array so newest messages are at the bottom
+  const activeMessages = [...(msgData?.messages || [])].reverse();
   
   // Find the other participant for avatar/name
   const otherParticipant = activeConversation?.participants?.find(p => p.id !== user?.id) || {};
+
+  // Auto-scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [activeMessages]);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        const type = recorder.mimeType;
+        const audioBlob = new Blob(audioChunksRef.current, { type });
+        await uploadVoiceMessage(audioBlob, type);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (err) {
+      console.error('Error accessing microphone:', err);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      clearInterval(recordingTimerRef.current);
+    }
+  };
+
+  const uploadVoiceMessage = async (audioBlob, mimeType) => {
+    setIsUploadingVoice(true);
+    try {
+      let extension = 'webm';
+      if (mimeType.includes('mp4')) extension = 'mp4';
+      else if (mimeType.includes('ogg')) extension = 'ogg';
+      else if (mimeType.includes('wav')) extension = 'wav';
+
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      // append the blob as a file
+      formData.append('file', audioBlob, `voice-${Date.now()}.${extension}`);
+
+      const res = await fetch('http://localhost:4000/api/upload', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.status === 'success' && data.url) {
+        await sendMessageMut({
+          variables: {
+            recipientId: otherParticipant.id,
+            text: '🎤 Voice message',
+            attachments: [data.url]
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Failed to upload voice message:', err);
+    } finally {
+      setIsUploadingVoice(false);
+    }
+  };
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -160,6 +264,7 @@ export default function MessagesPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
                 {activeMessages.map((msg) => {
                   const isMe = msg.sender.id === user?.id;
+                  const hasAudio = msg.attachments && msg.attachments.length > 0 && msg.attachments[0].match(/\.(webm|mp3|wav|ogg|m4a|mpeg)/i);
                   return (
                     <div
                       key={msg.id}
@@ -172,7 +277,14 @@ export default function MessagesPage() {
                             : 'bg-card border border-border text-foreground rounded-bl-none'
                         }`}
                       >
-                        <p>{msg.text}</p>
+                        {hasAudio ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs opacity-80 mb-1">{msg.text}</span>
+                            <audio controls src={msg.attachments[0]} className="h-10 w-48 sm:w-60" />
+                          </div>
+                        ) : (
+                          <p>{msg.text}</p>
+                        )}
                         <span
                           className={`text-[9px] block mt-1.5 ${
                             isMe ? 'text-indigo-200 text-right' : 'text-muted-foreground text-right'
@@ -184,22 +296,49 @@ export default function MessagesPage() {
                     </div>
                   );
                 })}
+                <div ref={messagesEndRef} />
               </div>
 
               {/* Chat Input form */}
-              <form onSubmit={handleSendMessage} className="p-2 sm:p-4 border-t border-border bg-card flex gap-1 sm:gap-2 shrink-0">
-                <button type="button" className="p-2 rounded-lg hover:bg-muted text-muted-foreground hidden sm:block"><Smile className="h-5 w-5" /></button>
-                <button type="button" className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><Image className="h-5 w-5" /></button>
-                <input
-                  type="text"
-                  placeholder="Type a message..."
-                  className="flex-1 bg-muted px-3 py-2 text-sm rounded-full text-foreground focus:outline-none focus:ring-1 focus:ring-brand border border-border"
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                />
-                <Button type="submit" className="rounded-full px-4 shrink-0 shadow-sm">
-                  <Send className="h-4 w-4" />
-                </Button>
+              <form onSubmit={handleSendMessage} className="p-2 sm:p-4 border-t border-border bg-card flex gap-1 sm:gap-2 shrink-0 items-center">
+
+                
+                {isRecording ? (
+                  <div className="flex-1 bg-red-50/50 dark:bg-red-950/20 px-4 py-2 text-sm rounded-full flex items-center justify-between border border-red-200 dark:border-red-900/50">
+                    <div className="flex items-center gap-2 text-red-500 font-medium animate-pulse">
+                      <div className="h-2 w-2 rounded-full bg-red-500" />
+                      Recording...
+                    </div>
+                    <span className="text-red-500/80 font-mono text-xs">
+                      {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    placeholder="Type a message..."
+                    className="flex-1 bg-muted px-4 py-2 text-sm rounded-full text-foreground focus:outline-none focus:ring-1 focus:ring-brand border border-border"
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    disabled={isUploadingVoice}
+                  />
+                )}
+
+                {isRecording ? (
+                  <Button type="button" onClick={stopRecording} variant="outline" className="rounded-full px-3 shrink-0 shadow-sm border-red-200 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30">
+                    <Square className="h-4 w-4 fill-current" />
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={startRecording} variant="ghost" className={`rounded-full px-3 shrink-0 ${isUploadingVoice ? 'animate-pulse text-brand' : 'text-muted-foreground hover:text-foreground'}`} disabled={isUploadingVoice}>
+                    <Mic className="h-5 w-5" />
+                  </Button>
+                )}
+                
+                {!isRecording && (
+                  <Button type="submit" className="rounded-full px-4 shrink-0 shadow-sm" disabled={isUploadingVoice || !messageText.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                )}
               </form>
             </>
           ) : (

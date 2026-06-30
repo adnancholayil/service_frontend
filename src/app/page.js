@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -25,7 +25,9 @@ import {
   Award,
   Users,
   ShieldCheck,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 import { useQuery } from '@apollo/client/react';
@@ -53,6 +55,14 @@ export default function HomePage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const [searchQuery, setSearchQuery] = useState('');
+  const bannerScrollRef = useRef(null);
+
+  const scrollBanners = (direction) => {
+    if (bannerScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -600 : 600;
+      bannerScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const { data, loading, error } = useQuery(GET_HOME_DATA);
 
@@ -224,16 +234,39 @@ export default function HomePage() {
       {/* 1.5 PROMO BANNERS                                */}
       {/* ================================================= */}
       {publicBanners.length > 0 && (
-        <section className="py-10 sm:py-16 bg-background relative overflow-hidden">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="py-10 sm:py-16 bg-background relative overflow-hidden group/banners">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
             <div className="flex items-center justify-between mb-6 sm:mb-8">
               <div>
                 <h2 className="text-xl sm:text-3xl font-bold text-foreground tracking-tight">Special Offers</h2>
                 <p className="text-muted-foreground mt-1 text-sm sm:text-base font-medium">Exclusive deals for your home needs</p>
               </div>
             </div>
+
+            {publicBanners.length > 1 && (
+              <>
+                <button 
+                  onClick={() => scrollBanners('left')}
+                  className="absolute left-0 sm:left-2 lg:-left-4 top-1/2 mt-4 z-20 h-10 w-10 sm:h-12 sm:w-12 bg-white/80 hover:bg-white text-zinc-800 rounded-full flex items-center justify-center shadow-xl backdrop-blur-sm transition-all opacity-0 group-hover/banners:opacity-100 hover:scale-105 cursor-pointer border border-zinc-200"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </button>
+                <button 
+                  onClick={() => scrollBanners('right')}
+                  className="absolute right-0 sm:right-2 lg:-right-4 top-1/2 mt-4 z-20 h-10 w-10 sm:h-12 sm:w-12 bg-white/80 hover:bg-white text-zinc-800 rounded-full flex items-center justify-center shadow-xl backdrop-blur-sm transition-all opacity-0 group-hover/banners:opacity-100 hover:scale-105 cursor-pointer border border-zinc-200"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </button>
+              </>
+            )}
             
-            <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-6 -mx-6 px-6 sm:mx-0 sm:px-0 hide-scrollbar" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <div 
+              ref={bannerScrollRef}
+              className="flex overflow-x-auto snap-x snap-mandatory gap-4 sm:gap-6 pb-6 -mx-6 px-6 sm:mx-0 sm:px-0 hide-scrollbar scroll-smooth" 
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {publicBanners.map(banner => {
                 const BannerContent = (
                   <>
@@ -307,25 +340,66 @@ export default function HomePage() {
             initial="hidden"
             whileInView="show"
             viewport={{ once: true, margin: '-100px' }}
-            className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4"
+            className=""
           >
-            {categories.map((cat) => {
-              const Icon = iconMap[cat.icon] || Sparkles;
+            {(() => {
+              const renderCategory = (cat) => {
+                const isLucide = !!iconMap[cat.icon];
+                const Icon = isLucide ? iconMap[cat.icon] : null;
+
+                return (
+                  <motion.div key={cat.id} variants={itemVariants} className="snap-start w-[40vw] sm:w-[28vw] md:w-[22vw] lg:w-[220px] shrink-0">
+                    <Link href={`/services?category=${cat.id}`} className="block h-full">
+                      <div className="group flex flex-col items-center justify-center p-4 sm:p-6 border border-border rounded-xl sm:rounded-2xl hover:border-brand/40 hover:bg-brand/5 dark:hover:bg-brand/10 transition-all text-center h-full cursor-pointer hover:shadow-md">
+                        <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-muted text-muted-foreground group-hover:bg-brand/10 group-hover:text-brand transition-all text-xl sm:text-2xl">
+                          {isLucide ? (
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                          ) : cat.icon ? (
+                            <span>{cat.icon}</span>
+                          ) : (
+                            <Sparkles className="h-5 w-5 sm:h-6 sm:w-6" />
+                          )}
+                        </span>
+                        <h3 className="font-semibold text-foreground mt-3 sm:mt-4 text-xs sm:text-sm group-hover:text-brand transition-colors">
+                        {cat.name}
+                        </h3>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              };
+
+              const getRows = (items, maxPerRow) => {
+                if (items.length <= maxPerRow) return [items];
+                const splitIndex = Math.max(maxPerRow, Math.ceil(items.length / 2));
+                return [items.slice(0, splitIndex), items.slice(splitIndex)];
+              };
+
+              const mobileRows = getRows(categories, 2);
+              const desktopRows = getRows(categories, 5);
+
               return (
-                <motion.div key={cat.id} variants={itemVariants}>
-                  <Link href={`/services?category=${cat.id}`}>
-                    <div className="group flex flex-col items-center justify-center p-4 sm:p-6 border border-border rounded-xl sm:rounded-2xl hover:border-brand/40 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-all text-center h-full cursor-pointer hover:shadow-md">
-                      <span className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-muted text-muted-foreground group-hover:bg-brand/10 group-hover:text-brand transition-all">
-                        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-                      </span>
-                      <h3 className="font-semibold text-foreground mt-3 sm:mt-4 text-xs sm:text-sm group-hover:text-brand transition-colors">
-                      {cat.name}
-                      </h3>
-                    </div>
-                  </Link>
-                </motion.div>
+                <>
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3 sm:gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {mobileRows.map((row, rowIndex) => (
+                      <div key={rowIndex} className="flex gap-3 sm:gap-4 w-max">
+                        {row.map(renderCategory)}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <div className="hidden md:flex flex-col gap-4 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-6" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {desktopRows.map((row, rowIndex) => (
+                      <div key={rowIndex} className="flex gap-4 w-max">
+                        {row.map(renderCategory)}
+                      </div>
+                    ))}
+                  </div>
+                </>
               );
-            })}
+            })()}
           </motion.div>
         </div>
       </section>

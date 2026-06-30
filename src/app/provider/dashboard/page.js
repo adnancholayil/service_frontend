@@ -21,13 +21,20 @@ import { UPDATE_BOOKING_STATUS_MUTATION } from '../../../graphql/mutations/booki
 import ConfirmModal from '../../../components/ui/ConfirmModal';
 
 export default function ProviderDashboard() {
-  const { data: statsData, loading: statsLoading } = useQuery(PROVIDER_DASHBOARD_STATS_QUERY);
-  const { data: bookingsData, loading: bookingsLoading, refetch } = useQuery(GET_MY_BOOKINGS);
+  const { data: statsData, loading: statsLoading, refetch: refetchStats } = useQuery(PROVIDER_DASHBOARD_STATS_QUERY, {
+    fetchPolicy: 'network-only',
+    pollInterval: 10000,
+  });
+  const { data: bookingsData, loading: bookingsLoading, refetch } = useQuery(GET_MY_BOOKINGS, {
+    fetchPolicy: 'network-only',
+    pollInterval: 10000,
+  });
   const [bookingToReject, setBookingToReject] = React.useState(null);
   
   const [updateBookingStatus] = useMutation(UPDATE_BOOKING_STATUS_MUTATION, {
     onCompleted: () => {
       refetch();
+      refetchStats();
     },
     onError: (err) => {
       toast.error(err.message || 'Error updating booking');

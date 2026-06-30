@@ -202,11 +202,25 @@ export default function AdminBanners() {
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
           />
-          <ImageUpload 
-            label="Banner Image" 
-            initialImage={formData.imageUrl} 
-            onUpload={(url) => setFormData({ ...formData, imageUrl: url })} 
-          />
+          <div className="space-y-2">
+            <Input
+              id="banner-image-url"
+              label="Online Image URL"
+              placeholder="https://example.com/image.jpg"
+              value={formData.imageUrl}
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+            />
+            <div className="relative flex items-center py-2">
+               <div className="flex-grow border-t border-slate-200"></div>
+               <span className="flex-shrink-0 mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">OR UPLOAD</span>
+               <div className="flex-grow border-t border-slate-200"></div>
+            </div>
+            <ImageUpload 
+              label="" 
+              initialImage={formData.imageUrl} 
+              onUpload={(url) => setFormData({ ...formData, imageUrl: url })} 
+            />
+          </div>
 
           <Input
             id="banner-link"

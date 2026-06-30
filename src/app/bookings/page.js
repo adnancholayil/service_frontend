@@ -11,11 +11,44 @@ import Badge from '../../components/ui/Badge';
 import { cancelBooking } from '../../store/slices/bookingSlice';
 import toast from 'react-hot-toast';
 import { useQuery } from '@apollo/client/react';
-import { GET_MY_BOOKINGS } from '../../graphql/queries/bookings';
+import { GET_MY_BOOKINGS, BOOKING_SUBSCRIPTION } from '../../graphql/queries/bookings';
 
 export default function BookingsPage() {
   const dispatch = useDispatch();
-  const { data, loading, error } = useQuery(GET_MY_BOOKINGS);
+  const { user } = useSelector((state) => state.auth);
+  
+  const { data, loading, error, subscribeToMore } = useQuery(GET_MY_BOOKINGS, {
+    fetchPolicy: 'cache-and-network'
+  });
+  
+  React.useEffect(() => {
+    if (user?.id && subscribeToMore) {
+      const unsubscribe = subscribeToMore({
+        document: BOOKING_SUBSCRIPTION,
+        variables: { userId: user.id },
+        updateQuery: (prev, { subscriptionData }) => {
+          if (!subscriptionData.data) return prev;
+          const updatedBooking = subscriptionData.data.bookingStatusChanged;
+          
+          const existingIndex = prev.bookings.findIndex(b => b.id === updatedBooking.id);
+          
+          if (existingIndex > -1) {
+            // Update existing booking
+            const newBookings = [...prev.bookings];
+            newBookings[existingIndex] = updatedBooking;
+            return Object.assign({}, prev, { bookings: newBookings });
+          } else {
+            // Add new booking
+            return Object.assign({}, prev, {
+              bookings: [updatedBooking, ...prev.bookings]
+            });
+          }
+        }
+      });
+      return () => unsubscribe();
+    }
+  }, [user?.id, subscribeToMore]);
+
   const bookings = data?.bookings || [];
   const [filterStatus, setFilterStatus] = useState('all');
 
@@ -42,6 +75,14 @@ export default function BookingsPage() {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-20 flex justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="p-10 text-red-500">
+        Error: {error.message}
       </div>
     );
   }
