@@ -126,7 +126,7 @@ export default function AuthModals() {
     dispatch(loginStart());
 
     try {
-      const variables = { name, email, password, role };
+      const variables = { name, email, phone, password, role };
       
       if (role === 'PROVIDER') {
         if (!businessName || !description || !categoryId || !address || !phone) {
@@ -369,6 +369,16 @@ export default function AuthModals() {
                 onChange={(e) => setEmail(e.target.value)}
               />
               <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                label="Mobile Number"
+                required
+                placeholder="+1 234 567 8900"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
+              <Input
                 id="password-register"
                 name="password"
                 type="password"
@@ -462,16 +472,7 @@ export default function AuthModals() {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                   />
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    label="Mobile Number"
-                    required
-                    placeholder="+1 234 567 8900"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+
                   <Input
                     id="whatsapp"
                     name="whatsapp"

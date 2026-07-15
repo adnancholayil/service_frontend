@@ -1,4 +1,5 @@
-import React from 'react';
+'use client';
+import React, { useRef } from 'react';
 
 export const Button = React.forwardRef(({
   className = '',
@@ -8,40 +9,66 @@ export const Button = React.forwardRef(({
   disabled = false,
   children,
   type = 'button',
+  onClick,
   ...props
 }, ref) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:opacity-50 disabled:pointer-events-none cursor-pointer';
-  
+  const btnRef = useRef(null);
+  const resolvedRef = ref || btnRef;
+
+  // Ripple effect
+  const handleClick = (e) => {
+    const btn = resolvedRef.current;
+    if (btn) {
+      const rect = btn.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height) * 2;
+      const x = e.clientX - rect.left - size / 2;
+      const y = e.clientY - rect.top - size / 2;
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple';
+      ripple.style.cssText = `width:${size}px;height:${size}px;left:${x}px;top:${y}px`;
+      btn.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 700);
+    }
+    onClick?.(e);
+  };
+
+  const base = 'inline-flex items-center justify-center font-bold rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer select-none ripple-container overflow-hidden active:scale-[0.97]';
+
   const variants = {
-    primary: 'bg-brand text-white hover:bg-brand-hover shadow-sm',
-    secondary: 'bg-muted text-foreground hover:bg-zinc-200 dark:hover:bg-zinc-800',
-    outline: 'border border-border text-foreground hover:bg-muted bg-transparent',
-    accent: 'bg-accent text-white hover:bg-accent-hover shadow-sm',
-    danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-    ghost: 'hover:bg-muted text-foreground',
+    primary: 'bg-brand text-white hover:bg-brand-hover shadow-md shadow-brand/20 focus-visible:ring-brand',
+    secondary: 'bg-muted text-foreground hover:bg-border focus-visible:ring-border',
+    outline: 'border-2 border-border text-foreground hover:bg-muted hover:border-border bg-transparent focus-visible:ring-border',
+    accent: 'bg-accent text-white hover:bg-accent-hover shadow-md shadow-accent/20 focus-visible:ring-accent',
+    danger: 'bg-red-500 text-white hover:bg-red-600 shadow-sm focus-visible:ring-red-500',
+    ghost: 'hover:bg-muted text-foreground focus-visible:ring-border',
+    brand_outline: 'border-2 border-brand text-brand hover:bg-brand hover:text-white focus-visible:ring-brand',
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-xs',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-5 py-2.5 text-base',
+    xs: 'px-3 py-1.5 text-xs gap-1.5',
+    sm: 'px-4 py-2 text-sm gap-2',
+    md: 'px-5 py-2.5 text-sm gap-2',
+    lg: 'px-6 py-3 text-base gap-2.5',
+    xl: 'px-8 py-4 text-lg gap-3',
+    icon: 'p-2.5',
   };
 
   return (
     <button
-      ref={ref}
+      ref={resolvedRef}
       type={type}
       disabled={disabled || isLoading}
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${base} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
+      onClick={handleClick}
       {...props}
     >
       {isLoading ? (
         <>
-          <svg className="mr-2 h-4 w-4 animate-spin text-current" fill="none" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 animate-spin text-current" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
-          Loading...
+          <span>Loading…</span>
         </>
       ) : children}
     </button>

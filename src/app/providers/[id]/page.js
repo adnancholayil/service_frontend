@@ -17,7 +17,8 @@ import {
   CreditCard,
   Check,
   FileText,
-  MessageCircle
+  MessageCircle,
+  X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -25,13 +26,16 @@ import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_PROVIDER_DETAILS } from '../../../graphql/queries/provider';
 import { CREATE_BOOKING_MUTATION } from '../../../graphql/mutations/bookings';
 import { GET_MY_BOOKINGS } from '../../../graphql/queries/bookings';
+import { ADD_REVIEW_MUTATION } from '../../../graphql/mutations/reviews';
 import { GET_OR_CREATE_CONVERSATION } from '../../../graphql/queries/chat';
 import { startBookingFlow, updateBookingStep, resetBookingFlow } from '../../../store/slices/bookingSlice';
 import { openAuthModal } from '../../../store/slices/appSlice';
+import { addAddress } from '../../../store/slices/userSlice';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Avatar from '../../../components/ui/Avatar';
 import Modal from '../../../components/ui/Modal';
+import ReviewModal from '../../../components/modals/ReviewModal';
 
 export default function ProviderDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -47,6 +51,9 @@ export default function ProviderDetailPage({ params }) {
   const [provider, setProvider] = useState(null);
   const [services, setServices] = useState([]);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [eligibleBookingId, setEligibleBookingId] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   // Booking Flow Steps Local State
   const [selectedService, setSelectedService] = useState(null);
@@ -61,15 +68,27 @@ export default function ProviderDetailPage({ params }) {
   const [paymentUpiId, setPaymentUpiId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmedBookingId, setConfirmedBookingId] = useState('');
+  const [bookingPhone, setBookingPhone] = useState(user?.phone || '');
+  
+  // Inline Add Address State
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+  const [newAddressName, setNewAddressName] = useState('');
+  const [newAddressDetails, setNewAddressDetails] = useState('');
 
   // Initial step tracker (1 to 8)
   const [bookingStep, setBookingStep] = useState(1);
 
-  const { data, loading, error } = useQuery(GET_PROVIDER_DETAILS, {
+  const { data, loading, error, refetch: refetchProvider } = useQuery(GET_PROVIDER_DETAILS, {
     variables: { id: id },
     skip: !id
   });
 
+  const { data: bookingsData } = useQuery(GET_MY_BOOKINGS, {
+    skip: !isAuthenticated,
+    fetchPolicy: 'cache-and-network'
+  });
+
+  const [addReviewMutation, { loading: isSubmittingReview }] = useMutation(ADD_REVIEW_MUTATION);
   const [getOrCreateConversation] = useMutation(GET_OR_CREATE_CONVERSATION);
 
   const handleMessageProvider = async () => {
@@ -89,6 +108,53 @@ export default function ProviderDetailPage({ params }) {
     } catch (err) {
       console.error('Failed to open chat:', err);
       toast.error('Could not start conversation. Please try again.');
+    }
+  };
+
+  const handleWriteReviewClick = () => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to write a review');
+      dispatch(openAuthModal('login'));
+      return;
+    }
+
+    if (!bookingsData || !bookingsData.bookings) {
+      toast.error('Unable to fetch your booking history.');
+      return;
+    }
+
+    // Check if the user has a COMPLETED booking with this provider
+    const completedBookings = bookingsData.bookings.filter(b => 
+      b.provider?.id === provider.id && b.status === 'COMPLETED'
+    );
+
+    if (completedBookings.length === 0) {
+      toast.error('You must have a completed booking with this provider to leave a review.');
+      return;
+    }
+
+    // Set the eligible booking ID (just use the most recent one)
+    // Sort descending by date just in case
+    const sorted = [...completedBookings].sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+    setEligibleBookingId(sorted[0].id);
+    setIsReviewModalOpen(true);
+  };
+
+  const handleReviewSubmit = async (rating, comment) => {
+    try {
+      await addReviewMutation({
+        variables: {
+          bookingId: eligibleBookingId,
+          rating: rating,
+          comment: comment
+        }
+      });
+      toast.success('Thank you! Your review has been submitted.');
+      setIsReviewModalOpen(false);
+      refetchProvider(); // Refresh provider data to show new review
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Failed to submit review');
     }
   };
 
@@ -129,6 +195,8 @@ export default function ProviderDetailPage({ params }) {
     if (userAddresses.length > 0) {
       setSelectedAddress(userAddresses[0]);
     }
+    // Pre-select date
+    setBookingDate(new Date().toISOString().split('T')[0]);
 
     setIsBookingModalOpen(true);
 
@@ -142,26 +210,27 @@ export default function ProviderDetailPage({ params }) {
     }
   };
 
-  const handleNextStep = () => {
-    if (bookingStep === 3) {
-      if (!selectedAddress) return toast.error('Please select an address');
-      setBookingStep(4);
-      return;
-    }
-    if (bookingStep === 4) {
-      if (paymentTiming === 'now') {
-        if (paymentMethod === 'card' && (!paymentCardNum || !paymentCardName)) return toast.error('Please enter payment details');
-        if (paymentMethod === 'upi' && !paymentUpiId) return toast.error('Please enter your UPI ID');
-      }
-      handleCompleteBooking();
-      return;
-    }
+  const handleConfirmBookingClick = () => {
+    if (!selectedService) return toast.error('Please select a service');
+    if (!bookingDate) return toast.error('Please select a date');
+    if (!bookingTime) return toast.error('Please select a time slot');
+    if (!selectedAddress) return toast.error('Please select an address');
+    if (!bookingPhone) return toast.error('Please provide a mobile number');
+    
+    handleCompleteBooking();
   };
 
-  const handlePrevStep = () => {
-    if (bookingStep > 1) {
-      setBookingStep(prev => prev - 1);
+  const handleAddAddressSubmit = (e) => {
+    e.preventDefault();
+    if (!newAddressName || !newAddressDetails) {
+      toast.error('Please enter a name and address details');
+      return;
     }
+    dispatch(addAddress({ name: newAddressName.trim(), address: newAddressDetails.trim() }));
+    toast.success('Address added successfully!');
+    setNewAddressName('');
+    setNewAddressDetails('');
+    setIsAddAddressModalOpen(false);
   };
 
   const [createBookingMut] = useMutation(CREATE_BOOKING_MUTATION);
@@ -241,7 +310,7 @@ export default function ProviderDetailPage({ params }) {
     <div className="flex-grow flex flex-col bg-background">
       {/* 1. Flat Header Section */}
       <div className="w-full border-b border-border bg-card">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-4 py-4 sm:py-8 relative">
           {/* Back Navigation */}
           <Link href="/providers" className="inline-block mb-6">
             <button className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
@@ -264,7 +333,7 @@ export default function ProviderDetailPage({ params }) {
                 </div>
                 <div className="flex items-center justify-center sm:justify-start gap-3 text-sm font-medium text-muted-foreground">
                   <span className="text-brand">{provider.category?.name}</span>
-                  <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> NY Metropolitan Area</span>
+                  <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {provider.address || 'Location unavailable'}</span>
                   <span className="flex items-center gap-1 text-amber-600">
                     <Star className="h-4 w-4 fill-amber-500 text-amber-500" /> {provider.rating} ({provider.reviewsCount} reviews)
                   </span>
@@ -306,26 +375,29 @@ export default function ProviderDetailPage({ params }) {
               <h2 className="text-lg font-bold text-foreground">Services Offered</h2>
               <div className="space-y-3">
                 {services.map((srv) => (
-                  <div key={srv.id} className="p-4 rounded-xl border border-border bg-card flex items-start justify-between gap-4 group">
+                  <div 
+                    key={srv.id} 
+                    className="p-4 rounded-2xl border border-brand/20 bg-gradient-to-br from-brand/5 to-transparent hover:from-brand/10 hover:to-brand/5 transition-all flex items-start justify-between gap-4 group cursor-pointer hover:shadow-md"
+                    onClick={() => {
+                      setSelectedService(srv);
+                      handleStartBooking();
+                    }}
+                  >
                     <div className="space-y-1">
                       <h3 className="text-base font-semibold text-foreground">{srv.name}</h3>
-                      <p className="text-sm text-muted-foreground">{srv.description}</p>
+                      <p className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors">{srv.description}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium pt-1">
                         <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {srv.duration} mins</span>
                       </div>
                     </div>
                     <div className="text-right shrink-0 flex flex-col items-end gap-2">
-                      <p className="font-bold text-lg text-foreground">${srv.price}</p>
+                      <p className="font-bold text-lg text-foreground">₹{srv.price}</p>
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="text-xs rounded-lg px-4 border-border"
-                        onClick={() => {
-                          setSelectedService(srv);
-                          handleStartBooking();
-                        }}
+                        variant="primary"
+                        className="text-xs rounded-lg px-4 shadow-sm"
                       >
-                        Select
+                        Book
                       </Button>
                     </div>
                   </div>
@@ -337,9 +409,39 @@ export default function ProviderDetailPage({ params }) {
 
             <hr className="border-border" />
 
+            {/* Portfolio Gallery */}
+            {provider.portfolio && provider.portfolio.length > 0 && (
+              <>
+                <div className="space-y-4">
+                  <h2 className="text-lg font-bold text-foreground">Portfolio Gallery</h2>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    {provider.portfolio.map((imgUrl, i) => (
+                      <div 
+                        key={i} 
+                        className="aspect-square rounded-3xl overflow-hidden border border-border bg-muted shadow-sm group cursor-pointer"
+                        onClick={() => setLightboxImage(imgUrl)}
+                      >
+                        <img 
+                          src={imgUrl} 
+                          alt={`${provider.businessName} portfolio work ${i + 1}`} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <hr className="border-border" />
+              </>
+            )}
+
             {/* Reviews */}
             <div className="space-y-4">
-              <h2 className="text-lg font-bold text-foreground">Customer Reviews</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-foreground">Customer Reviews</h2>
+                <Button variant="outline" size="sm" className="rounded-full font-bold shadow-sm" onClick={handleWriteReviewClick}>
+                  Write a Review
+                </Button>
+              </div>
               {provider.reviewsCount > 0 ? (
                 <div className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border">
                   <div className="flex items-center gap-1 text-amber-500">
@@ -370,28 +472,15 @@ export default function ProviderDetailPage({ params }) {
       <Modal isOpen={isBookingModalOpen} onClose={handleCloseModal} title={`Book ${provider.businessName}`} size="lg">
         <div className="space-y-6">
           
-          {/* Progress Indicator Bar */}
-          {bookingStep < 5 && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs font-bold text-muted-foreground">
-                <span className="uppercase tracking-wider">Step {bookingStep} of 4</span>
-                <span>{Math.floor((bookingStep / 4) * 100)}% Complete</span>
-              </div>
-              <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
-                <div
-                  className="bg-brand h-full transition-all duration-300"
-                  style={{ width: `${(bookingStep / 4) * 100}%` }}
-                />
-              </div>
-            </div>
-          )}
+
 
           {/* Step Contents */}
           <div className="py-2">
             
-            {/* Step 1: Service */}
-            {bookingStep === 1 && (
-              <div className="space-y-4">
+            {/* Service */}
+            {bookingStep < 5 && (
+              <div className="space-y-6">
+                <div className="space-y-3">
                 <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-brand"/> Select Service</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {services.map((srv) => (
@@ -399,25 +488,23 @@ export default function ProviderDetailPage({ params }) {
                       key={srv.id}
                       onClick={() => {
                         setSelectedService(srv);
-                        setTimeout(() => setBookingStep(2), 150);
                       }}
                       className={`p-3 border rounded-xl flex flex-col justify-between cursor-pointer transition-all ${
                         selectedService?.id === srv.id
-                          ? 'border-brand bg-brand/5 ring-1 ring-brand'
-                          : 'border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                          ? 'border-brand bg-brand text-primary-foreground shadow-md scale-[1.02] ring-2 ring-brand ring-offset-1 ring-offset-background'
+                          : 'border-border hover:border-brand/50 hover:bg-muted text-foreground'
                       }`}
                     >
-                      <p className="text-sm font-semibold">{srv.name}</p>
-                      <span className="font-bold text-brand text-sm mt-2">${srv.price}</span>
+                      <p className={`text-sm font-semibold ${selectedService?.id === srv.id ? 'text-primary-foreground' : 'text-foreground'}`}>{srv.name}</p>
+                      <span className={`font-bold text-sm mt-2 ${selectedService?.id === srv.id ? 'text-primary-foreground' : 'text-brand'}`}>₹{srv.price}</span>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-
-            {/* Step 2: Date & Time */}
-            {bookingStep === 2 && (
-              <div className="space-y-6">
+                <hr className="border-border" />
+                
+                {/* Date & Time */}
+                <div className="space-y-3">
                 <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><Calendar className="h-4 w-4 text-brand"/> Date & Time</h4>
                 <div className="space-y-5">
                   <div>
@@ -500,7 +587,6 @@ export default function ProviderDetailPage({ params }) {
                               return;
                             }
                             setBookingTime(t);
-                            setTimeout(() => setBookingStep(3), 150);
                           }}
                           className={`py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
                             bookingTime === t
@@ -515,18 +601,30 @@ export default function ProviderDetailPage({ params }) {
                   </div>
                 </div>
               </div>
-            )}
+                <hr className="border-border" />
 
-            {/* Step 3: Address & Notes */}
-            {bookingStep === 3 && (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-brand"/> Service Address</h4>
-                  <div className="space-y-2">
-                    {userAddresses.map((addr) => (
-                      <div
-                        key={addr.id}
-                        onClick={() => setSelectedAddress(addr)}
+                {/* Mobile Number & Address */}
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-brand"/> Mobile Number</h4>
+                    <Input
+                      id="booking-phone"
+                      name="bookingPhone"
+                      type="tel"
+                      placeholder="e.g. +1 234 567 8900"
+                      value={bookingPhone}
+                      onChange={(e) => setBookingPhone(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-brand"/> Service Address</h4>
+                    <div className="space-y-2">
+                      {userAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => setSelectedAddress(addr)}
                         className={`p-3 border rounded-xl flex items-start gap-3 cursor-pointer transition-all ${
                           selectedAddress?.id === addr.id
                             ? 'border-brand bg-brand/5 ring-1 ring-brand'
@@ -541,15 +639,13 @@ export default function ProviderDetailPage({ params }) {
                     ))}
                     <button 
                       type="button"
-                      onClick={() => {
-                        setIsBookingModalOpen(false);
-                        router.push('/profile?tab=addresses');
-                      }}
+                      onClick={() => setIsAddAddressModalOpen(true)}
                       className="inline-block text-xs font-semibold text-brand hover:underline mt-2"
                     >
-                      + Add New Address in Settings
+                      + Add New Address
                     </button>
                   </div>
+                </div>
                 </div>
 
                 <hr className="border-border" />
@@ -564,40 +660,38 @@ export default function ProviderDetailPage({ params }) {
                     onChange={(e) => setBookingNotes(e.target.value)}
                   />
                 </div>
-              </div>
-            )}
 
-            {/* Step 4: Payment & Review */}
-            {bookingStep === 4 && (
-              <div className="space-y-6">
-                {/* Summary */}
-                <div className="border border-brand/20 rounded-xl overflow-hidden text-sm bg-brand/5">
-                  <div className="p-4 bg-brand/10 border-b border-brand/20 flex justify-between items-center">
-                    <span className="font-bold">Booking Summary</span>
-                    <span className="font-extrabold text-brand text-lg">${selectedService?.price}</span>
+                <hr className="border-border" />
+
+                {/* Payment & Review */}
+                <div className="space-y-3">
+                  {/* Summary */}
+                  <div className="border border-brand/20 rounded-xl overflow-hidden text-sm bg-brand/5">
+                    <div className="p-4 bg-brand/10 border-b border-brand/20 flex justify-between items-center">
+                      <span className="font-bold">Booking Summary</span>
+                      <span className="font-extrabold text-brand text-lg">₹{selectedService?.price}</span>
+                    </div>
+                    <div className="p-4 space-y-3 text-foreground/80">
+                      <div className="flex justify-between"><span className="font-medium">Service</span> <span className="font-bold text-foreground">{selectedService?.name}</span></div>
+                      <div className="flex justify-between"><span className="font-medium">Date & Time</span> <span className="font-bold text-foreground">{bookingDate} @ {bookingTime}</span></div>
+                      <div className="flex justify-between gap-4"><span className="font-medium shrink-0">Address</span> <span className="font-bold text-foreground text-right">{selectedAddress?.address}</span></div>
+                    </div>
                   </div>
-                  <div className="p-4 space-y-3 text-foreground/80">
-                    <div className="flex justify-between"><span className="font-medium">Service</span> <span className="font-bold text-foreground">{selectedService?.name}</span></div>
-                    <div className="flex justify-between"><span className="font-medium">Date & Time</span> <span className="font-bold text-foreground">{bookingDate} @ {bookingTime}</span></div>
-                    <div className="flex justify-between gap-4"><span className="font-medium shrink-0">Address</span> <span className="font-bold text-foreground text-right">{selectedAddress?.address}</span></div>
+
+                  {/* Payment */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><CreditCard className="h-4 w-4 text-brand"/> Payment Options</h4>
+
+                    <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-4">
+                      <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
+                      <p className="text-[11px] text-foreground/80 leading-normal">
+                        You will pay {provider.businessName} directly after the service is completed. Cash and direct transfers are accepted.
+                      </p>
+                    </div>
                   </div>
                 </div>
-
-                {/* Payment */}
-                <div className="space-y-4">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><CreditCard className="h-4 w-4 text-brand"/> Payment Options</h4>
-
-                  <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-4">
-                    <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
-                    <p className="text-[11px] text-foreground/80 leading-normal">
-                      You will pay {provider.businessName} directly after the service is completed. Cash and direct transfers are accepted.
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
-
-            {/* Step 5: Success */}
             {bookingStep === 5 && (
               <div className="text-center py-6 space-y-4">
                 <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-white shadow-md mx-auto">
@@ -628,31 +722,83 @@ export default function ProviderDetailPage({ params }) {
           {/* Wizard Actions Footer */}
           {bookingStep < 5 && (
             <div className="flex gap-3 pt-4 border-t border-border">
-              {bookingStep > 1 && (
-                <Button
-                  variant="outline"
-                  className="rounded-xl flex-1 justify-center border-border"
-                  onClick={handlePrevStep}
-                >
-                  Back
-                </Button>
-              )}
-              {bookingStep >= 3 && (
-                <Button
-                  variant="primary"
-                  isLoading={isSubmitting}
-                  className="rounded-xl flex-1 justify-center"
-                  onClick={handleNextStep}
-                >
-                  {bookingStep === 4 ? 'Pay & Confirm' : 'Continue'}
-                </Button>
-              )}
+              <Button
+                variant="primary"
+                isLoading={isSubmitting}
+                className="rounded-xl flex-1 justify-center py-6 text-lg font-bold"
+                onClick={handleConfirmBookingClick}
+              >
+                Confirm Booking
+              </Button>
             </div>
           )}
 
         </div>
       </Modal>
 
+      {/* Inline Add Address Modal */}
+      <Modal 
+        isOpen={isAddAddressModalOpen} 
+        onClose={() => setIsAddAddressModalOpen(false)} 
+        title="Add Address" 
+        size="md"
+      >
+        <form onSubmit={handleAddAddressSubmit} className="space-y-4">
+          <Input 
+            label="Address Tag (e.g. Home, Office)" 
+            placeholder="Home" 
+            required 
+            value={newAddressName} 
+            onChange={(e) => setNewAddressName(e.target.value)} 
+          />
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">Address Details</label>
+            <textarea 
+              rows={3} 
+              required 
+              placeholder="Full address here..."
+              className="w-full p-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-brand text-sm resize-none" 
+              value={newAddressDetails} 
+              onChange={(e) => setNewAddressDetails(e.target.value)} 
+            />
+          </div>
+          <div className="pt-2 flex gap-2">
+            <Button type="button" variant="outline" className="flex-1" onClick={() => setIsAddAddressModalOpen(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" className="flex-1">Save Address</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        onSubmit={handleReviewSubmit}
+        isSubmitting={isSubmittingReview}
+      />
+
+      {/* Lightbox Modal */}
+      {lightboxImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-zinc-950/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8"
+          onClick={() => setLightboxImage(null)}
+        >
+          <button 
+            onClick={() => setLightboxImage(null)}
+            className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[110] p-2.5 bg-zinc-800/80 hover:bg-zinc-800 text-white border border-zinc-700 rounded-full backdrop-blur-md shadow-lg transition-transform hover:scale-110"
+          >
+            <X className="h-6 w-6" />
+          </button>
+          <div className="relative max-w-5xl w-full h-full flex items-center justify-center">
+            <img 
+              src={lightboxImage} 
+              alt="Portfolio full view" 
+              className="max-w-full max-h-[90vh] object-contain rounded-md shadow-2xl ring-1 ring-border/50"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

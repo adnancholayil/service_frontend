@@ -138,7 +138,7 @@ function ServicesContent() {
           {filteredServices.map((srv) => {
             const provider = srv.provider;
             return (
-              <Card key={srv.id} className="flex flex-col bg-card relative">
+              <Card key={srv.id} className="flex flex-col bg-card relative h-full">
                 <CardBody className="p-4 sm:p-6 flex-1 flex flex-col space-y-3 sm:space-y-4">
                   <div className="flex justify-between items-start gap-4 mb-3">
                     <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg bg-muted text-muted-foreground capitalize">
@@ -165,7 +165,7 @@ function ServicesContent() {
                       </div>
                     )}
                     <div className="flex items-center justify-between pt-4">
-                      <p className="text-xl sm:text-2xl font-extrabold text-foreground">${srv.price}</p>
+                      <p className="text-xl sm:text-2xl font-extrabold text-foreground">₹{srv.price}</p>
                     </div>
                     <div className="flex gap-2">
                       <Link href={provider ? `/providers/${provider.id}` : '#'}>

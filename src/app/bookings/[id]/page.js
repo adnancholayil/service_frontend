@@ -116,7 +116,7 @@ export default function BookingDetailPage({ params }) {
 
               <div className="pt-3 border-t border-border flex items-center justify-between font-bold">
                 <span className="text-xs text-muted-foreground">Amount Paid</span>
-                <span className="text-base text-foreground">${booking.service.price}</span>
+                <span className="text-base text-foreground">₹{booking.service.price}</span>
               </div>
             </div>
             

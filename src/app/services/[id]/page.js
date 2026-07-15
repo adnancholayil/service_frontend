@@ -109,7 +109,7 @@ export default function ServiceDetailPage({ params }) {
                       </div>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-border">
-                      <span className="text-base font-bold text-foreground">${service.price}</span>
+                      <span className="text-base font-bold text-foreground">₹{service.price}</span>
                       <Link href={`/providers/${p.id}?service=${service.id}&book=true`}>
                         <Button size="sm" variant="accent">Book Partner</Button>
                       </Link>

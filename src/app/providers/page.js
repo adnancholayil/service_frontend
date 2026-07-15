@@ -152,7 +152,7 @@ function ProvidersContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {filteredProviders.map((p) => (
-            <Card key={p.id} className="bg-card border-border shadow-sm rounded-xl overflow-hidden hover:shadow-md hover:border-brand/30 transition-all flex flex-col">
+            <Card key={p.id} className="bg-card border-border shadow-sm overflow-hidden hover:shadow-md hover:border-brand/30 transition-all flex flex-col h-full">
               <CardBody className="p-3.5 flex flex-col gap-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">

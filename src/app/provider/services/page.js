@@ -181,7 +181,7 @@ export default function ProviderServices() {
                     {service.isActive ? 'Active' : 'Hidden'}
                   </span>
                 </div>
-                <p className="text-2xl font-black text-emerald-600">${service.price}</p>
+                <p className="text-2xl font-black text-emerald-600">₹{service.price}</p>
                 {service.description && (
                   <p className="text-sm text-slate-500 mt-2 line-clamp-2">{service.description}</p>
                 )}
@@ -235,7 +235,7 @@ export default function ProviderServices() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Price ($) *</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Price (₹) *</label>
                   <input 
                     type="number" 
                     required

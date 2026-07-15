@@ -163,7 +163,7 @@ export default function BookingsPage() {
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
                   <div>
                     <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Amount Paid</p>
-                    <p className="text-lg sm:text-xl font-extrabold text-brand">${b.totalPrice ?? b.service?.price ?? '—'}</p>
+                    <p className="text-lg sm:text-xl font-extrabold text-brand">₹{b.totalPrice ?? b.service?.price ?? '—'}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Link href={`/bookings/${b.id}`}>

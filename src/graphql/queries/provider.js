@@ -10,6 +10,7 @@ export const GET_PROVIDER_DETAILS = gql`
       reviewsCount
       verificationStatus
       portfolio
+      address
       user {
         id
         name
