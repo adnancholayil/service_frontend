@@ -17,7 +17,8 @@ export default function AdminProviders() {
   const [verifyProvider] = useMutation(VERIFY_PROVIDER_MUTATION);
   const [providerToReject, setProviderToReject] = React.useState(null);
 
-  const providers = data?.adminProviders || [];
+  const allProviders = data?.adminProviders || [];
+  const providers = allProviders.filter(p => p.subscriptionStatus === 'ACTIVE');
 
   const handleVerify = async (provId) => {
     try {

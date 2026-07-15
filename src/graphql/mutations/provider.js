@@ -1,12 +1,13 @@
 import { gql } from '@apollo/client';
 
 export const UPDATE_PROVIDER_PROFILE = gql`
-  mutation UpdateProviderProfile($businessName: String, $description: String, $address: String) {
-    updateProviderProfile(businessName: $businessName, description: $description, address: $address) {
+  mutation UpdateProviderProfile($businessName: String, $description: String, $address: String, $portfolio: [String!]) {
+    updateProviderProfile(businessName: $businessName, description: $description, address: $address, portfolio: $portfolio) {
       id
       businessName
       description
       address
+      portfolio
       location {
         coordinates
       }

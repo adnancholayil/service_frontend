@@ -16,7 +16,33 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const queryClient = new QueryClient();
 
-console.log("GOOGLE CLIENT ID:", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+if (typeof window !== 'undefined') {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const originalInfo = console.info;
+  const originalError = console.error;
+  
+  const filterArgs = (args) => {
+    if (typeof args[0] === 'string') {
+      const msg = args[0];
+      if (msg.includes('React DevTools') || 
+          msg.includes('Apollo DevTools') || 
+          msg.includes('[HMR]') ||
+          msg.includes('otp-credentials') ||
+          msg.includes('net::ERR_BLOCKED_BY_CLIENT')) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  console.log = (...args) => { if (!filterArgs(args)) originalLog(...args); };
+  console.warn = (...args) => { if (!filterArgs(args)) originalWarn(...args); };
+  console.info = (...args) => { if (!filterArgs(args)) originalInfo(...args); };
+  console.error = (...args) => { if (!filterArgs(args)) originalError(...args); };
+}
+
+
 
 export default function Providers({ children }) {
   return (

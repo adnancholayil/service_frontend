@@ -37,6 +37,23 @@ export default function ImageUpload({ onUpload, initialImage = '', label = 'Uplo
     }
   };
 
+  const getValidToken = async () => {
+    let token = localStorage.getItem('token');
+    return token;
+  };
+
+  const doUpload = async (file, token) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const apiUrl = (process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URL || 'http://localhost:4000/graphql')
+      .replace('/graphql', '/api/upload');
+    return fetch(apiUrl, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+  };
+
   const processFile = async (file) => {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -58,24 +75,36 @@ export default function ImageUpload({ onUpload, initialImage = '', label = 'Uplo
       const objectUrl = URL.createObjectURL(file);
       setPreview(objectUrl);
 
-      // Create FormData
-      const formData = new FormData();
-      formData.append('image', file);
+      let token = await getValidToken();
+      let response = await doUpload(file, token);
 
-      // Extract base URL from graphql URI or use localhost default
-      const apiUrl = (process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URL || 'http://localhost:4000/graphql')
-        .replace('/graphql', '/api/upload');
-
-      const token = localStorage.getItem('token');
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        body: formData,
-        // Don't set Content-Type header, let browser set it with boundary for multipart/form-data
-      });
+      // If token is rejected, try to refresh and retry once
+      if (response.status === 401 || response.status === 403) {
+        try {
+          const httpUri = process.env.NEXT_PUBLIC_GRAPHQL_HTTP_URL || 'http://localhost:4000/graphql';
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            const refreshRes = await fetch(httpUri, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                query: `mutation RefreshToken($token: String!) { refreshToken(token: $token) { accessToken refreshToken } }`,
+                variables: { token: refreshToken },
+              }),
+            });
+            const refreshData = await refreshRes.json();
+            if (refreshData.data?.refreshToken?.accessToken) {
+              token = refreshData.data.refreshToken.accessToken;
+              localStorage.setItem('token', token);
+              localStorage.setItem('refreshToken', refreshData.data.refreshToken.refreshToken);
+              // Retry with fresh token
+              response = await doUpload(file, token);
+            }
+          }
+        } catch (refreshErr) {
+          console.error('Token refresh failed:', refreshErr);
+        }
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

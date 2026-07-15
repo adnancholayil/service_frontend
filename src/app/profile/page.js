@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   User, Settings, MapPin, Heart, Star, Sparkles, 
@@ -23,6 +23,7 @@ import { openLogoutModal } from '../../store/slices/appSlice';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   
@@ -33,7 +34,7 @@ export default function ProfilePage() {
   const providers = useSelector((state) => state.provider.providers);
   const reviews = useSelector((state) => state.user.reviews);
 
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'overview');
 
   const handleLogout = () => {
     dispatch(openLogoutModal());

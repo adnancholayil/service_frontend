@@ -54,7 +54,7 @@ export default function ProviderDetailPage({ params }) {
   const [bookingDate, setBookingDate] = useState('');
   const [bookingTime, setBookingTime] = useState('');
   const [bookingNotes, setBookingNotes] = useState('');
-  const [paymentTiming, setPaymentTiming] = useState('now');
+  const [paymentTiming, setPaymentTiming] = useState('after');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [paymentCardName, setPaymentCardName] = useState('');
   const [paymentCardNum, setPaymentCardNum] = useState('');
@@ -131,6 +131,15 @@ export default function ProviderDetailPage({ params }) {
     }
 
     setIsBookingModalOpen(true);
+
+    // Clean up URL parameters so the modal doesn't reopen on component re-renders
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('book') || params.has('service')) {
+      params.delete('book');
+      params.delete('service');
+      const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
   };
 
   const handleNextStep = () => {
@@ -530,9 +539,16 @@ export default function ProviderDetailPage({ params }) {
                         </div>
                       </div>
                     ))}
-                    <Link href="/profile/addresses" className="inline-block text-xs font-semibold text-brand hover:underline mt-2">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setIsBookingModalOpen(false);
+                        router.push('/profile?tab=addresses');
+                      }}
+                      className="inline-block text-xs font-semibold text-brand hover:underline mt-2"
+                    >
                       + Add New Address in Settings
-                    </Link>
+                    </button>
                   </div>
                 </div>
 
@@ -571,98 +587,12 @@ export default function ProviderDetailPage({ params }) {
                 <div className="space-y-4">
                   <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><CreditCard className="h-4 w-4 text-brand"/> Payment Options</h4>
 
-                  {/* Payment Timing Toggle */}
-                  <div className="grid grid-cols-2 gap-2 bg-muted/30 p-1 rounded-xl">
-                    <button
-                      type="button"
-                      onClick={() => { setPaymentTiming('now'); setPaymentMethod('card'); }}
-                      className={`py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        paymentTiming === 'now'
-                          ? 'bg-card shadow-sm border border-border text-brand'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Pay Now (Escrow)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaymentTiming('after')}
-                      className={`py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                        paymentTiming === 'after'
-                          ? 'bg-card shadow-sm border border-border text-brand'
-                          : 'text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      Pay After Service
-                    </button>
+                  <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-4">
+                    <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
+                    <p className="text-[11px] text-foreground/80 leading-normal">
+                      You will pay {provider.businessName} directly after the service is completed. Cash and direct transfers are accepted.
+                    </p>
                   </div>
-                  
-                  {paymentTiming === 'now' ? (
-                    <>
-                      <div className="grid grid-cols-2 gap-2 mt-4">
-                        {['card', 'upi'].map((method) => (
-                          <button
-                            key={method}
-                            type="button"
-                            onClick={() => setPaymentMethod(method)}
-                            className={`py-2 rounded-xl border text-xs font-semibold capitalize transition-all cursor-pointer ${
-                              paymentMethod === method
-                                ? 'border-brand bg-brand/10 text-brand ring-1 ring-brand/50'
-                                : 'bg-card text-muted-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
-                            }`}
-                          >
-                            {method === 'card' ? 'Credit Card' : 'UPI'}
-                          </button>
-                        ))}
-                      </div>
-
-                      {paymentMethod === 'card' && (
-                        <div className="space-y-3 pt-2">
-                          <Input
-                            label="Cardholder Name"
-                            placeholder="John Doe"
-                            value={paymentCardName}
-                            onChange={(e) => setPaymentCardName(e.target.value)}
-                          />
-                          <div className="relative">
-                            <Input
-                              label="Card Number"
-                              placeholder="4242 4242 4242 4242"
-                              maxLength={19}
-                              value={paymentCardNum}
-                              onChange={(e) => setPaymentCardNum(e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim())}
-                            />
-                            <CreditCard className="h-5 w-5 text-muted-foreground absolute right-3 bottom-2.5" />
-                          </div>
-                        </div>
-                      )}
-
-                      {paymentMethod === 'upi' && (
-                        <div className="space-y-3 pt-2">
-                          <Input
-                            label="UPI ID"
-                            placeholder="username@bank"
-                            value={paymentUpiId}
-                            onChange={(e) => setPaymentUpiId(e.target.value)}
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-2">
-                        <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
-                        <p className="text-[11px] text-foreground/80 leading-normal">
-                          Payment is held securely in escrow. Released to {provider.businessName} only when marked as completed.
-                        </p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-4">
-                      <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
-                      <p className="text-[11px] text-foreground/80 leading-normal">
-                        You will pay {provider.businessName} directly after the service is completed. Cash and direct transfers are accepted.
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             )}

@@ -139,7 +139,7 @@ export default function ProviderServices() {
   const services = profileData?.providerProfile?.services || [];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="h-full flex flex-col p-5 gap-4 overflow-y-auto">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">

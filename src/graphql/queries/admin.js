@@ -7,6 +7,7 @@ export const ADMIN_PROVIDERS_QUERY = gql`
       businessName
       description
       verificationStatus
+      subscriptionStatus
       user {
         id
         name
@@ -62,6 +63,28 @@ export const GET_REVIEWS = gql`
       provider {
         id
         businessName
+      }
+    }
+  }
+`;
+
+export const GET_PAYMENTS_REPORT = gql`
+  query GetPaymentsReport {
+    getPaymentsReport {
+      id
+      plan
+      amount
+      method
+      status
+      transactionId
+      createdAt
+      provider {
+        id
+        businessName
+        user {
+          name
+          email
+        }
       }
     }
   }

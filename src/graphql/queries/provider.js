@@ -9,6 +9,7 @@ export const GET_PROVIDER_DETAILS = gql`
       rating
       reviewsCount
       verificationStatus
+      portfolio
       user {
         id
         name
@@ -63,6 +64,9 @@ export const PROVIDER_DASHBOARD_STATS_QUERY = gql`
       pendingTasks
       completedJobs
       averageRating
+      subscriptionPlan
+      subscriptionStatus
+      subscriptionExpiry
     }
   }
 `;
@@ -79,6 +83,8 @@ export const GET_PROVIDER_PROFILE = gql`
       verificationStatus
       subscriptionPlan
       subscriptionStatus
+      subscriptionExpiry
+      portfolio
       user {
         id
         name

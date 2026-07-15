@@ -80,3 +80,12 @@ export const REFRESH_TOKEN_MUTATION = gql`
     }
   }
 `;
+
+export const UPDATE_USER_AVATAR = gql`
+  mutation UpdateUserAvatar($avatar: String!) {
+    updateUserAvatar(avatar: $avatar) {
+      id
+      avatar
+    }
+  }
+`;
