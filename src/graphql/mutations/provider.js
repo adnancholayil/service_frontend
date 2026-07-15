@@ -36,3 +36,23 @@ export const UPDATE_LOCATION = gql`
     }
   }
 `;
+
+export const SELECT_SUBSCRIPTION_PLAN = gql`
+  mutation SelectSubscriptionPlan($plan: String!) {
+    selectSubscriptionPlan(plan: $plan) {
+      id
+      subscriptionPlan
+      subscriptionStatus
+    }
+  }
+`;
+
+export const PROCESS_PAYMENT = gql`
+  mutation ProcessPayment($method: String!) {
+    processPayment(method: $method) {
+      id
+      subscriptionPlan
+      subscriptionStatus
+    }
+  }
+`;

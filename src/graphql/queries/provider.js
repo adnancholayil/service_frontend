@@ -77,6 +77,8 @@ export const GET_PROVIDER_PROFILE = gql`
       rating
       reviewsCount
       verificationStatus
+      subscriptionPlan
+      subscriptionStatus
       user {
         id
         name

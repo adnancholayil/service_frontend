@@ -47,6 +47,8 @@ export default function AuthModals() {
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
 
   const { data: catData } = useQuery(GET_CATEGORIES, { skip: authModalType !== 'register' });
   const categories = catData?.categories || [];
@@ -127,8 +129,8 @@ export default function AuthModals() {
       const variables = { name, email, password, role };
       
       if (role === 'PROVIDER') {
-        if (!businessName || !description || !categoryId || !address) {
-          toast.error('Please fill in all provider details');
+        if (!businessName || !description || !categoryId || !address || !phone) {
+          toast.error('Please fill in all required provider details');
           setIsLoading(false);
           return;
         }
@@ -137,6 +139,8 @@ export default function AuthModals() {
           description,
           category: categoryId,
           address,
+          phone,
+          whatsapp,
           coordinates: [0, 0] // Default dummy coordinates
         };
       }
@@ -457,6 +461,25 @@ export default function AuthModals() {
                     placeholder="City, Area or Street"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
+                  />
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    label="Mobile Number"
+                    required
+                    placeholder="+1 234 567 8900"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <Input
+                    id="whatsapp"
+                    name="whatsapp"
+                    type="tel"
+                    label="WhatsApp Number (Optional)"
+                    placeholder="Same as mobile if empty"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
                   />
                 </div>
               )}

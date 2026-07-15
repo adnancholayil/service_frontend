@@ -3,18 +3,63 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { openLogoutModal } from '../../store/slices/appSlice';
-import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut, MessageCircle } from 'lucide-react';
+import { useQuery } from '@apollo/client/react';
+import { GET_PROVIDER_PROFILE } from '../../graphql/queries/provider';
+import { LayoutDashboard, CalendarRange, Wrench, Star, BarChart3, User, Settings, Shield, LogOut, MessageCircle, Loader2 } from 'lucide-react';
 
 export default function ProviderLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
 
+  const { user } = useSelector((state) => state.auth);
+
+  const { data, loading } = useQuery(GET_PROVIDER_PROFILE, {
+    variables: { userId: user?.id },
+    skip: !user?.id,
+  });
+
+  const subscriptionStatus = data?.providerProfile?.subscriptionStatus;
+
+  // React to subscription status
+  React.useEffect(() => {
+    if (!loading && subscriptionStatus) {
+      if (
+        subscriptionStatus === 'PENDING_PAYMENT' &&
+        !pathname.includes('/provider/subscription') &&
+        !pathname.includes('/provider/payment')
+      ) {
+        router.replace('/provider/subscription');
+      }
+    }
+  }, [loading, subscriptionStatus, pathname, router]);
+
   const handleLogout = () => {
     dispatch(openLogoutModal());
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
+
+  // If redirecting, show a simple loader to prevent flicker of unauthorized content
+  if (
+    subscriptionStatus === 'PENDING_PAYMENT' &&
+    !pathname.includes('/provider/subscription') &&
+    !pathname.includes('/provider/payment')
+  ) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+      </div>
+    );
+  }
 
   const menuItems = [
     { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
@@ -26,10 +71,13 @@ export default function ProviderLayout({ children }) {
     { label: 'Business Profile', href: '/provider/profile', icon: User },
   ];
 
+  const isAuthOrPaymentPage = pathname.includes('/provider/subscription') || pathname.includes('/provider/payment');
+
   return (
     <div className="flex-1 flex flex-col md:flex-row bg-slate-50 min-h-screen text-slate-900 font-sans">
       
       {/* Sidebar navigation */}
+      {!isAuthOrPaymentPage && (
       <aside className="hidden md:flex w-full md:w-64 border-r border-slate-200 bg-white shrink-0 py-8 px-5 md:sticky md:top-16 md:h-[calc(100vh-4rem)] flex-col justify-between shadow-[4px_0_24px_rgba(0,0,0,0.02)] z-10">
         <div className="space-y-8">
           <div className="px-3">
@@ -78,10 +126,11 @@ export default function ProviderLayout({ children }) {
           </div>
         </div>
       </aside>
+      )}
 
       {/* Main dashboard content */}
-      <main className="flex-1 p-6 md:p-10 lg:p-12 overflow-y-auto relative">
-        <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10 pointer-events-none" />
+      <main className={`flex-1 overflow-y-auto relative ${isAuthOrPaymentPage ? 'flex flex-col min-h-[calc(100vh-4rem)] items-center justify-center p-4 md:p-8' : 'p-6 md:p-10 lg:p-12'}`}>
+        {!isAuthOrPaymentPage && <div className="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10 pointer-events-none" />}
         {children}
       </main>
 
