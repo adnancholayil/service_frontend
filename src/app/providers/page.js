@@ -10,6 +10,7 @@ import { GET_PROVIDERS_PAGE_DATA } from '../../graphql/queries/provider';
 import Card, { CardBody } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
+import { ProviderCardSkeleton } from '../../components/ui/Skeleton';
 
 function ProvidersContent() {
   const router = useRouter();
@@ -17,18 +18,26 @@ function ProvidersContent() {
 
   const categoryParam = searchParams.get('category') || 'all';
   const searchParam = searchParams.get('search') || '';
+  const pageParam = parseInt(searchParams.get('page') || '1', 10);
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [searchTerm, setSearchTerm] = useState(searchParam);
+  const [currentPage, setCurrentPage] = useState(pageParam);
 
   const categoryFilter = categoryParam === 'all' ? null : categoryParam;
 
+  const limit = 12;
   const { data, loading, error } = useQuery(GET_PROVIDERS_PAGE_DATA, {
-    variables: { category: categoryFilter }
+    variables: { 
+      category: categoryFilter,
+      page: currentPage,
+      limit
+    }
   });
 
   const CATEGORIES = data?.categories || [];
-  const providers = data?.providers || [];
+  const providers = data?.providers?.data || [];
+  const totalPages = data?.providers?.totalPages || 1;
 
   // Sync state when query params change
   useEffect(() => {
@@ -38,6 +47,10 @@ function ProvidersContent() {
   useEffect(() => {
     setSearchTerm(searchParam);
   }, [searchParam]);
+
+  useEffect(() => {
+    setCurrentPage(pageParam);
+  }, [pageParam]);
 
   // Derive filteredProviders without useEffect to avoid infinite loops
   const filteredProviders = useMemo(() => {
@@ -57,10 +70,22 @@ function ProvidersContent() {
     return result;
   }, [providers, searchTerm]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
-      <div className="flex-1 flex justify-center py-20">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+            Service Partners <Sparkles className="h-6 w-6 text-brand" />
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Explore and book top rated professionals. Background-verified and reviews-checked.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <ProviderCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -73,6 +98,7 @@ function ProvidersContent() {
     } else {
       params.set('category', catId);
     }
+    params.set('page', '1');
     router.replace(`/providers?${params.toString()}`);
   };
 
@@ -85,7 +111,16 @@ function ProvidersContent() {
     } else {
       params.set('search', value.trim());
     }
+    params.set('page', '1');
     router.replace(`/providers?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', newPage.toString());
+    router.push(`/providers?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -121,7 +156,7 @@ function ProvidersContent() {
             className={`px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-brand text-white border-brand shadow-sm'
-                : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
             }`}
           >
             All Partners
@@ -133,7 +168,7 @@ function ProvidersContent() {
               className={`px-4 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
                 selectedCategory === cat.id
                   ? 'bg-brand text-white border-brand shadow-sm'
-                  : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                  : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
               }`}
             >
               {cat.name}
@@ -143,7 +178,13 @@ function ProvidersContent() {
       </div>
 
       {/* Grid listing */}
-      {filteredProviders.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <ProviderCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : filteredProviders.length === 0 ? (
         <div className="text-center py-20 bg-card border border-border rounded-xl flex flex-col items-center justify-center space-y-3">
           <SlidersHorizontal className="h-10 w-10 text-muted-foreground opacity-40" />
           <h3 className="font-bold text-lg text-muted-foreground">No partners found</h3>
@@ -165,11 +206,11 @@ function ProvidersContent() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 whitespace-nowrap">
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-500/20 whitespace-nowrap">
                       <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> {p.rating}
                     </span>
                     {p.verificationStatus === 'VERIFIED' && (
-                      <span className="flex items-center gap-1 text-[8px] sm:text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 uppercase tracking-wide whitespace-nowrap">
+                      <span className="flex items-center gap-1 text-[8px] sm:text-[9px] font-bold text-emerald-600 dark:text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-500/20 uppercase tracking-wide whitespace-nowrap">
                         <CheckCircle2 className="h-2.5 w-2.5" /> Verified
                       </span>
                     )}
@@ -182,14 +223,14 @@ function ProvidersContent() {
                   <MapPin className="h-3 w-3 text-indigo-500" /> NY Metropolitan Area
                 </div>
 
-                <div className="flex items-center gap-2 pt-1 mt-auto">
+                <div className="flex items-center gap-2 pt-2 mt-auto">
                   <Link href={`/providers/${p.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full text-[11px] font-semibold border-border rounded-lg py-1 h-8">
+                    <Button variant="secondary" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold rounded-lg px-2">
                       Profile
                     </Button>
                   </Link>
                   <Link href={`/providers/${p.id}?book=true`} className="flex-1">
-                    <Button variant="primary" size="sm" className="w-full text-[11px] font-semibold rounded-lg py-1 h-8">
+                    <Button variant="primary" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold rounded-lg px-2">
                       Book
                     </Button>
                   </Link>
@@ -197,6 +238,29 @@ function ProvidersContent() {
               </CardBody>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 pt-8 pb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm font-medium text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button 
+            variant="outline" 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>

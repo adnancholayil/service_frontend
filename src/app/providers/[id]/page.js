@@ -469,263 +469,297 @@ export default function ProviderDetailPage({ params }) {
       </div>
 
       {/* 3. MULTI-STEP BOOKING WIZARD MODAL (3 steps) */}
-      <Modal isOpen={isBookingModalOpen} onClose={handleCloseModal} title={`Book ${provider.businessName}`} size="lg">
-        <div className="space-y-6">
-          
+      <Modal isOpen={isBookingModalOpen} onClose={handleCloseModal} title={`Book ${provider.businessName}`} size="xl">
+        <div>
 
+          {/* All booking fields (step < 5) */}
+          {bookingStep < 5 && (
+            <div className="space-y-6">
 
-          {/* Step Contents */}
-          <div className="py-2">
-            
-            {/* Service */}
-            {bookingStep < 5 && (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-brand"/> Select Service</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {/* ── Select Service ── */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-brand shrink-0"/>
+                  Select Service
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {services.map((srv) => (
                     <div
                       key={srv.id}
-                      onClick={() => {
-                        setSelectedService(srv);
-                      }}
-                      className={`p-3 border rounded-xl flex flex-col justify-between cursor-pointer transition-all ${
+                      onClick={() => setSelectedService(srv)}
+                      className={`relative p-3.5 border-2 rounded-xl flex flex-col gap-1 cursor-pointer transition-all duration-200 select-none ${
                         selectedService?.id === srv.id
-                          ? 'border-brand bg-brand text-primary-foreground shadow-md scale-[1.02] ring-2 ring-brand ring-offset-1 ring-offset-background'
-                          : 'border-border hover:border-brand/50 hover:bg-muted text-foreground'
+                          ? 'border-brand bg-sky-50'
+                          : 'border-border bg-card hover:border-brand/40 hover:bg-sky-50/50'
                       }`}
                     >
-                      <p className={`text-sm font-semibold ${selectedService?.id === srv.id ? 'text-primary-foreground' : 'text-foreground'}`}>{srv.name}</p>
-                      <span className={`font-bold text-sm mt-2 ${selectedService?.id === srv.id ? 'text-primary-foreground' : 'text-brand'}`}>₹{srv.price}</span>
+                      {selectedService?.id === srv.id && (
+                        <span className="absolute top-2 right-2 inline-flex h-4 w-4 items-center justify-center rounded-full bg-brand">
+                          <Check className="h-2.5 w-2.5 text-white"/>
+                        </span>
+                      )}
+                      <p className="text-sm font-semibold text-foreground leading-snug pr-5">{srv.name}</p>
+                      <span className="text-sm font-bold text-brand">₹{srv.price}</span>
                     </div>
                   ))}
                 </div>
               </div>
-                <hr className="border-border" />
-                
-                {/* Date & Time */}
-                <div className="space-y-3">
-                <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><Calendar className="h-4 w-4 text-brand"/> Date & Time</h4>
-                <div className="space-y-5">
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">1. Pick a Date</label>
-                    <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar items-stretch">
-                      {(() => {
-                        const dateStrings = Array.from({ length: 14 }).map((_, i) => {
-                          const date = new Date();
-                          date.setDate(date.getDate() + i);
-                          return date.toISOString().split('T')[0];
-                        });
 
-                        // If user picked a date outside the 14 days, append it to the list
-                        if (bookingDate && !dateStrings.includes(bookingDate)) {
-                          dateStrings.push(bookingDate);
-                        }
+              <div className="h-px bg-border" />
 
-                        return (
-                          <>
-                            {dateStrings.map((dateString) => {
-                              const [y, m, d] = dateString.split('-');
-                              const localDate = new Date(y, m - 1, d);
-                              const isSelected = bookingDate === dateString;
-                              const dayName = localDate.toLocaleDateString('en-US', { weekday: 'short' });
-                              const dayNum = localDate.getDate();
-                              const month = localDate.toLocaleDateString('en-US', { month: 'short' });
-                              
-                              return (
-                                <button
-                                  key={dateString}
-                                  type="button"
-                                  onClick={() => setBookingDate(dateString)}
-                                  className={`flex flex-col items-center justify-center min-w-[70px] py-3 rounded-xl border transition-all shrink-0 cursor-pointer ${
-                                    isSelected 
-                                      ? 'border-brand bg-brand text-white shadow-md' 
-                                      : 'border-border bg-card text-foreground hover:border-brand/50 hover:bg-brand/5'
-                                  }`}
-                                >
-                                  <span className={`text-[10px] font-bold uppercase tracking-wider ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}>{dayName}</span>
-                                  <span className="text-xl font-extrabold my-0.5">{dayNum}</span>
-                                  <span className={`text-[10px] font-semibold ${isSelected ? 'text-white/80' : 'text-muted-foreground'}`}>{month}</span>
-                                </button>
-                              );
-                            })}
-                            
-                            {/* "More Dates" Native Picker Button */}
-                            <div className="relative flex flex-col items-center justify-center min-w-[70px] py-3 rounded-xl border-2 border-dashed border-border bg-card text-muted-foreground hover:border-brand/50 hover:bg-brand/10 shrink-0 cursor-pointer overflow-hidden transition-all group">
-                              <Calendar className="w-5 h-5 mb-1 group-hover:text-brand transition-colors pointer-events-none" />
-                              <span className="text-[10px] font-bold uppercase tracking-wider group-hover:text-brand transition-colors pointer-events-none">More</span>
-                              <input 
-                                type="date"
-                                min={new Date().toISOString().split('T')[0]}
-                                value={bookingDate}
-                                onChange={(e) => setBookingDate(e.target.value)}
-                                onClick={(e) => {
-                                  try {
-                                    if (e.target.showPicker) e.target.showPicker();
-                                  } catch (err) {
-                                    console.error(err);
-                                  }
-                                }}
-                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                              />
-                            </div>
-                          </>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">2. Select a Time Slot</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      {['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'].map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => {
-                            if (!bookingDate) {
-                              toast.error('Please pick a date first!');
-                              return;
-                            }
-                            setBookingTime(t);
-                          }}
-                          className={`py-2.5 rounded-xl border text-sm font-semibold transition-all cursor-pointer ${
-                            bookingTime === t
-                              ? 'border-brand bg-brand text-white shadow-sm ring-2 ring-brand/20'
-                              : 'bg-card text-muted-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-muted/50'
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
+              {/* ── Date & Time ── */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-brand shrink-0"/>
+                  Date & Time
+                </h4>
+
+                {/* Pick a date */}
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">1. Pick a Date</p>
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                    {(() => {
+                      const dateStrings = Array.from({ length: 14 }).map((_, i) => {
+                        const date = new Date();
+                        date.setDate(date.getDate() + i);
+                        return date.toISOString().split('T')[0];
+                      });
+                      if (bookingDate && !dateStrings.includes(bookingDate)) {
+                        dateStrings.push(bookingDate);
+                      }
+                      return (
+                        <>
+                          {dateStrings.map((dateString) => {
+                            const [y, m, d] = dateString.split('-');
+                            const localDate = new Date(y, m - 1, d);
+                            const isSelected = bookingDate === dateString;
+                            const dayName = localDate.toLocaleDateString('en-US', { weekday: 'short' });
+                            const dayNum = localDate.getDate();
+                            const month = localDate.toLocaleDateString('en-US', { month: 'short' });
+                            return (
+                              <button
+                                key={dateString}
+                                type="button"
+                                onClick={() => setBookingDate(dateString)}
+                                className={`flex flex-col items-center justify-center min-w-[58px] h-[68px] rounded-xl border-2 transition-all duration-200 shrink-0 cursor-pointer ${
+                                  isSelected
+                                    ? 'border-brand bg-brand text-white'
+                                    : 'border-border bg-card text-foreground hover:border-brand/40 hover:bg-sky-50/60'
+                                }`}
+                              >
+                                <span className={`text-[9px] font-bold uppercase tracking-widest leading-none ${isSelected ? 'text-sky-100' : 'text-muted-foreground'}`}>{dayName}</span>
+                                <span className={`text-base font-black leading-tight mt-0.5 ${isSelected ? 'text-white' : 'text-foreground'}`}>{dayNum}</span>
+                                <span className={`text-[9px] font-semibold leading-none mt-0.5 ${isSelected ? 'text-sky-100' : 'text-muted-foreground'}`}>{month}</span>
+                              </button>
+                            );
+                          })}
+                          {/* More dates picker */}
+                          <div className="relative flex flex-col items-center justify-center min-w-[58px] h-[68px] rounded-xl border-2 border-dashed border-border bg-card hover:border-brand/40 hover:bg-sky-50/60 shrink-0 cursor-pointer overflow-hidden transition-all duration-200 group">
+                            <Calendar className="w-4 h-4 text-muted-foreground group-hover:text-brand transition-colors pointer-events-none" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-brand transition-colors pointer-events-none mt-0.5">More</span>
+                            <input
+                              type="date"
+                              min={new Date().toISOString().split('T')[0]}
+                              value={bookingDate}
+                              onChange={(e) => setBookingDate(e.target.value)}
+                              onClick={(e) => { try { if (e.target.showPicker) e.target.showPicker(); } catch (err) { /* noop */ } }}
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                            />
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
-              </div>
-                <hr className="border-border" />
 
-                {/* Mobile Number & Address */}
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><MessageCircle className="h-4 w-4 text-brand"/> Mobile Number</h4>
-                    <Input
-                      id="booking-phone"
-                      name="bookingPhone"
-                      type="tel"
-                      placeholder="e.g. +1 234 567 8900"
-                      value={bookingPhone}
-                      onChange={(e) => setBookingPhone(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><MapPin className="h-4 w-4 text-brand"/> Service Address</h4>
-                    <div className="space-y-2">
-                      {userAddresses.map((addr) => (
-                        <div
-                          key={addr.id}
-                          onClick={() => setSelectedAddress(addr)}
-                        className={`p-3 border rounded-xl flex items-start gap-3 cursor-pointer transition-all ${
-                          selectedAddress?.id === addr.id
-                            ? 'border-brand bg-brand/5 ring-1 ring-brand'
-                            : 'border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                {/* Pick a time */}
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">2. Select a Time Slot</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {['09:00 AM', '11:00 AM', '02:00 PM', '04:00 PM'].map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          if (!bookingDate) { toast.error('Please pick a date first!'); return; }
+                          setBookingTime(t);
+                        }}
+                        className={`py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                          bookingTime === t
+                            ? 'border-brand bg-brand text-white'
+                            : 'bg-card text-foreground border-border hover:border-brand/40 hover:bg-sky-50/60'
                         }`}
                       >
-                        <div>
-                          <p className="text-sm font-bold">{addr.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{addr.address}</p>
-                        </div>
-                      </div>
+                        {t}
+                      </button>
                     ))}
-                    <button 
-                      type="button"
-                      onClick={() => setIsAddAddressModalOpen(true)}
-                      className="inline-block text-xs font-semibold text-brand hover:underline mt-2"
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* ── Mobile Number ── */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-brand shrink-0"/>
+                  Mobile Number
+                </h4>
+                <Input
+                  id="booking-phone"
+                  name="bookingPhone"
+                  type="tel"
+                  placeholder="e.g. +91 98765 43210"
+                  value={bookingPhone}
+                  onChange={(e) => setBookingPhone(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* ── Service Address ── */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-brand shrink-0"/>
+                  Service Address
+                </h4>
+                <div className="space-y-2">
+                  {userAddresses.map((addr) => (
+                    <div
+                      key={addr.id}
+                      onClick={() => setSelectedAddress(addr)}
+                      className={`p-3.5 border-2 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-200 ${
+                        selectedAddress?.id === addr.id
+                          ? 'border-brand bg-sky-50/70'
+                          : 'border-border bg-card hover:border-brand/40 hover:bg-sky-50/40'
+                      }`}
                     >
-                      + Add New Address
-                    </button>
+                      <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 ${
+                        selectedAddress?.id === addr.id
+                          ? 'bg-brand border-brand'
+                          : 'bg-card border-border'
+                      }`}>
+                        {selectedAddress?.id === addr.id && (
+                          <Check className="h-2.5 w-2.5 text-white"/>
+                        )}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-foreground">{addr.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5 leading-snug truncate">{addr.address}</p>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setIsAddAddressModalOpen(true)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-sky-600 transition-colors mt-1"
+                  >
+                    + Add New Address
+                  </button>
+                </div>
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* ── Notes ── */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-brand shrink-0"/>
+                  Notes
+                  <span className="text-xs font-normal text-muted-foreground">(Optional)</span>
+                </h4>
+                <textarea
+                  placeholder="e.g. Please bring extra wire, or knock on back door..."
+                  rows={3}
+                  className="w-full px-4 py-3 bg-muted/40 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:border-brand focus:ring-2 focus:ring-brand/20 text-sm transition-all duration-200 resize-none"
+                  value={bookingNotes}
+                  onChange={(e) => setBookingNotes(e.target.value)}
+                />
+              </div>
+
+              <div className="h-px bg-border" />
+
+              {/* ── Booking Summary + Payment ── */}
+              <div className="space-y-3">
+                <div className="rounded-xl border border-border overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-muted/60 border-b border-border">
+                    <span className="text-sm font-bold text-foreground">Booking Summary</span>
+                    <span className="text-base font-extrabold text-brand">₹{selectedService?.price ?? '—'}</span>
+                  </div>
+                  <div className="divide-y divide-border bg-card text-sm">
+                    <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                      <span className="text-muted-foreground font-medium shrink-0">Service</span>
+                      <span className="font-semibold text-foreground text-right">{selectedService?.name ?? '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-4 px-4 py-2.5">
+                      <span className="text-muted-foreground font-medium shrink-0">Date & Time</span>
+                      <span className="font-semibold text-foreground text-right">
+                        {bookingDate ? `${bookingDate} @ ${bookingTime || '—'}` : '—'}
+                      </span>
+                    </div>
+                    <div className="flex items-start justify-between gap-4 px-4 py-2.5">
+                      <span className="text-muted-foreground font-medium shrink-0">Address</span>
+                      <span className="font-semibold text-foreground text-right max-w-[55%]">
+                        {selectedAddress?.address ?? 'Not selected'}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                </div>
 
-                <hr className="border-border" />
-
-                <div className="space-y-3">
-                  <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><FileText className="h-4 w-4 text-brand"/> Notes (Optional)</h4>
-                  <textarea
-                    placeholder="e.g. Please bring extra wire, or knock on back door..."
-                    rows={3}
-                    className="w-full p-3 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand text-sm transition-all resize-none"
-                    value={bookingNotes}
-                    onChange={(e) => setBookingNotes(e.target.value)}
-                  />
-                </div>
-
-                <hr className="border-border" />
-
-                {/* Payment & Review */}
-                <div className="space-y-3">
-                  {/* Summary */}
-                  <div className="border border-brand/20 rounded-xl overflow-hidden text-sm bg-brand/5">
-                    <div className="p-4 bg-brand/10 border-b border-brand/20 flex justify-between items-center">
-                      <span className="font-bold">Booking Summary</span>
-                      <span className="font-extrabold text-brand text-lg">₹{selectedService?.price}</span>
-                    </div>
-                    <div className="p-4 space-y-3 text-foreground/80">
-                      <div className="flex justify-between"><span className="font-medium">Service</span> <span className="font-bold text-foreground">{selectedService?.name}</span></div>
-                      <div className="flex justify-between"><span className="font-medium">Date & Time</span> <span className="font-bold text-foreground">{bookingDate} @ {bookingTime}</span></div>
-                      <div className="flex justify-between gap-4"><span className="font-medium shrink-0">Address</span> <span className="font-bold text-foreground text-right">{selectedAddress?.address}</span></div>
-                    </div>
-                  </div>
-
-                  {/* Payment */}
-                  <div className="space-y-4">
-                    <h4 className="font-bold text-foreground text-sm flex items-center gap-1.5"><CreditCard className="h-4 w-4 text-brand"/> Payment Options</h4>
-
-                    <div className="p-3 border border-brand/20 bg-brand/5 rounded-xl flex items-start gap-3 mt-4">
-                      <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
-                      <p className="text-[11px] text-foreground/80 leading-normal">
-                        You will pay {provider.businessName} directly after the service is completed. Cash and direct transfers are accepted.
-                      </p>
-                    </div>
+                {/* Payment notice */}
+                <div className="p-3.5 border border-border bg-muted/40 rounded-xl flex items-center gap-3">
+                  <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-foreground mb-0.5">Pay After Service</p>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Pay {provider.businessName} directly after completion — cash or direct transfer accepted.
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
-            {bookingStep === 5 && (
-              <div className="text-center py-6 space-y-4">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-white shadow-md mx-auto">
-                  <Check className="h-8 w-8 stroke-[3]" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-xl font-extrabold text-foreground">Booking Confirmed!</h4>
-                  <p className="text-xs text-muted-foreground">Your appointment ID is <span className="font-bold text-foreground">{confirmedBookingId}</span></p>
-                </div>
-                <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
-                  {provider.businessName} has been notified and will arrive on <span className="font-semibold text-foreground">{bookingDate}</span> at <span className="font-semibold text-foreground">{bookingTime}</span>.
+
+            </div>
+          )}
+
+          {/* Booking Confirmed */}
+          {bookingStep === 5 && (
+            <div className="text-center py-8 space-y-4">
+              <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 text-white mx-auto">
+                <Check className="h-8 w-8 stroke-[3]" />
+              </div>
+              <div className="space-y-1.5">
+                <h4 className="text-xl font-extrabold text-foreground">Booking Confirmed!</h4>
+                <p className="text-xs text-muted-foreground">
+                  Appointment ID: <span className="font-bold text-foreground">{confirmedBookingId}</span>
                 </p>
-                <div className="pt-4 flex gap-2">
-                  <Button variant="outline" className="flex-1 rounded-xl" onClick={handleCloseModal}>
-                    Close
-                  </Button>
-                  <Link href="/bookings" className="flex-1">
-                    <Button variant="primary" className="w-full rounded-xl">
-                      View Bookings
-                    </Button>
-                  </Link>
-                </div>
               </div>
-            )}
-
-          </div>
+              <p className="text-sm text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                {provider.businessName} has been notified and will arrive on{' '}
+                <span className="font-semibold text-foreground">{bookingDate}</span> at{' '}
+                <span className="font-semibold text-foreground">{bookingTime}</span>.
+              </p>
+              <div className="pt-4 flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={handleCloseModal}>
+                  Close
+                </Button>
+                <Link href="/bookings" className="flex-1">
+                  <Button variant="primary" className="w-full">
+                    View Bookings
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Wizard Actions Footer */}
           {bookingStep < 5 && (
-            <div className="flex gap-3 pt-4 border-t border-border">
+            <div className="flex gap-3 pt-5 border-t border-border mt-6">
               <Button
                 variant="primary"
+                size="lg"
                 isLoading={isSubmitting}
-                className="rounded-xl flex-1 justify-center py-6 text-lg font-bold"
+                className="flex-1 justify-center"
                 onClick={handleConfirmBookingClick}
               >
                 Confirm Booking

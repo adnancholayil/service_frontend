@@ -160,7 +160,7 @@ export default function AuthModals() {
         localStorage.setItem('refreshToken', refreshToken);
 
         dispatch(loginSuccess({ user, token: accessToken }));
-        toast.success(`Welcome to ServiceHub, ${user.name}! 🎉`);
+        toast.success(`Welcome to Servio, ${user.name}! 🎉`);
         handleClose();
 
         if (user.role === 'PROVIDER') {

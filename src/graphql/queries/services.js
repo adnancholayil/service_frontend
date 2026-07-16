@@ -1,31 +1,36 @@
 import { gql } from '@apollo/client';
 
 export const GET_SERVICES_PAGE_DATA = gql`
-  query GetServicesPageData($category: ID, $search: String) {
+  query GetServicesPageData($category: ID, $search: String, $page: Int, $limit: Int) {
     categories {
       id
       name
       slug
       icon
     }
-    globalServices(category: $category, search: $search) {
-      id
-      name
-      description
-      price
-      category {
-        name
-      }
-      provider {
+    globalServices(category: $category, search: $search, page: $page, limit: $limit) {
+      data {
         id
-        businessName
-        rating
-        reviewsCount
-        user {
+        name
+        description
+        price
+        category {
           name
-          avatar
+        }
+        provider {
+          id
+          businessName
+          rating
+          reviewsCount
+          user {
+            name
+            avatar
+          }
         }
       }
+      total
+      page
+      totalPages
     }
   }
 `;

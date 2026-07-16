@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from 'next-themes';
 import {
   Sun, Moon, Bell, MessageSquare, User, LogOut, Settings,
-  Shield, Briefcase, Calendar, Sparkles, Home, Grid,
-  Users, LayoutDashboard, Wrench, Search, ChevronDown, X, Menu
+  Shield, Briefcase, Calendar, Home,
+  Users, LayoutDashboard, Wrench, Search, ChevronDown
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -75,6 +76,7 @@ export function Navbar() {
   // ─── Desktop nav links ────────────────────────────────────
   const getNavLinks = () => {
     if (!isAuthenticated) return [
+      { label: 'Home', href: '/' },
       { label: 'Services', href: '/services' },
       { label: 'Providers', href: '/providers' },
     ];
@@ -90,6 +92,7 @@ export function Navbar() {
       { label: 'Services', href: '/provider/services' },
     ];
     return [
+      { label: 'Home', href: '/' },
       { label: 'Services', href: '/services' },
       { label: 'Providers', href: '/providers' },
       { label: 'My Bookings', href: '/bookings' },
@@ -146,12 +149,16 @@ export function Navbar() {
           <div className="flex h-16 items-center justify-between gap-4">
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-sky-400 text-white shadow-md shadow-brand/30 transition-transform group-hover:scale-105">
-                <Sparkles className="h-4.5 w-4.5" />
-              </span>
+            <Link href="/" className="flex items-center gap-2 shrink-0 group">
+              <Image
+                src="/assets/LOGO.png"
+                alt="Servio Logo"
+                width={36}
+                height={36}
+                className="transition-transform duration-200 group-hover:scale-105"
+              />
               <span className="text-lg font-extrabold tracking-tight text-foreground">
-                Service<span className="text-brand">Hub</span>
+                Ser<span className="text-brand">vio</span>
               </span>
             </Link>
 
@@ -281,13 +288,16 @@ export function Navbar() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* MOBILE TOP MINI-BAR (logo + icons, hidden on desktop)  */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 h-14 bg-card/90 backdrop-blur-xl border-b border-border/60">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-sky-400 text-white shadow-md shadow-brand/30">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span className="text-base font-extrabold tracking-tight text-foreground">
-            Service<span className="text-brand">Hub</span>
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6 h-14 bg-background/80 backdrop-blur-lg border-b border-border">
+        <Link href="/" className="flex items-center gap-2 active:opacity-70 transition-opacity">
+          <Image
+            src="/assets/LOGO.png"
+            alt="Servio Logo"
+            width={32}
+            height={32}
+          />
+          <span className="text-lg font-bold tracking-tight text-foreground">
+            Ser<span className="text-brand">vio</span>
           </span>
         </Link>
 
@@ -295,33 +305,33 @@ export function Navbar() {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-muted-foreground"
+            className="h-10 w-10 flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted active:scale-95 transition-all"
             aria-label="Toggle theme"
           >
-            {mounted && theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+            {mounted && theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
 
           {isAuthenticated ? (
             <>
               <button
                 onClick={() => dispatch(toggleNotificationDrawer())}
-                className="relative p-2 rounded-lg text-muted-foreground"
+                className="relative h-10 w-10 flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted active:scale-95 transition-all"
               >
-                <Bell className="h-4.5 w-4.5" />
+                <Bell className="h-5 w-5" />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 h-3.5 min-w-3.5 px-0.5 flex items-center justify-center rounded-full bg-accent text-white text-[8px] font-bold">
+                  <span className="absolute top-2 right-2 h-3.5 min-w-3.5 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[8px] font-bold ring-2 ring-background">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </button>
-              <Link href="/profile" className="p-1">
-                <Avatar src={user?.avatar} alt={user?.name} size="sm" className="h-7 w-7 ring-2 ring-brand/20" />
+              <Link href="/profile" className="ml-1 active:scale-95 transition-transform">
+                <Avatar src={user?.avatar} alt={user?.name} size="sm" className="h-8 w-8 ring-2 ring-transparent hover:ring-brand/30 transition-all" />
               </Link>
             </>
           ) : (
             <button
               onClick={() => dispatch(openAuthModal('login'))}
-              className="text-sm font-bold text-brand px-3 py-1.5 bg-brand/8 rounded-lg"
+              className="text-sm font-bold text-white px-4 py-1.5 bg-brand rounded-full active:scale-95 transition-all ml-2"
             >
               Sign In
             </button>
@@ -337,16 +347,10 @@ export function Navbar() {
           {mobileLinks.map((link) => {
             const Icon = link.icon;
             const active = link.href !== '#' && isActive(link.href);
+            const isButton = link.href === '#' || !!link.onClick;
 
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={link.onClick}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all ${
-                  active ? 'text-brand' : 'text-muted-foreground'
-                }`}
-              >
+            const content = (
+              <>
                 <span className={`relative flex items-center justify-center w-10 h-7 rounded-2xl transition-all duration-200 ${
                   active ? 'bg-brand/12 scale-100' : 'scale-90'
                 }`}>
@@ -359,6 +363,32 @@ export function Navbar() {
                 <span className={`text-[10px] font-semibold leading-none transition-all ${active ? 'opacity-100' : 'opacity-70'}`}>
                   {link.label}
                 </span>
+              </>
+            );
+
+            if (isButton) {
+              return (
+                <button
+                  key={link.label}
+                  onClick={link.onClick}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                    active ? 'text-brand' : 'text-muted-foreground'
+                  }`}
+                >
+                  {content}
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
+                  active ? 'text-brand' : 'text-muted-foreground'
+                }`}
+              >
+                {content}
               </Link>
             );
           })}

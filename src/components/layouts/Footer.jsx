@@ -2,8 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Sparkles, Shield, BadgeCheck, Phone } from 'lucide-react';
+import { Shield, BadgeCheck } from 'lucide-react';
 
 const SocialIcon = ({ href, label, children }) => (
   <a
@@ -32,7 +33,8 @@ export function Footer() {
     pathname &&
     (pathname.startsWith('/messages') ||
      pathname.startsWith('/admin') ||
-     pathname.startsWith('/provider'))
+     pathname.startsWith('/provider/') || 
+     pathname === '/provider')
   ) {
     return null;
   }
@@ -46,11 +48,15 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2 sm:col-span-2 lg:col-span-1 space-y-4">
             <Link href="/" className="inline-flex items-center gap-2.5 group">
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-sky-400 text-white shadow-md shadow-brand/30 transition-transform group-hover:scale-105">
-                <Sparkles className="h-4.5 w-4.5" />
-              </span>
+              <Image
+                src="/assets/LOGO.png"
+                alt="Servio Logo"
+                width={36}
+                height={36}
+                className="transition-transform duration-200 group-hover:scale-105"
+              />
               <span className="text-lg font-extrabold tracking-tight text-foreground">
-                Service<span className="text-brand">Hub</span>
+                Ser<span className="text-brand">vio</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed max-w-xs">
@@ -125,7 +131,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} ServiceHub. All rights reserved.
+            © {new Date().getFullYear()} Servio. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>

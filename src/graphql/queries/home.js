@@ -9,25 +9,27 @@ export const GET_HOME_DATA = gql`
       icon
     }
     providers(longitude: $longitude, latitude: $latitude) {
-      id
-      businessName
-      description
-      rating
-      reviewsCount
-      user {
-        name
-        avatar
-      }
-      category {
-        name
-      }
-      services {
+      data {
         id
-        name
+        businessName
         description
-        price
+        rating
+        reviewsCount
+        user {
+          name
+          avatar
+        }
         category {
           name
+        }
+        services {
+          id
+          name
+          description
+          price
+          category {
+            name
+          }
         }
       }
     }

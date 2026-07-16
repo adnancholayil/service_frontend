@@ -11,10 +11,15 @@ const montserrat = Montserrat({
 });
 
 export const metadata = {
-  title: 'ServiceHub — Book Trusted Local Services',
+  title: 'Servio — Book Trusted Local Services',
   description: 'Book certified plumbers, electricians, cleaners, and other professionals in your area. Safe, background-verified, and highly rated local services.',
   keywords: 'home services, local plumber, local electrician, ac servicing, carpenter, home cleaner, professional driver, garden service',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }) {
@@ -24,7 +29,7 @@ export default function RootLayout({ children }) {
       <body className="h-full flex flex-col bg-background text-foreground">
         <Providers>
           <Navbar />
-          <main className="flex-1 flex flex-col w-full md:pb-0 pb-20">
+          <main className="flex-1 flex flex-col w-full md:pb-0 pb-24">
             {children}
           </main>
           <Footer />

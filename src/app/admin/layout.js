@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { useApolloClient } from '@apollo/client/react';
@@ -13,10 +14,9 @@ import {
   CalendarDays,
   FolderTree,
   Star,
-  Image,
+  Image as ImageIcon,
   FileBarChart2,
   ShieldAlert,
-  Sparkles,
   LogOut,
   MessageCircle
 } from 'lucide-react';
@@ -39,7 +39,7 @@ export default function AdminLayout({ children }) {
     { label: 'Message Tracking', href: '/admin/messages', icon: MessageCircle },
     { label: 'Category CRUD Manager', href: '/admin/categories', icon: FolderTree },
     { label: 'Platform Reviews', href: '/admin/reviews', icon: Star },
-    { label: 'Promo Banners', href: '/admin/banners', icon: Image },
+    { label: 'Promo Banners', href: '/admin/banners', icon: ImageIcon },
     { label: 'Reports & Payouts', href: '/admin/reports', icon: FileBarChart2 },
   ];
 
@@ -86,11 +86,15 @@ export default function AdminLayout({ children }) {
           </button>
           
           <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-            <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
+            <Image
+              src="/assets/LOGO.png"
+              alt="Servio Logo"
+              width={34}
+              height={34}
+              className="drop-shadow-sm"
+            />
             <div>
-              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">ServiceHub</p>
+              <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Servio</p>
               <p className="text-xs font-semibold text-slate-800">Admin Console</p>
             </div>
           </div>

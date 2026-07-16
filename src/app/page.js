@@ -9,7 +9,8 @@ import {
   Zap, Droplet, Hammer, Paintbrush, Sparkles, BookOpen,
   Heart, Car, Wind, Leaf, Search, Star, MapPin, CheckCircle,
   ArrowRight, TrendingUp, Award, Users, ShieldCheck, Check,
-  Clock, BadgeCheck, Wrench, Smartphone, Monitor, Home, Scissors, Briefcase, Camera
+  Clock, BadgeCheck, Wrench, Smartphone, Monitor, Home, Scissors, Briefcase, Camera,
+  Fan, Snowflake, Brush, MonitorSpeaker, Cpu, WashingMachine
 } from 'lucide-react';
 import { useQuery } from '@apollo/client/react';
 import { GET_HOME_DATA } from '../graphql/queries/home';
@@ -28,14 +29,14 @@ const getCategoryIcon = (cat) => {
   if (cat.icon && iconMap[cat.icon]) return iconMap[cat.icon];
   
   const name = cat.name?.toLowerCase() || '';
-  if (name.includes('ac ') || name.includes('air')) return Wind;
-  if (name.includes('wash') || name.includes('clean')) return Droplet;
+  if (name.includes('ac ') || name.includes('air')) return Fan;
+  if (name.includes('room') || name.includes('home')) return Home;
+  if (name.includes('wash') || name.includes('clean')) return Brush;
   if (name.includes('plumb')) return Wrench;
   if (name.includes('car ') || name.includes('auto')) return Car;
   if (name.includes('carpenter') || name.includes('wood')) return Hammer;
   if (name.includes('mobile') || name.includes('phone')) return Smartphone;
-  if (name.includes('electronic') || name.includes('tv') || name.includes('computer')) return Monitor;
-  if (name.includes('room') || name.includes('home')) return Home;
+  if (name.includes('electronic') || name.includes('tv') || name.includes('computer')) return Cpu;
   if (name.includes('salon') || name.includes('hair') || name.includes('beauty')) return Scissors;
   if (name.includes('photo') || name.includes('camera')) return Camera;
   if (name.includes('company') || name.includes('business')) return Briefcase;
@@ -103,7 +104,7 @@ export default function HomePage() {
 
   const { data, loading } = useQuery(GET_HOME_DATA);
   const categories   = data?.categories    || [];
-  const providers    = data?.providers     || [];
+  const providers    = data?.providers?.data || [];
   const publicReviews = data?.publicReviews || [];
   const publicBanners = data?.publicBanners || [];
   const allServices  = providers.flatMap(p =>
@@ -141,7 +142,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 1. HERO                                                */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="relative w-full min-h-[70vh] sm:min-h-[88vh] flex items-center justify-center overflow-hidden">
+      <section className="relative w-full min-h-[70vh] sm:min-h-[88vh] flex items-center justify-center">
         {/* BG Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -154,14 +155,14 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-tr from-sky-900/30 to-transparent" />
         </div>
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-24 text-center">
           
           {/* Label pill */}
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-xs sm:text-sm font-semibold mb-6"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6"
           >
             <Award className="h-3.5 w-3.5 text-yellow-400" />
             Trusted by 50,000+ Homeowners
@@ -172,7 +173,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-5"
+            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-4 sm:mb-5"
           >
             Quality Home Services,{' '}
             <span className="gradient-text">Instantly Booked.</span>
@@ -183,7 +184,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-zinc-300 text-base sm:text-lg max-w-xl mx-auto leading-relaxed mb-8"
+            className="text-zinc-300 text-sm sm:text-lg max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8"
           >
             Connect with background-verified plumbers, electricians, cleaners & more — at upfront flat rates.
           </motion.p>
@@ -194,14 +195,14 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             onSubmit={handleSearchSubmit}
-            className="flex flex-col sm:flex-row items-center gap-3 max-w-2xl mx-auto"
+            className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl mx-auto"
           >
-            <div className="flex-1 w-full flex items-center bg-white rounded-2xl px-4 gap-3 h-14 shadow-xl shadow-black/20">
+            <div className="flex-1 w-full flex items-center bg-white rounded-2xl px-4 gap-3 h-14 min-h-[56px] shadow-xl shadow-black/20">
               <Search className="h-5 w-5 text-zinc-400 shrink-0" />
               <input
                 type="text"
                 placeholder="What service do you need?"
-                className="flex-1 bg-transparent text-zinc-900 placeholder:text-zinc-400 text-sm sm:text-base focus:outline-none border-none"
+                className="flex-1 h-full w-full bg-transparent text-zinc-900 placeholder:text-zinc-400 text-sm sm:text-base !outline-none !ring-0 border-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -209,7 +210,7 @@ export default function HomePage() {
             <Button
               type="submit"
               variant="accent"
-              className="w-full sm:w-auto h-14 px-8 text-base font-bold rounded-2xl shadow-xl shadow-accent/30 shrink-0"
+              className="w-full sm:w-auto h-14 min-h-[56px] px-8 text-base font-bold rounded-2xl shadow-xl shadow-accent/30 shrink-0"
             >
               Find Services
             </Button>
@@ -220,11 +221,11 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-8"
+            className="flex flex-wrap justify-center gap-x-3 sm:gap-x-5 gap-y-2 mt-6 sm:mt-8"
           >
             {TRUST.map(({ icon: Icon, label, color }) => (
-              <div key={label} className="flex items-center gap-1.5 text-white/80 text-xs sm:text-sm font-semibold">
-                <Icon className={`h-4 w-4 ${color}`} />
+              <div key={label} className="flex items-center gap-1 sm:gap-1.5 text-white/80 text-[10px] sm:text-sm font-semibold">
+                <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${color}`} />
                 {label}
               </div>
             ))}
@@ -232,10 +233,11 @@ export default function HomePage() {
         </div>
 
         {/* Wave bottom */}
-        <div className="absolute bottom-0 left-0 right-0 z-10">
-          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-10 sm:h-14">
+        <div className="absolute -bottom-1 left-0 right-0 z-10 flex flex-col">
+          <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" className="w-full h-10 sm:h-14 block">
             <path d="M0,40 C360,0 1080,60 1440,20 L1440,60 L0,60 Z" className="fill-background" />
           </svg>
+          <div className="h-[2px] w-full bg-background mt-[-1px]" />
         </div>
       </section>
 
@@ -251,7 +253,7 @@ export default function HomePage() {
             </AnimSection>
 
             <AnimSection delay={100}>
-              <div className="relative w-full">
+              <div className="relative w-full [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_2%,black_98%,transparent)]">
                 {/* Scrollable Container */}
                 <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
                   {publicBanners.map((banner, idx) => {
@@ -261,7 +263,7 @@ export default function HomePage() {
                       <Wrapper
                         key={banner.id}
                         {...wrapperProps}
-                        className="relative h-[220px] sm:h-[280px] lg:h-[340px] w-full max-w-[90vw] sm:max-w-none sm:w-[80%] lg:w-[70%] shrink-0 snap-center rounded-3xl overflow-hidden group cursor-pointer"
+                        className="relative h-[220px] sm:h-[280px] lg:h-[340px] w-full max-w-[90vw] sm:max-w-none sm:w-[80%] lg:w-[70%] shrink-0 snap-center overflow-hidden group cursor-pointer"
                       >
                         <img
                           src={banner.imageUrl}
@@ -298,9 +300,9 @@ export default function HomePage() {
       {/* 3. CATEGORIES                                          */}
       {/* ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
-        <section className="section-py bg-card border-t border-border">
+        <section className="py-6 sm:py-16 bg-card border-t border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-end justify-between mb-6 sm:mb-8">
+            <AnimSection className="flex items-end justify-between mb-2 sm:mb-6">
               <div>
                 <SectionLabel>Browse by Category</SectionLabel>
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What do you need?</h2>
@@ -314,17 +316,17 @@ export default function HomePage() {
             </AnimSection>
 
             {/* All devices: horizontal scroll */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar py-5 sm:py-3 -mx-4 px-4 sm:mx-0 sm:px-0">
               {categories.map((cat, i) => {
                 const Icon = getCategoryIcon(cat);
                 return (
                   <AnimSection key={cat.id} delay={i * 40} className="shrink-0">
-                    <Link href={`/services?category=${cat.id}`} className="block">
-                      <div className="group flex flex-col items-center gap-2.5 p-4 sm:p-5 min-w-[90px] sm:min-w-[110px] lg:min-w-[120px] border border-border rounded-3xl hover:border-brand/40 hover:bg-brand/5 transition-all cursor-pointer text-center h-full">
-                        <span className="flex h-11 w-11 sm:h-12 sm:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-xl bg-muted group-hover:bg-brand/10 group-hover:text-brand text-muted-foreground transition-all shadow-sm">
-                          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                    <Link href={`/services?category=${cat.id}`} className="block pb-2">
+                      <div className="group flex flex-col items-center justify-center gap-1 sm:gap-1.5 p-2 sm:p-3 w-[80px] h-[80px] sm:w-[105px] sm:h-[105px] border-2 border-brand/20 rounded-full bg-brand/5 hover:border-brand hover:bg-brand hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-brand/30 hover:shadow-lg">
+                        <span className="flex items-center justify-center text-brand group-hover:text-white transition-colors duration-300">
+                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 drop-shadow-sm" />
                         </span>
-                        <span className="text-xs sm:text-sm font-bold text-foreground group-hover:text-brand transition-colors whitespace-nowrap lg:whitespace-normal leading-tight">
+                        <span className="text-[9px] sm:text-[11px] font-bold text-foreground group-hover:text-white transition-colors duration-300 line-clamp-2 px-1 leading-[1.1]">
                           {cat.name}
                         </span>
                       </div>
@@ -343,7 +345,7 @@ export default function HomePage() {
       {allServices.length > 0 && (
         <section className="section-py bg-background">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-center justify-between mb-6 sm:mb-8">
+            <AnimSection className="flex items-center justify-between mb-4 sm:mb-8">
               <div>
                 <SectionLabel>Most Booked</SectionLabel>
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Popular Services</h2>
@@ -364,7 +366,7 @@ export default function HomePage() {
                           <span className="chip chip-muted text-[11px] font-bold">
                             {srv.category?.name || 'Service'}
                           </span>
-                          <span className="flex items-center gap-1 text-xs font-bold text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded-full">
+                          <span className="flex items-center gap-1 text-xs font-bold text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-full">
                             <Star className="h-3 w-3 fill-yellow-500" /> {srv.providerRating || 5.0}
                           </span>
                         </div>
@@ -383,7 +385,7 @@ export default function HomePage() {
                             <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-0.5">Starting from</p>
                             <p className="text-xl font-extrabold text-foreground">₹{srv.price}</p>
                           </div>
-                          <span className="text-xs font-bold text-brand bg-brand/10 px-4 py-2 rounded-full group-hover:bg-brand group-hover:text-white transition-all shadow-sm">
+                          <span className="text-[11px] sm:text-xs font-bold text-brand bg-brand/10 px-4 sm:px-4 py-2.5 sm:py-2 rounded-full group-hover:bg-brand group-hover:text-white transition-all shadow-sm">
                             Book →
                           </span>
                         </div>
@@ -402,7 +404,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       <section className="section-py bg-card border-t border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <AnimSection className="text-center mb-10 sm:mb-14">
+          <AnimSection className="text-center mb-6 sm:mb-14">
             <SectionLabel>Simple Process</SectionLabel>
             <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Book in 3 easy steps</h2>
           </AnimSection>
@@ -428,7 +430,7 @@ export default function HomePage() {
       {providers.length > 0 && (
         <section className="section-py bg-background">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-end justify-between mb-6 sm:mb-8">
+            <AnimSection className="flex items-end justify-between mb-4 sm:mb-8">
               <div>
                 <SectionLabel>Top Professionals</SectionLabel>
                 <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Highly Rated Partners</h2>
@@ -461,7 +463,7 @@ export default function HomePage() {
                           </h3>
                           <div className="flex items-center justify-between gap-1 mt-0.5">
                             <p className="text-xs font-semibold text-brand truncate">{prov.category?.name}</p>
-                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 px-1.5 py-0.5 rounded-full shrink-0">
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded-full shrink-0">
                               <Star className="h-2.5 w-2.5 fill-yellow-500" /> {prov.rating}
                             </span>
                           </div>
@@ -476,10 +478,10 @@ export default function HomePage() {
                       {/* Footer Actions */}
                       <div className="flex items-center gap-2 pt-4 border-t border-border/30 mt-auto">
                         <Link href={`/providers/${prov.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full text-xs">Profile</Button>
+                          <Button variant="outline" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold px-1 rounded-lg">Profile</Button>
                         </Link>
                         <Link href={`/providers/${prov.id}?book=true`} className="flex-1">
-                          <Button variant="primary" size="sm" className="w-full text-xs shadow-sm">Book</Button>
+                          <Button variant="primary" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold px-1 rounded-lg shadow-sm">Book</Button>
                         </Link>
                       </div>
                     </CardBody>
@@ -497,7 +499,7 @@ export default function HomePage() {
       {publicReviews.length > 0 && (
         <section className="section-py bg-card border-t border-border overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="text-center mb-8 sm:mb-10">
+            <AnimSection className="text-center mb-4 sm:mb-10">
               <SectionLabel>Real Reviews</SectionLabel>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Loved by our customers</h2>
             </AnimSection>
@@ -538,7 +540,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 8. CTA — Join as Provider                              */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="section-py bg-gradient-to-br from-brand to-sky-600 relative overflow-hidden">
+      <section className="py-8 sm:py-24 bg-gradient-to-br from-brand to-sky-600 relative overflow-hidden">
         {/* Decorative circles */}
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5" />
         <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/5" />
@@ -546,7 +548,7 @@ export default function HomePage() {
         <AnimSection className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center">
           <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-3">For Service Professionals</p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-4">
-            Grow your business with ServiceHub
+            Grow your business with Servio
           </h2>
           <p className="text-white/80 text-base max-w-lg mx-auto mb-8">
             Reach thousands of local customers, manage bookings effortlessly, and build your reputation with verified reviews.

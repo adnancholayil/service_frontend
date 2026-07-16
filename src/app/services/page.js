@@ -10,6 +10,7 @@ import { GET_SERVICES_PAGE_DATA } from '../../graphql/queries/services';
 import Card, { CardBody } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Avatar from '../../components/ui/Avatar';
+import { CardSkeleton } from '../../components/ui/Skeleton';
 
 function ServicesContent() {
   const router = useRouter();
@@ -17,9 +18,11 @@ function ServicesContent() {
   
   const categoryParam = searchParams.get('category') || 'all';
   const searchParam = searchParams.get('search') || '';
+  const pageParam = parseInt(searchParams.get('page') || '1', 10);
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [searchTerm, setSearchTerm] = useState(searchParam);
+  const [currentPage, setCurrentPage] = useState(pageParam);
 
   // Sync category state when query param changes
   useEffect(() => {
@@ -31,16 +34,25 @@ function ServicesContent() {
     setSearchTerm(searchParam);
   }, [searchParam]);
 
+  // Sync page state when query param changes
+  useEffect(() => {
+    setCurrentPage(pageParam);
+  }, [pageParam]);
+
   // Fetch from GraphQL
+  const limit = 12;
   const { data, loading, error } = useQuery(GET_SERVICES_PAGE_DATA, {
     variables: { 
       category: selectedCategory === 'all' ? null : selectedCategory,
-      search: searchTerm.trim() === '' ? null : searchTerm.trim()
+      search: searchTerm.trim() === '' ? null : searchTerm.trim(),
+      page: currentPage,
+      limit
     }
   });
 
   const categories = data?.categories || [];
-  const filteredServices = data?.globalServices || [];
+  const filteredServices = data?.globalServices?.data || [];
+  const totalPages = data?.globalServices?.totalPages || 1;
 
   const handleCategorySelect = (catId) => {
     setSelectedCategory(catId);
@@ -51,6 +63,7 @@ function ServicesContent() {
     } else {
       params.set('category', catId);
     }
+    params.set('page', '1');
     router.replace(`/services?${params.toString()}`);
   };
 
@@ -63,7 +76,16 @@ function ServicesContent() {
     } else {
       params.set('search', value.trim());
     }
+    params.set('page', '1');
     router.replace(`/services?${params.toString()}`);
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    const params = new URLSearchParams(window.location.search);
+    params.set('page', newPage.toString());
+    router.push(`/services?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
 
@@ -101,7 +123,7 @@ function ServicesContent() {
             className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
               selectedCategory === 'all'
                 ? 'bg-brand text-white border-brand shadow-sm'
-                : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
             }`}
           >
             All Services
@@ -113,7 +135,7 @@ function ServicesContent() {
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
                 selectedCategory === (cat.slug || cat.id)
                   ? 'bg-brand text-white border-brand shadow-sm'
-                  : 'bg-card text-muted-foreground hover:text-foreground border-border hover:border-zinc-300 dark:hover:border-zinc-700'
+                  : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
               }`}
             >
               {cat.name}
@@ -124,8 +146,10 @@ function ServicesContent() {
 
       {/* Grid listing */}
       {loading ? (
-        <div className="py-20 flex justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[...Array(6)].map((_, i) => (
+            <CardSkeleton key={i} />
+          ))}
         </div>
       ) : filteredServices.length === 0 ? (
         <div className="text-center py-20 bg-card border border-border rounded-2xl flex flex-col items-center justify-center space-y-3">
@@ -167,12 +191,12 @@ function ServicesContent() {
                     <div className="flex items-center justify-between pt-4">
                       <p className="text-xl sm:text-2xl font-extrabold text-foreground">₹{srv.price}</p>
                     </div>
-                    <div className="flex gap-2">
-                      <Link href={provider ? `/providers/${provider.id}` : '#'}>
-                        <Button variant="outline" size="sm" className="h-10 text-xs px-3">View Partner</Button>
+                    <div className="flex gap-2 pt-2">
+                      <Link href={provider ? `/providers/${provider.id}` : '#'} className="flex-1">
+                        <Button variant="secondary" size="sm" className="w-full h-11 sm:h-10 text-xs px-2 font-bold">View Partner</Button>
                       </Link>
-                      <Link href={provider ? `/providers/${provider.id}?book=true&service=${srv.id}` : '#'}>
-                        <Button size="sm" className="h-10 text-xs px-4">Book Now</Button>
+                      <Link href={provider ? `/providers/${provider.id}?book=true&service=${srv.id}` : '#'} className="flex-1">
+                        <Button size="sm" className="w-full h-11 sm:h-10 text-xs px-2 font-bold">Book Now</Button>
                       </Link>
                     </div>
                   </div>
@@ -180,6 +204,29 @@ function ServicesContent() {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-center items-center gap-4 pt-8 pb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm font-medium text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button 
+            variant="outline" 
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
         </div>
       )}
     </div>

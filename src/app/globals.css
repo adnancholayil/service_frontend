@@ -307,8 +307,9 @@ html, body {
 /* ====================== */
 /* SECTION SPACING         */
 /* ====================== */
-.section-py { padding-top: 4rem; padding-bottom: 4rem; }
-@media (min-width: 768px) { .section-py { padding-top: 6rem; padding-bottom: 6rem; } }
+.section-py { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+@media (min-width: 640px) { .section-py { padding-top: 4rem; padding-bottom: 4rem; } }
+@media (min-width: 1024px) { .section-py { padding-top: 6rem; padding-bottom: 6rem; } }
 
 /* ====================== */
 /* CHIP / BADGE            */

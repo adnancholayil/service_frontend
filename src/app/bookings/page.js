@@ -160,15 +160,15 @@ export default function BookingsPage() {
                 </div>
                 
                 {/* Footer (Price & Actions) */}
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">
                   <div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Amount Paid</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider">Amount</p>
                     <p className="text-lg sm:text-xl font-extrabold text-brand">₹{b.totalPrice ?? b.service?.price ?? '—'}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link href={`/bookings/${b.id}`}>
-                      <Button size="sm" variant="outline" className="text-xs py-1.5 px-3 border-border rounded-lg shadow-sm">
-                        <Eye className="h-3.5 w-3.5 mr-1" /> Details
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Link href={`/bookings/${b.id}`} className="flex-1 sm:flex-none">
+                      <Button size="sm" variant="outline" className="w-full sm:w-auto h-11 sm:h-10 text-xs px-3 border-border rounded-lg shadow-sm font-bold">
+                        <Eye className="h-4 w-4 sm:h-3.5 sm:w-3.5 mr-1.5 sm:mr-1" /> Details
                       </Button>
                     </Link>
                     {(b.status === 'PENDING' || b.status === 'pending') && (
@@ -176,7 +176,7 @@ export default function BookingsPage() {
                         size="sm"
                         variant="danger"
                         onClick={() => handleCancelBooking(b.id)}
-                        className="text-xs py-1.5 px-3 rounded-lg shadow-sm"
+                        className="flex-1 sm:flex-none w-full sm:w-auto h-11 sm:h-10 text-xs px-3 rounded-lg shadow-sm font-bold"
                       >
                         Cancel
                       </Button>

@@ -33,27 +33,32 @@ export const GET_PROVIDER_DETAILS = gql`
 `;
 
 export const GET_PROVIDERS_PAGE_DATA = gql`
-  query GetProvidersPageData($category: ID) {
+  query GetProvidersPageData($category: ID, $page: Int, $limit: Int) {
     categories {
       id
       name
     }
-    providers(category: $category) {
-      id
-      businessName
-      description
-      rating
-      reviewsCount
-      verificationStatus
-      user {
+    providers(category: $category, page: $page, limit: $limit) {
+      data {
         id
-        name
-        avatar
+        businessName
+        description
+        rating
+        reviewsCount
+        verificationStatus
+        user {
+          id
+          name
+          avatar
+        }
+        category {
+          id
+          name
+        }
       }
-      category {
-        id
-        name
-      }
+      total
+      page
+      totalPages
     }
   }
 `;
