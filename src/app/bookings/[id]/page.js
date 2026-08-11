@@ -1,11 +1,11 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
+import React, { use } from 'react';
 import Link from 'next/link';
-import { useSelector } from 'react-redux';
-import { ShieldCheck, Calendar, Clock, MapPin, Sparkles, ArrowLeft, CheckCircle2, ChevronRight, User, AlertTriangle } from 'lucide-react';
+import { useQuery } from '@apollo/client/react';
+import { GET_BOOKING_BY_ID } from '../../../graphql/queries/bookings';
+import { Calendar, Clock, MapPin, ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 
-import Card, { CardBody } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 
@@ -13,22 +13,28 @@ export default function BookingDetailPage({ params }) {
   const resolvedParams = use(params);
   const { id } = resolvedParams;
 
-  const bookings = useSelector((state) => state.booking.bookings);
-  const [booking, setBooking] = useState(null);
+  const { data, loading, error } = useQuery(GET_BOOKING_BY_ID, {
+    variables: { id },
+    fetchPolicy: 'cache-and-network'
+  });
 
-  useEffect(() => {
-    const found = bookings.find(b => b.id === id);
-    if (found) {
-      setBooking(found);
-    }
-  }, [id, bookings]);
+  if (loading) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-4 py-20 flex flex-col items-center justify-center space-y-4 flex-1">
+        <Loader2 className="w-8 h-8 animate-spin text-brand" />
+        <p className="text-muted-foreground text-sm font-medium animate-pulse">Loading booking details...</p>
+      </div>
+    );
+  }
 
-  if (!booking) {
+  const booking = data?.bookingDetails;
+
+  if (error || !booking) {
     return (
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center justify-center space-y-4 flex-1">
         <AlertTriangle className="h-10 w-10 text-rose-500" />
         <h2 className="text-xl font-bold">Booking Not Found</h2>
-        <p className="text-sm text-muted-foreground">The booking ID you requested is invalid.</p>
+        <p className="text-sm text-muted-foreground">{error ? error.message : 'The booking ID you requested is invalid.'}</p>
         <Link href="/bookings">
           <Button>Back to Bookings</Button>
         </Link>
@@ -36,11 +42,33 @@ export default function BookingDetailPage({ params }) {
     );
   }
 
+  const parseDate = (dStr) => {
+    if (!dStr) return null;
+    return /^\d+$/.test(dStr) ? new Date(parseInt(dStr, 10)) : new Date(dStr);
+  };
+
+  const bookingDateObj = parseDate(booking.bookingDate);
+  const formattedDate = bookingDateObj ? bookingDateObj.toLocaleDateString() : 'Invalid Date';
+  const formattedTime = bookingDateObj ? bookingDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Invalid Time';
+
+  const statusStr = (booking.status || '').toUpperCase();
+  const paymentStatusStr = (booking.paymentStatus || '').toUpperCase();
+
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'COMPLETED': return 'success';
+      case 'CANCELLED': return 'danger';
+      case 'PENDING': return 'warning';
+      case 'ACCEPTED': return 'primary';
+      default: return 'default';
+    }
+  };
+
   const steps = [
     { label: 'Booking Created', desc: 'Sent request to provider', date: booking.createdAt, done: true },
-    { label: 'Provider Confirmed', desc: 'Partner accepted slot', date: booking.date, done: booking.status !== 'pending' && booking.status !== 'cancelled' },
-    { label: 'Work in Progress', desc: 'Partner on site', date: booking.date, done: booking.status === 'completed' },
-    { label: 'Service Completed', desc: 'Signed off and paid', date: booking.date, done: booking.status === 'completed' },
+    { label: 'Provider Confirmed', desc: 'Partner accepted slot', date: booking.createdAt, done: statusStr !== 'PENDING' && statusStr !== 'CANCELLED' },
+    { label: 'Work in Progress', desc: 'Partner on site', date: booking.createdAt, done: statusStr === 'COMPLETED' },
+    { label: 'Service Completed', desc: 'Signed off and paid', date: booking.createdAt, done: statusStr === 'COMPLETED' },
   ];
 
   return (
@@ -88,23 +116,28 @@ export default function BookingDetailPage({ params }) {
         {/* Right Side: Appointment Spec details Card */}
         <div className="space-y-6">
           <div className="p-6 bg-card border border-border rounded-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <span className="text-xs font-bold text-muted-foreground">ID: #{booking.id}</span>
-              <Badge variant={booking.status === 'completed' ? 'success' : booking.status === 'cancelled' ? 'danger' : 'warning'}>
-                {booking.status}
-              </Badge>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-3">
+              <span className="text-[10px] sm:text-xs font-extrabold text-muted-foreground uppercase tracking-wider truncate max-w-[200px] sm:max-w-none" title={`ID: #${booking.id}`}>
+                ID: #{booking.id}
+              </span>
+              <div className="flex gap-1.5 shrink-0">
+                <Badge variant={getStatusVariant(statusStr)} className="text-[10px] px-2 py-0.5">{statusStr}</Badge>
+                <Badge variant={paymentStatusStr === 'PAID' ? 'success' : 'default'} className="text-[10px] px-2 py-0.5">
+                  {paymentStatusStr === 'PAID' ? 'Paid' : 'Unpaid'}
+                </Badge>
+              </div>
             </div>
 
             <div className="space-y-3">
               <div>
-                <h3 className="text-sm font-bold text-foreground">{booking.service.title}</h3>
-                <p className="text-xs text-muted-foreground">Service Partner: <span className="font-semibold text-brand">{booking.providerName}</span></p>
+                <h3 className="text-sm font-bold text-foreground">{booking.service?.name}</h3>
+                <p className="text-xs text-muted-foreground">Service Partner: <span className="font-semibold text-brand">{booking.provider?.businessName}</span></p>
               </div>
 
               <div className="space-y-2 pt-2 border-t border-border/60 text-xs font-medium text-muted-foreground">
-                <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-brand" /> {booking.date}</p>
-                <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-brand" /> {booking.time}</p>
-                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 text-brand shrink-0" /> {booking.address}</p>
+                <p className="flex items-center gap-2"><Calendar className="h-4 w-4 text-brand" /> {formattedDate}</p>
+                <p className="flex items-center gap-2"><Clock className="h-4 w-4 text-brand" /> {formattedTime}</p>
+                <p className="flex items-start gap-2"><MapPin className="h-4 w-4 text-brand shrink-0" /> {booking.location?.address || 'Address not set'}</p>
               </div>
 
               {booking.notes && (
@@ -116,7 +149,7 @@ export default function BookingDetailPage({ params }) {
 
               <div className="pt-3 border-t border-border flex items-center justify-between font-bold">
                 <span className="text-xs text-muted-foreground">Amount Paid</span>
-                <span className="text-base text-foreground">₹{booking.service.price}</span>
+                <span className="text-base text-foreground">₹{booking.service?.price}</span>
               </div>
             </div>
             

@@ -18,24 +18,31 @@ import {
   Check,
   FileText,
   MessageCircle,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 import { useQuery, useMutation } from '@apollo/client/react';
-import { GET_PROVIDER_DETAILS } from '../../../graphql/queries/provider';
+import { GET_PROVIDER_DETAILS, GET_PROVIDER_REVIEWS } from '../../../graphql/queries/provider';
 import { CREATE_BOOKING_MUTATION } from '../../../graphql/mutations/bookings';
 import { GET_MY_BOOKINGS } from '../../../graphql/queries/bookings';
 import { ADD_REVIEW_MUTATION } from '../../../graphql/mutations/reviews';
 import { GET_OR_CREATE_CONVERSATION } from '../../../graphql/queries/chat';
 import { startBookingFlow, updateBookingStep, resetBookingFlow } from '../../../store/slices/bookingSlice';
 import { openAuthModal } from '../../../store/slices/appSlice';
-import { addAddress } from '../../../store/slices/userSlice';
+import { addAddress, removeAddress } from '../../../store/slices/userSlice';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Avatar from '../../../components/ui/Avatar';
 import Modal from '../../../components/ui/Modal';
 import ReviewModal from '../../../components/modals/ReviewModal';
+import dynamic from 'next/dynamic';
+
+const MapPicker = dynamic(() => import('../../../components/ui/MapPicker'), { 
+  ssr: false, 
+  loading: () => <div className="h-[500px] w-full flex items-center justify-center bg-card rounded-xl"><Loader2 className="w-8 h-8 animate-spin text-brand"/></div> 
+});
 
 export default function ProviderDetailPage({ params }) {
   const resolvedParams = use(params);
@@ -52,7 +59,10 @@ export default function ProviderDetailPage({ params }) {
   const [services, setServices] = useState([]);
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [eligibleBookingId, setEligibleBookingId] = useState(null);
+  const [reviewRating, setReviewRating] = useState(0);
   const [lightboxImage, setLightboxImage] = useState(null);
 
   // Booking Flow Steps Local State
@@ -71,7 +81,6 @@ export default function ProviderDetailPage({ params }) {
   const [bookingPhone, setBookingPhone] = useState(user?.phone || '');
   
   // Inline Add Address State
-  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
   const [newAddressName, setNewAddressName] = useState('');
   const [newAddressDetails, setNewAddressDetails] = useState('');
 
@@ -87,6 +96,13 @@ export default function ProviderDetailPage({ params }) {
     skip: !isAuthenticated,
     fetchPolicy: 'cache-and-network'
   });
+
+  const { data: reviewsData, refetch: refetchReviews } = useQuery(GET_PROVIDER_REVIEWS, {
+    variables: { providerUserId: data?.providerDetails?.user?.id },
+    skip: !data?.providerDetails?.user?.id,
+    fetchPolicy: 'cache-and-network'
+  });
+  const reviewsList = reviewsData?.providerReviews || [];
 
   const [addReviewMutation, { loading: isSubmittingReview }] = useMutation(ADD_REVIEW_MUTATION);
   const [getOrCreateConversation] = useMutation(GET_OR_CREATE_CONVERSATION);
@@ -145,13 +161,14 @@ export default function ProviderDetailPage({ params }) {
       await addReviewMutation({
         variables: {
           bookingId: eligibleBookingId,
-          rating: rating,
+          rating: parseInt(rating, 10), // Cast to Int! for GraphQL
           comment: comment
         }
       });
       toast.success('Thank you! Your review has been submitted.');
       setIsReviewModalOpen(false);
       refetchProvider(); // Refresh provider data to show new review
+      refetchReviews();
     } catch (err) {
       console.error(err);
       toast.error(err.message || 'Failed to submit review');
@@ -220,16 +237,39 @@ export default function ProviderDetailPage({ params }) {
     handleCompleteBooking();
   };
 
+  const [newAddressCoords, setNewAddressCoords] = useState(null);
+
+  const handleMapConfirm = (locationData) => {
+    const { address, coordinates } = locationData;
+    const newId = `addr-${Date.now()}`;
+    const newAddrObj = { 
+      id: newId,
+      name: 'Map Location', 
+      address: address,
+      coordinates: coordinates
+    };
+    
+    dispatch(addAddress(newAddrObj));
+    setSelectedAddress(newAddrObj);
+    setIsMapModalOpen(false);
+    toast.success('Location selected successfully!');
+  };
+
   const handleAddAddressSubmit = (e) => {
     e.preventDefault();
     if (!newAddressName || !newAddressDetails) {
       toast.error('Please enter a name and address details');
       return;
     }
-    dispatch(addAddress({ name: newAddressName.trim(), address: newAddressDetails.trim() }));
+    dispatch(addAddress({ 
+      name: newAddressName.trim(), 
+      address: newAddressDetails.trim(),
+      coordinates: newAddressCoords || [0, 0]
+    }));
     toast.success('Address added successfully!');
     setNewAddressName('');
     setNewAddressDetails('');
+    setNewAddressCoords(null);
     setIsAddAddressModalOpen(false);
   };
 
@@ -245,7 +285,8 @@ export default function ProviderDetailPage({ params }) {
           serviceId: selectedService.id,
           bookingDate: `${bookingDate}T${bookingTime === '09:00 AM' ? '09:00' : bookingTime === '11:00 AM' ? '11:00' : bookingTime === '02:00 PM' ? '14:00' : '16:00'}:00.000Z`,
           address: selectedAddress?.address || 'Address not provided',
-          coordinates: [0, 0],
+          customerPhone: bookingPhone || user?.phone || 'Not provided',
+          coordinates: selectedAddress?.coordinates || [0, 0],
           notes: bookingNotes
         },
         refetchQueries: [{ query: GET_MY_BOOKINGS }]
@@ -442,15 +483,45 @@ export default function ProviderDetailPage({ params }) {
                   Write a Review
                 </Button>
               </div>
-              {provider.reviewsCount > 0 ? (
-                <div className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border">
-                  <div className="flex items-center gap-1 text-amber-500">
-                    <Star className="h-6 w-6 fill-amber-500" />
-                    <span className="text-2xl font-bold text-foreground">{provider.rating}</span>
+              {reviewsList.length > 0 || provider.reviewsCount > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4 p-5 bg-card rounded-xl border border-border">
+                    <div className="flex items-center gap-1 text-amber-500">
+                      <Star className="h-6 w-6 fill-amber-500" />
+                      <span className="text-2xl font-bold text-foreground">{provider.rating}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">{provider.reviewsCount} Reviews</p>
+                      <p className="text-xs text-muted-foreground">Based on verified bookings</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{provider.reviewsCount} Reviews</p>
-                    <p className="text-xs text-muted-foreground">Based on verified bookings</p>
+                  <div className="space-y-3 mt-6">
+                    {reviewsList.map((review) => (
+                      <div key={review.id} className="p-4 bg-card border border-border rounded-xl space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Avatar src={review.customer?.avatar} fallback={review.customer?.name} size="sm" />
+                            <div>
+                              <p className="text-sm font-bold text-foreground">{review.customer?.name || 'Customer'}</p>
+                              <p className="text-xs text-muted-foreground">{new Date(review.createdAt).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3 w-3 ${i < review.rating ? 'fill-amber-500 text-amber-500' : 'fill-muted text-muted'}`} />
+                            ))}
+                          </div>
+                        </div>
+                        {review.booking?.service?.name && (
+                          <p className="text-[10px] font-semibold text-brand bg-brand/10 inline-block px-2 py-0.5 rounded-full">
+                            {review.booking.service.name}
+                          </p>
+                        )}
+                        {review.comment && (
+                          <p className="text-sm text-foreground/90 italic">&ldquo;{review.comment}&rdquo;</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               ) : (
@@ -489,8 +560,8 @@ export default function ProviderDetailPage({ params }) {
                       onClick={() => setSelectedService(srv)}
                       className={`relative p-3.5 border-2 rounded-xl flex flex-col gap-1 cursor-pointer transition-all duration-200 select-none ${
                         selectedService?.id === srv.id
-                          ? 'border-brand bg-sky-50'
-                          : 'border-border bg-card hover:border-brand/40 hover:bg-sky-50/50'
+                          ? 'border-brand bg-brand/10'
+                          : 'border-border bg-card hover:border-brand/40 hover:bg-brand/5'
                       }`}
                     >
                       {selectedService?.id === srv.id && (
@@ -544,7 +615,7 @@ export default function ProviderDetailPage({ params }) {
                                 className={`flex flex-col items-center justify-center min-w-[58px] h-[68px] rounded-xl border-2 transition-all duration-200 shrink-0 cursor-pointer ${
                                   isSelected
                                     ? 'border-brand bg-brand text-white'
-                                    : 'border-border bg-card text-foreground hover:border-brand/40 hover:bg-sky-50/60'
+                                    : 'border-border bg-card text-foreground hover:border-brand/40 hover:bg-brand/5'
                                 }`}
                               >
                                 <span className={`text-[9px] font-bold uppercase tracking-widest leading-none ${isSelected ? 'text-sky-100' : 'text-muted-foreground'}`}>{dayName}</span>
@@ -554,7 +625,7 @@ export default function ProviderDetailPage({ params }) {
                             );
                           })}
                           {/* More dates picker */}
-                          <div className="relative flex flex-col items-center justify-center min-w-[58px] h-[68px] rounded-xl border-2 border-dashed border-border bg-card hover:border-brand/40 hover:bg-sky-50/60 shrink-0 cursor-pointer overflow-hidden transition-all duration-200 group">
+                          <div className="relative flex flex-col items-center justify-center min-w-[58px] h-[68px] rounded-xl border-2 border-dashed border-border bg-card hover:border-brand/40 hover:bg-brand/5 shrink-0 cursor-pointer overflow-hidden transition-all duration-200 group">
                             <Calendar className="w-4 h-4 text-muted-foreground group-hover:text-brand transition-colors pointer-events-none" />
                             <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-brand transition-colors pointer-events-none mt-0.5">More</span>
                             <input
@@ -587,7 +658,7 @@ export default function ProviderDetailPage({ params }) {
                         className={`py-2.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 cursor-pointer ${
                           bookingTime === t
                             ? 'border-brand bg-brand text-white'
-                            : 'bg-card text-foreground border-border hover:border-brand/40 hover:bg-sky-50/60'
+                            : 'bg-card text-foreground border-border hover:border-brand/40 hover:bg-brand/5'
                         }`}
                       >
                         {t}
@@ -629,12 +700,24 @@ export default function ProviderDetailPage({ params }) {
                     <div
                       key={addr.id}
                       onClick={() => setSelectedAddress(addr)}
-                      className={`p-3.5 border-2 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-200 ${
+                      className={`relative p-3.5 border-2 rounded-xl flex items-center gap-3 cursor-pointer transition-all duration-200 group ${
                         selectedAddress?.id === addr.id
-                          ? 'border-brand bg-sky-50/70'
-                          : 'border-border bg-card hover:border-brand/40 hover:bg-sky-50/40'
+                          ? 'border-brand bg-brand/10'
+                          : 'border-border bg-card hover:border-brand/40 hover:bg-brand/5'
                       }`}
                     >
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(removeAddress(addr.id));
+                          if (selectedAddress?.id === addr.id) setSelectedAddress(null);
+                        }}
+                        className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 bg-background/80 hover:bg-red-500/10 rounded-md opacity-0 group-hover:opacity-100 transition-all z-10"
+                        title="Delete Address"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
                       <span className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200 ${
                         selectedAddress?.id === addr.id
                           ? 'bg-brand border-brand'
@@ -644,19 +727,29 @@ export default function ProviderDetailPage({ params }) {
                           <Check className="h-2.5 w-2.5 text-white"/>
                         )}
                       </span>
-                      <div className="min-w-0 flex-1">
+                      <div className="min-w-0 flex-1 pr-6">
                         <p className="text-sm font-bold text-foreground">{addr.name}</p>
                         <p className="text-xs text-muted-foreground mt-0.5 leading-snug truncate">{addr.address}</p>
                       </div>
                     </div>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => setIsAddAddressModalOpen(true)}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-brand hover:text-sky-600 transition-colors mt-1"
-                  >
-                    + Add New Address
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 mt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsMapModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-brand to-indigo-500 hover:from-brand-hover hover:to-indigo-600 rounded-full shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                    >
+                      <MapPin className="w-4 h-4" />
+                      Select on Map
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddAddressModalOpen(true)}
+                      className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-foreground bg-card hover:bg-muted border border-border rounded-full transition-all duration-200"
+                    >
+                      + Add Address Manually
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -786,11 +879,21 @@ export default function ProviderDetailPage({ params }) {
             onChange={(e) => setNewAddressName(e.target.value)} 
           />
           <div className="space-y-1">
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">Address Details</label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">Address Details</label>
+              <button
+                type="button"
+                onClick={() => { setIsAddAddressModalOpen(false); setIsMapModalOpen(true); }}
+                className="text-[10px] flex items-center gap-1 font-bold text-brand hover:text-brand-hover transition-colors"
+              >
+                <MapPin className="w-3 h-3" />
+                Select on Map
+              </button>
+            </div>
             <textarea 
               rows={3} 
               required 
-              placeholder="Full address here..."
+              placeholder="Type your full address here or use current location..."
               className="w-full p-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-1 focus:ring-brand text-sm resize-none" 
               value={newAddressDetails} 
               onChange={(e) => setNewAddressDetails(e.target.value)} 
@@ -801,6 +904,19 @@ export default function ProviderDetailPage({ params }) {
             <Button type="submit" variant="primary" className="flex-1">Save Address</Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Map Picker Modal */}
+      <Modal 
+        isOpen={isMapModalOpen} 
+        onClose={() => setIsMapModalOpen(false)} 
+        title="Select Location on Map" 
+        size="lg"
+      >
+        <MapPicker 
+          onConfirm={handleMapConfirm} 
+          onCancel={() => setIsMapModalOpen(false)} 
+        />
       </Modal>
 
       {/* Review Modal */}

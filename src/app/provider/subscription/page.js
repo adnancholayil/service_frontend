@@ -56,7 +56,7 @@ export default function SubscriptionPage() {
 
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-emerald-600">
+      <div className="min-h-screen flex items-center justify-center text-brand">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -65,16 +65,16 @@ export default function SubscriptionPage() {
   const currentStatus = profileData?.providerProfile?.subscriptionStatus;
   if (currentStatus === 'ACTIVE') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
-        <div className="bg-white p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] max-w-md w-full text-center border border-slate-100">
-          <div className="h-20 w-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <ShieldCheck className="h-10 w-10 text-emerald-500" />
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 p-6">
+        <div className="bg-card p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] max-w-md w-full text-center border border-border">
+          <div className="h-20 w-20 bg-brand/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <ShieldCheck className="h-10 w-10 text-brand" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-3">Subscription Active</h2>
-          <p className="text-slate-500 mb-8 leading-relaxed">Your partner account is fully upgraded and active. You have access to all premium features.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-3">Subscription Active</h2>
+          <p className="text-muted-foreground mb-8 leading-relaxed">Your partner account is fully upgraded and active. You have access to all premium features.</p>
           <button 
             onClick={() => router.push('/provider/dashboard')} 
-            className="w-full py-3.5 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
+            className="w-full py-3.5 bg-brand-hover text-white font-semibold rounded-xl hover:bg-emerald-700 transition-colors shadow-sm"
           >
             Go to Dashboard
           </button>
@@ -114,7 +114,7 @@ export default function SubscriptionPage() {
   ];
 
   return (
-    <div className="min-h-screen md:h-screen md:max-h-screen w-full bg-slate-50 font-sans selection:bg-emerald-100 selection:text-emerald-900 pb-12 md:pb-0 md:overflow-hidden flex flex-col justify-center relative">
+    <div className="min-h-screen md:h-screen md:max-h-screen w-full bg-muted/50 font-sans selection:bg-brand/20 selection:text-emerald-900 pb-12 md:pb-0 md:overflow-hidden flex flex-col justify-center relative">
       {/* Background Gradients */}
       <div className="absolute top-0 inset-x-0 h-[300px] bg-gradient-to-b from-emerald-50/50 to-transparent pointer-events-none" />
       
@@ -122,25 +122,25 @@ export default function SubscriptionPage() {
         
         {/* Header Section */}
         <div className="text-center max-w-2xl mx-auto mb-8">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-foreground tracking-tight mb-3">
             Simple, transparent pricing
           </h1>
-          <p className="text-sm md:text-base text-slate-500 font-medium leading-relaxed">
+          <p className="text-sm md:text-base text-muted-foreground font-medium leading-relaxed">
             Choose the perfect plan for your business. No hidden fees. Cancel anytime.
           </p>
           
           {/* Billing Toggle */}
           <div className="mt-6 flex items-center justify-center gap-4">
-            <span className={`text-xs font-semibold transition-colors ${!isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>Monthly</span>
+            <span className={`text-xs font-semibold transition-colors ${!isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
             <button 
               onClick={() => setIsAnnual(!isAnnual)}
-              className="relative inline-flex h-6 w-11 items-center rounded-full bg-emerald-500 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
+              className="relative inline-flex h-6 w-11 items-center rounded-full bg-brand transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
             >
-              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-card transition-transform ${isAnnual ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
-            <span className={`text-xs font-semibold transition-colors flex items-center gap-2 ${isAnnual ? 'text-slate-900' : 'text-slate-500'}`}>
+            <span className={`text-xs font-semibold transition-colors flex items-center gap-2 ${isAnnual ? 'text-foreground' : 'text-muted-foreground'}`}>
               Annually
-              <span className="inline-flex items-center rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">Save 20%</span>
+              <span className="inline-flex items-center rounded-full bg-brand/20 px-1.5 py-0.5 text-[10px] font-bold text-brand">Save 20%</span>
             </span>
           </div>
         </div>
@@ -163,34 +163,34 @@ export default function SubscriptionPage() {
                   setSelectedActualPlanId(actualPlanId);
                   setSelectedAmount(isAnnual ? plan.priceAnnual : plan.priceMonthly);
                 }}
-                className={`relative flex flex-col bg-white rounded-2xl transition-all duration-300 cursor-pointer border-2 ${
+                className={`relative flex flex-col bg-card rounded-2xl transition-all duration-300 cursor-pointer border-2 ${
                   selectedPlanUIId === plan.id
-                    ? 'border-emerald-500 shadow-xl scale-[1.02] z-10' 
-                    : 'border-transparent ring-1 ring-slate-200 shadow-sm hover:shadow-md hover:border-emerald-200 opacity-80 hover:opacity-100'
+                    ? 'border-brand shadow-xl scale-[1.02] z-10' 
+                    : 'border-transparent ring-1 ring-slate-200 shadow-sm hover:shadow-md hover:border-brand/40 opacity-80 hover:opacity-100'
                 }`}
               >
                 {isPopular && (
                   <div className="absolute -top-3 inset-x-0 flex justify-center">
-                    <span className="bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full flex items-center gap-1 shadow-sm">
+                    <span className="bg-brand text-white text-[10px] font-bold uppercase tracking-widest py-1 px-3 rounded-full flex items-center gap-1 shadow-sm">
                       <Sparkles className="h-3 w-3" /> Most Popular
                     </span>
                   </div>
                 )}
 
                 <div className="p-5 md:p-6 pb-0">
-                  <h3 className="text-lg font-bold text-slate-900">{plan.name}</h3>
-                  <p className="mt-1 text-xs text-slate-500 min-h-[32px] leading-snug">{plan.description}</p>
+                  <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground min-h-[32px] leading-snug">{plan.description}</p>
                   
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold text-slate-900 tracking-tight">
+                    <span className="text-4xl font-extrabold text-foreground tracking-tight">
                       ₹{(isAnnual ? plan.priceAnnual : plan.priceMonthly).toLocaleString('en-IN')}
                     </span>
                     {plan.priceMonthly > 0 && (
-                      <span className="text-slate-500 text-xs font-medium">/{isAnnual ? 'yr' : 'mo'}</span>
+                      <span className="text-muted-foreground text-xs font-medium">/{isAnnual ? 'yr' : 'mo'}</span>
                     )}
                   </div>
                   {isAnnual && plan.priceMonthly > 0 && (
-                    <p className="text-[10px] font-semibold text-emerald-600 mt-1">One-time yearly payment</p>
+                    <p className="text-[10px] font-semibold text-brand mt-1">One-time yearly payment</p>
                   )}
                   {(!isAnnual || plan.priceMonthly === 0) && (
                     <p className="text-[10px] font-semibold text-transparent mt-1 select-none">Spacer</p>
@@ -200,22 +200,22 @@ export default function SubscriptionPage() {
                 <div className="p-5 md:p-6 flex flex-col flex-1">
                   <div className={`w-full py-2.5 px-4 rounded-lg font-semibold text-xs text-center transition-all duration-200 ${
                       selectedPlanUIId === plan.id
-                        ? 'bg-emerald-600 text-white shadow-sm'
-                        : 'bg-slate-50 text-slate-700 ring-1 ring-inset ring-slate-200'
+                        ? 'bg-brand-hover text-white shadow-sm'
+                        : 'bg-muted/50 text-muted-foreground ring-1 ring-inset ring-slate-200'
                     }`}
                   >
                     {selectedPlanUIId === plan.id ? 'Selected' : 'Select Plan'}
                   </div>
 
                   <div className="mt-5">
-                    <p className="text-[10px] font-bold text-slate-900 uppercase tracking-wider mb-3">What's included</p>
+                    <p className="text-[10px] font-bold text-foreground uppercase tracking-wider mb-3">What's included</p>
                     <ul className="space-y-2.5">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 ${selectedPlanUIId === plan.id ? 'bg-emerald-100' : 'bg-slate-100'}`}>
-                            <Check className={`h-2.5 w-2.5 ${selectedPlanUIId === plan.id ? 'text-emerald-600' : 'text-slate-600'}`} />
+                          <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center mt-0.5 ${selectedPlanUIId === plan.id ? 'bg-brand/20' : 'bg-muted'}`}>
+                            <Check className={`h-2.5 w-2.5 ${selectedPlanUIId === plan.id ? 'text-brand' : 'text-muted-foreground'}`} />
                           </div>
-                          <span className="text-xs text-slate-600 leading-snug">{feature}</span>
+                          <span className="text-xs text-muted-foreground leading-snug">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -231,7 +231,7 @@ export default function SubscriptionPage() {
           <button
             onClick={handleProceed}
             disabled={isLoading}
-            className="w-full md:w-auto min-w-[250px] py-3.5 px-8 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center"
+            className="w-full md:w-auto min-w-[250px] py-3.5 px-8 bg-foreground hover:bg-foreground/90 text-background text-sm font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center"
           >
             {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Continue to Payment'}
           </button>

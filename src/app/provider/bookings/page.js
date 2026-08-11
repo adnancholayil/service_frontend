@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { CalendarRange, Calendar, CheckCircle, Clock, XCircle, MapPin, Loader2 } from 'lucide-react';
+import { CalendarRange, Calendar, CheckCircle, Clock, XCircle, MapPin, Loader2, Phone } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -11,7 +11,18 @@ import { UPDATE_BOOKING_STATUS_MUTATION } from '../../../graphql/mutations/booki
 
 export default function ProviderBookings() {
   const { user } = useSelector((state) => state.auth);
-  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, ACCEPTED, COMPLETED
+  const [filter, setFilter] = useState('ALL'); // ALL, PENDING, ACCEPTED, IN_PROGRESS, COMPLETED
+  const [updatingId, setUpdatingId] = useState(null);
+  const [visiblePhones, setVisiblePhones] = useState(new Set());
+
+  const togglePhone = (id) => {
+    setVisiblePhones(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
+      return newSet;
+    });
+  };
   
   const { data, loading, refetch, subscribeToMore } = useQuery(GET_MY_BOOKINGS, {
     fetchPolicy: 'network-only',
@@ -46,16 +57,18 @@ export default function ProviderBookings() {
   }, [user?.id, subscribeToMore]);
   
   const [updateStatus] = useMutation(UPDATE_BOOKING_STATUS_MUTATION, {
-    onCompleted: () => refetch(),
     onError: (err) => toast.error(err.message || 'Error updating status')
   });
 
   const handleUpdateStatus = async (id, status) => {
+    setUpdatingId(id);
     try {
       await updateStatus({ variables: { id, status } });
       toast.success(`Booking ${status.toLowerCase()}`);
     } catch (e) {
       console.error(e);
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -70,23 +83,23 @@ export default function ProviderBookings() {
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            Manage Bookings <CalendarRange className="h-4 w-4 text-emerald-500" />
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            Manage Bookings <CalendarRange className="h-4 w-4 text-brand" />
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">View, filter and manage all your service requests.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">View, filter and manage all your service requests.</p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 border-b border-slate-200 overflow-x-auto no-scrollbar shrink-0">
-        {['ALL', 'PENDING', 'ACCEPTED', 'COMPLETED', 'REJECTED'].map((f) => (
+      <div className="flex space-x-1 border-b border-border overflow-x-auto no-scrollbar shrink-0">
+        {['ALL', 'PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED', 'REJECTED'].map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
             className={`px-3 py-2 text-xs font-bold border-b-2 transition-all whitespace-nowrap ${
               filter === f
-                ? 'border-emerald-500 text-emerald-600'
-                : 'border-transparent text-slate-400 hover:text-slate-700'
+                ? 'border-brand text-brand'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
             {f.charAt(0) + f.slice(1).toLowerCase()}
@@ -97,58 +110,137 @@ export default function ProviderBookings() {
       {/* Scrollable list */}
       <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pr-1">
         {loading ? (
-          <div className="h-full flex items-center justify-center text-slate-400">
+          <div className="h-full flex items-center justify-center text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center gap-2 py-16">
-            <Calendar className="h-10 w-10 text-slate-200" />
-            <p className="text-sm font-semibold text-slate-500">No {filter !== 'ALL' ? filter.toLowerCase() : ''} bookings</p>
-            <p className="text-xs text-slate-400">New requests will appear here.</p>
+            <Calendar className="h-10 w-10 text-muted" />
+            <p className="text-sm font-semibold text-muted-foreground">No {filter !== 'ALL' ? filter.toLowerCase() : ''} bookings</p>
+            <p className="text-xs text-muted-foreground">New requests will appear here.</p>
           </div>
         ) : (
-          filteredBookings.map((b) => (
-            <div key={b.id} className="bg-white border border-slate-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
-              <div className="flex justify-between gap-3 items-start">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[9px] font-bold text-slate-400 tracking-widest uppercase">#{b.id.slice(-6)}</span>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                      b.status === 'PENDING'   ? 'bg-amber-100 text-amber-700'   :
-                      b.status === 'ACCEPTED'  ? 'bg-blue-100 text-blue-700'     :
-                      b.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
-                      'bg-rose-100 text-rose-700'
-                    }`}>
-                      {b.status}
-                    </span>
+          filteredBookings.map((b) => {
+            const bookingDate = new Date(isNaN(Number(b.bookingDate)) ? b.bookingDate : Number(b.bookingDate));
+            const dateStr = bookingDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            const timeStr = bookingDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+            const isTimeArrived = Date.now() >= bookingDate.getTime() - (60 * 60 * 1000); // Allow arriving 1 hour early
+
+            return (
+              <div key={b.id} className="bg-card border border-border rounded-xl p-4 sm:p-5 hover:border-brand/40 transition-colors shadow-sm">
+                
+                {/* Top: Header */}
+                <div className="flex justify-between items-start mb-4 border-b border-border pb-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase">#{b.id.slice(-6)}</span>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                        b.status === 'PENDING'   ? 'bg-amber-500/10 text-amber-500'   :
+                        b.status === 'ACCEPTED'  ? 'bg-blue-500/10 text-blue-500'     :
+                        b.status === 'IN_PROGRESS' ? 'bg-indigo-500/10 text-indigo-500' :
+                        b.status === 'COMPLETED' ? 'bg-brand/10 text-brand' :
+                        'bg-red-500/10 text-red-500'
+                      }`}>
+                        {b.status}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-foreground">{b.service?.name || 'Custom Service'}</h3>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 truncate">{b.service?.name || 'Custom Service'}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{b.customer?.name || 'Customer'}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-slate-400 font-medium">
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(b.bookingDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                    {b.location?.address && <span className="flex items-center gap-1 truncate max-w-[160px]"><MapPin className="h-3 w-3 shrink-0" /> {b.location.address}</span>}
+                  <div className="text-right">
+                    <p className="text-xl font-black text-brand">₹{b.totalPrice}</p>
                   </div>
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="text-base font-black text-emerald-600">₹{b.totalPrice}</p>
-                  <div className="flex gap-1.5 mt-2 justify-end">
-                    {b.status === 'PENDING' && (
-                      <>
-                        <button onClick={() => handleUpdateStatus(b.id, 'REJECTED')} className="px-2.5 py-1 border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-[11px] rounded-lg transition-colors">Decline</button>
-                        <button onClick={() => handleUpdateStatus(b.id, 'ACCEPTED')} className="px-2.5 py-1 bg-emerald-500 text-white hover:bg-emerald-600 font-bold text-[11px] rounded-lg transition-colors">Accept</button>
-                      </>
+
+                {/* Middle: Details & Customer */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Left: Schedule & Location */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-start gap-2 text-sm text-foreground">
+                      <Calendar className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold">{dateStr}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><Clock className="h-3 w-3" /> {timeStr}</p>
+                      </div>
+                    </div>
+                    {b.location?.address && (
+                      <div className="flex items-start gap-2 text-sm text-foreground">
+                        <MapPin className="h-4 w-4 text-brand shrink-0 mt-0.5" />
+                        <p className="text-xs text-muted-foreground leading-relaxed pr-4">{b.location.address}</p>
+                      </div>
                     )}
-                    {b.status === 'ACCEPTED' && (
-                      <button onClick={() => handleUpdateStatus(b.id, 'COMPLETED')} className="px-2.5 py-1 bg-slate-900 text-white hover:bg-slate-700 font-bold text-[11px] rounded-lg transition-colors">Complete</button>
+                    {b.notes && (
+                      <div className="flex items-start gap-2 text-sm text-foreground mt-2">
+                        <div className="h-4 w-4 shrink-0 text-brand flex items-center justify-center font-serif italic font-bold text-[10px]">i</div>
+                        <p className="text-xs text-muted-foreground italic bg-muted/50 p-2 rounded-lg flex-1">"{b.notes}"</p>
+                      </div>
                     )}
+                  </div>
+
+                  {/* Right: Customer Info & Actions */}
+                  <div className="flex flex-col justify-between items-start md:items-end gap-4 border-t border-border md:border-t-0 pt-4 md:pt-0">
+                    <div className="flex items-center gap-3 w-full md:w-auto bg-muted/30 p-2.5 rounded-xl border border-border/50">
+                      <div className="h-10 w-10 shrink-0 rounded-full bg-brand/10 text-brand flex items-center justify-center font-bold text-lg overflow-hidden">
+                        {b.customer?.avatar ? <img src={b.customer.avatar} alt="avatar" className="w-full h-full object-cover" /> : (b.customer?.name?.[0] || 'C').toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate pr-2">{b.customer?.name || 'Unknown Customer'}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> 
+                            {visiblePhones.has(b.id) 
+                              ? (b.customerPhone || b.customer?.phone || 'N/A') 
+                              : (b.customerPhone || b.customer?.phone ? '+91 ••••••••••' : 'No phone provided')}
+                          </p>
+                          {(b.customerPhone || b.customer?.phone) && (b.customerPhone !== 'N/A') && (
+                            <div className="flex items-center gap-2 border-l border-border/50 pl-2 ml-1">
+                              <button 
+                                onClick={() => togglePhone(b.id)}
+                                className="text-[10px] font-bold text-brand hover:underline cursor-pointer bg-transparent border-none p-0"
+                              >
+                                {visiblePhones.has(b.id) ? 'Hide' : 'Show'}
+                              </button>
+                              <a 
+                                href={`tel:${b.customerPhone || b.customer?.phone}`}
+                                className="text-[10px] font-bold bg-green-500/10 text-green-600 px-2 py-0.5 rounded-full hover:bg-green-500/20 transition-colors flex items-center gap-1"
+                              >
+                                <Phone className="h-2.5 w-2.5" /> Call
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                      {b.status === 'PENDING' && (
+                        <>
+                          <button disabled={updatingId === b.id} onClick={() => handleUpdateStatus(b.id, 'REJECTED')} className="px-4 py-2 border border-red-500/30 text-red-500 hover:bg-red-500/10 disabled:opacity-50 font-bold text-xs rounded-xl transition-colors flex-1 md:flex-none text-center">Decline</button>
+                          <button disabled={updatingId === b.id} onClick={() => handleUpdateStatus(b.id, 'ACCEPTED')} className="px-4 py-2 bg-brand text-white hover:bg-brand-hover disabled:opacity-50 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 flex-1 md:flex-none shadow-sm">
+                            {updatingId === b.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Accept Booking
+                          </button>
+                        </>
+                      )}
+                      {b.status === 'ACCEPTED' && (
+                        <button 
+                          disabled={updatingId === b.id || !isTimeArrived} 
+                          onClick={() => handleUpdateStatus(b.id, 'IN_PROGRESS')} 
+                          title={!isTimeArrived ? "You can only mark as arrived within 1 hour of the booking time" : ""}
+                          className="px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 w-full md:w-auto shadow-sm"
+                        >
+                          {updatingId === b.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Location Reached
+                        </button>
+                      )}
+                      {b.status === 'IN_PROGRESS' && (
+                        <button disabled={updatingId === b.id} onClick={() => handleUpdateStatus(b.id, 'COMPLETED')} className="px-4 py-2 bg-foreground text-background hover:bg-foreground/90 disabled:opacity-50 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 w-full md:w-auto shadow-sm">
+                          {updatingId === b.id && <Loader2 className="w-3.5 h-3.5 animate-spin" />} Mark as Completed
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-              {b.notes && (
-                <p className="mt-3 text-[11px] text-slate-500 italic bg-slate-50 px-3 py-2 rounded-lg">"{b.notes}"</p>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

@@ -11,6 +11,8 @@ import {
 import toast from 'react-hot-toast';
 
 import { logout, updateProfile } from '../../store/slices/authSlice';
+import { useMutation } from '@apollo/client/react';
+import { UPDATE_USER_PROFILE } from '../../graphql/mutations/auth';
 import { addAddress, removeAddress, removeFavorite } from '../../store/slices/userSlice';
 import Avatar from '../../components/ui/Avatar';
 import Card, { CardBody } from '../../components/ui/Card';
@@ -196,21 +198,33 @@ function OverviewTab() {
 function EditProfileTab({ user, dispatch }) {
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [updateUserMut] = useMutation(UPDATE_USER_PROFILE);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email) {
-      toast.error('Name and Email are required');
+    if (!name || !email || !phone) {
+      toast.error('Name, Email, and Mobile Number are required');
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
-      dispatch(updateProfile({ name, email, avatar }));
+    try {
+      const { data } = await updateUserMut({
+        variables: { name, phone, avatar }
+      });
+      if (data?.updateUserProfile) {
+        dispatch(updateProfile(data.updateUserProfile));
+        toast.success('Profile updated successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Failed to update profile');
+    } finally {
       setIsSubmitting(false);
-      toast.success('Profile updated successfully!');
-    }, 1000);
+    }
   };
 
   return (
@@ -225,8 +239,9 @@ function EditProfileTab({ user, dispatch }) {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Input label="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <div className="pt-2">
+          <Input label="Email Address" type="email" value={email} disabled />
+          <Input label="Mobile Number" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+          <div className="pt-2 md:col-span-2">
             <ImageUpload 
               label="Avatar Profile Photo" 
               initialImage={avatar} 

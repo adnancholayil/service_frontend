@@ -57,3 +57,14 @@ export const PROCESS_PAYMENT = gql`
     }
   }
 `;
+
+export const REPORT_REVIEW_MUTATION = gql`
+  mutation ReportReview($reviewId: ID!, $reason: String!) {
+    reportReview(reviewId: $reviewId, reason: $reason) {
+      id
+      isReported
+      reportReason
+      reportStatus
+    }
+  }
+`;

@@ -1,14 +1,32 @@
 import { gql } from '@apollo/client';
 
 export const GET_SERVICES_PAGE_DATA = gql`
-  query GetServicesPageData($category: ID, $search: String, $page: Int, $limit: Int) {
+  query GetServicesPageData(
+    $category: ID
+    $search: String
+    $longitude: Float
+    $latitude: Float
+    $maxDistance: Float
+    $locationText: String
+    $page: Int
+    $limit: Int
+  ) {
     categories {
       id
       name
       slug
       icon
     }
-    globalServices(category: $category, search: $search, page: $page, limit: $limit) {
+    globalServices(
+      category: $category
+      search: $search
+      longitude: $longitude
+      latitude: $latitude
+      maxDistance: $maxDistance
+      locationText: $locationText
+      page: $page
+      limit: $limit
+    ) {
       data {
         id
         name
@@ -22,6 +40,10 @@ export const GET_SERVICES_PAGE_DATA = gql`
           businessName
           rating
           reviewsCount
+          address
+          location {
+            coordinates
+          }
           user {
             name
             avatar

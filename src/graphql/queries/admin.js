@@ -89,3 +89,27 @@ export const GET_PAYMENTS_REPORT = gql`
     }
   }
 `;
+
+export const GET_REPORTED_REVIEWS = gql`
+  query GetAdminReportedReviews {
+    adminReportedReviews {
+      id
+      rating
+      comment
+      isReported
+      reportReason
+      reportStatus
+      createdAt
+      customer {
+        id
+        name
+        email
+        avatar
+      }
+      provider {
+        id
+        businessName
+      }
+    }
+  }
+`;

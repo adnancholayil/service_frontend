@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const CREATE_BOOKING_MUTATION = gql`
-  mutation CreateBooking($serviceId: ID!, $bookingDate: String!, $address: String!, $coordinates: [Float!]!, $notes: String) {
-    createBooking(serviceId: $serviceId, bookingDate: $bookingDate, address: $address, coordinates: $coordinates, notes: $notes) {
+  mutation CreateBooking($serviceId: ID!, $bookingDate: String!, $address: String!, $customerPhone: String!, $coordinates: [Float!]!, $notes: String) {
+    createBooking(serviceId: $serviceId, bookingDate: $bookingDate, address: $address, customerPhone: $customerPhone, coordinates: $coordinates, notes: $notes) {
       id
       service {
         id

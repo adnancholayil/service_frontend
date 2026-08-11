@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { MessageSquare, Send, Sparkles, Smile, Image, Phone, Video, Mic, Square } from 'lucide-react';
+import { MessageSquare, Send, Sparkles, Smile, Image, Mic, Square } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
 
 import Avatar from '../../components/ui/Avatar';
@@ -71,8 +71,8 @@ export default function MessagesPage() {
   }, [activeConversationId, subscribeToMore]);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-  // Create a copy and reverse the array so newest messages are at the bottom
-  const activeMessages = [...(msgData?.messages || [])].reverse();
+  // Create a copy and sort so newest messages are at the bottom
+  const activeMessages = [...(msgData?.messages || [])].sort((a, b) => parseInt(a.createdAt) - parseInt(b.createdAt));
   
   // Find the other participant for avatar/name
   const otherParticipant = activeConversation?.participants?.find(p => p.id !== user?.id) || {};
@@ -253,10 +253,6 @@ export default function MessagesPage() {
                     <h4 className="text-sm font-bold text-foreground leading-tight sm:leading-snug">{otherParticipant.name}</h4>
                     <span className="text-[10px] text-muted-foreground capitalize">{otherParticipant.role}</span>
                   </div>
-                </div>
-                <div className="flex gap-1 sm:gap-2">
-                  <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><Phone className="h-4 w-4 sm:h-5 sm:w-5" /></button>
-                  <button className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><Video className="h-4 w-4 sm:h-5 sm:w-5" /></button>
                 </div>
               </div>
 

@@ -1,15 +1,127 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@apollo/client/react';
 import { GET_CATEGORIES } from '../../../graphql/queries/categories';
 import { CREATE_CATEGORY_MUTATION, UPDATE_CATEGORY_MUTATION, DELETE_CATEGORY_MUTATION } from '../../../graphql/mutations/admin';
-import { FolderTree, Plus, Trash2, Edit2, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { FolderTree, Plus, Trash2, Edit2, Loader2, Sparkles, AlertCircle, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../../components/ui/Modal';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import ConfirmModal from '../../../components/ui/ConfirmModal';
+
+// Filter out non-icon exports and duplicate aliases
+const allIconNames = Object.keys(LucideIcons).filter(name => 
+  /^[A-Z][a-zA-Z]+$/.test(name) && 
+  name !== 'Icon' && 
+  name !== 'Default' &&
+  !name.endsWith('Icon') && 
+  !name.startsWith('Lucide')
+);
+
+// High priority icons for home services and related categories
+const PRIORITY_ICONS = [
+  'Wrench', 'Hammer', 'Brush', 'Paintbrush', 'Fan', 'Snowflake', 'Droplet', 'Zap', 
+  'Cpu', 'Monitor', 'Smartphone', 'Scissors', 'WashingMachine', 'MonitorSpeaker', 
+  'Home', 'Sparkles', 'Car', 'Camera', 'Briefcase', 'Leaf', 'Wind', 'Plug', 
+  'Thermometer', 'Lightbulb', 'Sofa', 'ShieldCheck', 'Settings', 'PenTool', 'Key', 
+  'Lock', 'Construction', 'Tool', 'Cable', 'Drill', 'Refrigerator', 'Tv'
+].filter(name => allIconNames.includes(name));
+
+const suggestIcon = (name) => {
+  if (!name) return '';
+  const lower = name.toLowerCase();
+  
+  // Custom mappings for common service categories
+  if (lower.includes('wash') || lower.includes('laundry')) return 'WashingMachine';
+  if (lower.includes('plumb') || lower.includes('pipe') || lower.includes('water')) return 'Droplet';
+  if (lower.includes('electric') || lower.includes('wire') || lower.includes('light')) return 'Zap';
+  if (lower.includes('ac ') || lower.includes('air') || lower.includes('cool') || lower.includes('hvac')) return 'Snowflake';
+  if (lower.includes('clean') || lower.includes('sweep') || lower.includes('maid')) return 'Brush';
+  if (lower.includes('paint') || lower.includes('color')) return 'Paintbrush';
+  if (lower.includes('car ') || lower.includes('auto') || lower.includes('mechanic')) return 'Car';
+  if (lower.includes('carpenter') || lower.includes('wood') || lower.includes('furniture')) return 'Hammer';
+  if (lower.includes('mobile') || lower.includes('phone') || lower.includes('repair')) return 'Smartphone';
+  if (lower.includes('electronic') || lower.includes('tv') || lower.includes('computer') || lower.includes('appliance')) return 'Tv';
+  if (lower.includes('salon') || lower.includes('hair') || lower.includes('beauty') || lower.includes('makeup')) return 'Scissors';
+  if (lower.includes('photo') || lower.includes('camera')) return 'Camera';
+  if (lower.includes('garden') || lower.includes('plant') || lower.includes('tree') || lower.includes('lawn')) return 'Leaf';
+  if (lower.includes('room') || lower.includes('home')) return 'Home';
+  
+  // Try to find a partial match in priority icons first
+  const priorityMatch = PRIORITY_ICONS.find(icon => lower.includes(icon.toLowerCase()));
+  if (priorityMatch) return priorityMatch;
+
+  // Try to find a partial match in all icons
+  const partialMatch = allIconNames.find(icon => lower.includes(icon.toLowerCase()));
+  if (partialMatch) return partialMatch;
+
+  return ''; // Return empty string to fallback to Sparkles
+};
+
+const renderIcon = (iconName, className = "h-6 w-6") => {
+  if (!iconName) return <Sparkles className={className} />;
+  const Icon = LucideIcons[iconName];
+  if (Icon) return <Icon className={className} />;
+  // Fallback to emoji if not a valid Lucide icon
+  return <span className="text-xl">{iconName}</span>;
+};
+
+const IconPickerModal = ({ isOpen, onClose, onSelect }) => {
+  const [search, setSearch] = useState('');
+  
+  const filteredIcons = useMemo(() => {
+    if (!search.trim()) {
+      const others = allIconNames.filter(name => !PRIORITY_ICONS.includes(name));
+      return [...PRIORITY_ICONS, ...others].slice(0, 150);
+    }
+    const lowerSearch = search.toLowerCase();
+    return allIconNames.filter(name => name.toLowerCase().includes(lowerSearch)).slice(0, 150);
+  }, [search]);
+
+  if (!isOpen) return null;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Select an Icon">
+      <div className="space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search icons..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-10 pl-10 pr-4 rounded-xl border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-shadow"
+            autoFocus
+          />
+        </div>
+        <div className="grid grid-cols-5 sm:grid-cols-8 gap-2 max-h-[50vh] overflow-y-auto p-1 no-scrollbar">
+          {filteredIcons.map(name => {
+            const Icon = LucideIcons[name];
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => { onSelect(name); onClose(); setSearch(''); }}
+                className="flex flex-col items-center justify-center p-3 rounded-xl border border-border/50 bg-card hover:border-brand hover:bg-brand/5 hover:text-brand hover:-translate-y-0.5 transition-all shadow-sm hover:shadow-md cursor-pointer"
+                title={name}
+              >
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+              </button>
+            );
+          })}
+          {filteredIcons.length === 0 && (
+            <div className="col-span-full py-8 text-center text-sm text-muted-foreground">
+              No icons found for "{search}"
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
 
 export default function AdminCategories() {
   const { data, loading, error, refetch } = useQuery(GET_CATEGORIES, {
@@ -21,6 +133,8 @@ export default function AdminCategories() {
   const [deleteCategory, { loading: deleting }] = useMutation(DELETE_CATEGORY_MUTATION);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+  const [hasManuallySelectedIcon, setHasManuallySelectedIcon] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({ name: '', icon: '', isActive: true });
   const [categoryToDelete, setCategoryToDelete] = useState(null);
@@ -31,9 +145,11 @@ export default function AdminCategories() {
     if (category) {
       setEditingCategory(category);
       setFormData({ name: category.name, icon: category.icon || '', isActive: category.isActive });
+      setHasManuallySelectedIcon(true);
     } else {
       setEditingCategory(null);
       setFormData({ name: '', icon: '', isActive: true });
+      setHasManuallySelectedIcon(false);
     }
     setIsModalOpen(true);
   };
@@ -134,13 +250,7 @@ export default function AdminCategories() {
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-3">
                   <div className="h-12 w-12 rounded-xl bg-brand/10 text-brand flex items-center justify-center text-2xl overflow-hidden shrink-0">
-                    {category.icon ? (
-                       // If icon is an emoji or short text, render it. 
-                       // For a real app, this might be a mapped icon component.
-                       <span>{category.icon}</span>
-                    ) : (
-                       <Sparkles className="h-6 w-6" />
-                    )}
+                    {renderIcon(category.icon)}
                   </div>
                   <div>
                     <h3 className="font-bold text-foreground text-lg">{category.name}</h3>
@@ -179,16 +289,38 @@ export default function AdminCategories() {
             label="Category Name"
             placeholder="e.g. Plumbing, Electrical..."
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              const newName = e.target.value;
+              const newFormData = { ...formData, name: newName };
+              
+              // Auto-suggest icon if we haven't manually picked one yet
+              if (!editingCategory && !hasManuallySelectedIcon) {
+                const suggested = suggestIcon(newName);
+                if (suggested) {
+                  newFormData.icon = suggested;
+                }
+              }
+              
+              setFormData(newFormData);
+            }}
             required
           />
-          <Input
-            id="cat-icon"
-            label="Icon (Emoji or URL)"
-            placeholder="e.g. 🔧 or https://..."
-            value={formData.icon}
-            onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-          />
+          
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-semibold text-foreground">Icon</label>
+            <div 
+              onClick={() => setIsIconPickerOpen(true)}
+              className="flex items-center gap-3 h-12 w-full px-4 rounded-xl border border-border bg-background cursor-pointer hover:border-brand/50 transition-colors"
+            >
+              <div className="text-brand shrink-0">
+                {renderIcon(formData.icon, "h-5 w-5")}
+              </div>
+              <span className={`text-sm flex-1 ${formData.icon ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                {formData.icon || 'Select an icon...'}
+              </span>
+              <Button type="button" variant="ghost" size="sm" className="h-8 px-2 text-xs -mr-2 text-brand">Change</Button>
+            </div>
+          </div>
           
           {editingCategory && (
             <div className="flex items-center justify-between p-4 border border-border rounded-xl bg-card mt-2">
@@ -218,6 +350,15 @@ export default function AdminCategories() {
           </div>
         </form>
       </Modal>
+
+      <IconPickerModal 
+        isOpen={isIconPickerOpen} 
+        onClose={() => setIsIconPickerOpen(false)} 
+        onSelect={(iconName) => {
+          setFormData({ ...formData, icon: iconName });
+          setHasManuallySelectedIcon(true);
+        }}
+      />
 
       <ConfirmModal 
         isOpen={!!categoryToDelete} 

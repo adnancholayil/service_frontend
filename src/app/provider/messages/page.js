@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { MessageSquare, Send, Phone, Video, Mic, Square, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Send, Mic, Square, ArrowLeft } from 'lucide-react';
 import { useQuery, useMutation } from '@apollo/client/react';
 
 import Avatar from '../../../components/ui/Avatar';
@@ -63,7 +63,7 @@ export default function ProviderMessagesPage() {
   }, [activeConversationId, subscribeToMore]);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
-  const activeMessages = [...(msgData?.messages || [])].reverse();
+  const activeMessages = [...(msgData?.messages || [])].sort((a, b) => parseInt(a.createdAt) - parseInt(b.createdAt));
   const otherParticipant = activeConversation?.participants?.find(p => p.id !== user?.id) || {};
 
   useEffect(() => {
@@ -132,12 +132,12 @@ export default function ProviderMessagesPage() {
     <div className="h-full flex flex-col overflow-hidden">
 
       {/* Header */}
-      <div className="px-5 py-3 border-b border-slate-100 shrink-0 flex items-center justify-between bg-white">
+      <div className="px-5 py-3 border-b border-border shrink-0 flex items-center justify-between bg-card">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            Messages <MessageSquare className="h-4 w-4 text-blue-500" />
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
+            Messages <MessageSquare className="h-4 w-4 text-brand" />
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">Chat with your customers directly.</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Chat with your customers directly.</p>
         </div>
       </div>
 
@@ -145,19 +145,19 @@ export default function ProviderMessagesPage() {
       <div className="flex flex-1 min-h-0 overflow-hidden">
 
         {/* Conversation list */}
-        <div className={`w-64 border-r border-slate-100 flex flex-col bg-white shrink-0 ${activeConversationId ? 'hidden sm:flex' : 'flex'}`}>
-          <div className="px-4 py-3 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-widest">
+        <div className={`w-64 border-r border-border flex flex-col bg-card shrink-0 ${activeConversationId ? 'hidden sm:flex' : 'flex'}`}>
+          <div className="px-4 py-3 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Inbox
           </div>
           <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-slate-50">
             {convLoading ? (
               <div className="flex justify-center p-6">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-brand border-t-transparent" />
               </div>
             ) : conversations.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full gap-2 p-6">
-                <MessageSquare className="h-8 w-8 text-slate-200" />
-                <p className="text-xs text-slate-400 text-center">No conversations yet</p>
+                <MessageSquare className="h-8 w-8 text-muted" />
+                <p className="text-xs text-muted-foreground text-center">No conversations yet</p>
               </div>
             ) : (
               conversations.map((conv) => {
@@ -167,17 +167,17 @@ export default function ProviderMessagesPage() {
                   <div
                     key={conv.id}
                     onClick={() => dispatch(setActiveConversation(conv.id))}
-                    className={`p-3 flex items-center gap-3 cursor-pointer transition-all hover:bg-slate-50 ${isActive ? 'bg-blue-50 border-l-2 border-blue-500' : ''}`}
+                    className={`p-3 flex items-center gap-3 cursor-pointer transition-all hover:bg-muted/50 ${isActive ? 'bg-brand/10 border-l-2 border-brand' : ''}`}
                   >
                     <Avatar src={partner?.avatar} alt={partner?.name} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-900 truncate">{partner?.name}</h4>
-                        <span className="text-[9px] text-slate-400 shrink-0 ml-1">
+                        <h4 className="text-xs font-bold text-foreground truncate">{partner?.name}</h4>
+                        <span className="text-[9px] text-muted-foreground shrink-0 ml-1">
                           {conv.lastMessage ? new Date(parseInt(conv.updatedAt)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">
                         {conv.lastMessage?.text || 'Start conversation...'}
                       </p>
                     </div>
@@ -189,27 +189,23 @@ export default function ProviderMessagesPage() {
         </div>
 
         {/* Message window */}
-        <div className={`flex-1 flex-col bg-slate-50/50 min-w-0 ${activeConversationId ? 'flex' : 'hidden sm:flex'}`}>
+        <div className={`flex-1 flex-col bg-muted/50/50 min-w-0 ${activeConversationId ? 'flex' : 'hidden sm:flex'}`}>
           {activeConversation ? (
             <>
               {/* Chat header */}
-              <div className="px-4 py-3 border-b border-slate-100 bg-white flex items-center justify-between shrink-0">
+              <div className="px-4 py-3 border-b border-border bg-card flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <button
                     onClick={() => dispatch(setActiveConversation(null))}
-                    className="sm:hidden p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"
+                    className="sm:hidden p-1.5 rounded-lg hover:bg-muted text-muted-foreground"
                   >
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                   <Avatar src={otherParticipant.avatar} alt={otherParticipant.name} size="sm" />
                   <div>
-                    <h4 className="text-sm font-bold text-slate-900">{otherParticipant.name}</h4>
-                    <span className="text-[10px] text-slate-400 capitalize">{otherParticipant.role}</span>
+                    <h4 className="text-sm font-bold text-foreground">{otherParticipant.name}</h4>
+                    <span className="text-[10px] text-muted-foreground capitalize">{otherParticipant.role}</span>
                   </div>
-                </div>
-                <div className="flex gap-1">
-                  <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-400"><Phone className="h-4 w-4" /></button>
-                  <button className="p-2 rounded-lg hover:bg-slate-100 text-slate-400"><Video className="h-4 w-4" /></button>
                 </div>
               </div>
 
@@ -222,8 +218,8 @@ export default function ProviderMessagesPage() {
                     <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm leading-relaxed ${
                         isMe
-                          ? 'bg-blue-500 text-white rounded-br-none'
-                          : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm'
+                          ? 'bg-brand text-white rounded-br-none'
+                          : 'bg-card border border-border text-foreground rounded-bl-none shadow-sm'
                       }`}>
                         {hasAudio ? (
                           <div className="flex flex-col gap-1">
@@ -233,7 +229,7 @@ export default function ProviderMessagesPage() {
                         ) : (
                           <p>{msg.text}</p>
                         )}
-                        <span className={`text-[9px] block mt-1 ${isMe ? 'text-blue-200 text-right' : 'text-slate-400 text-right'}`}>
+                        <span className={`text-[9px] block mt-1 ${isMe ? 'text-white/80 text-right' : 'text-muted-foreground text-right'}`}>
                           {new Date(parseInt(msg.createdAt)).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       </div>
@@ -244,7 +240,7 @@ export default function ProviderMessagesPage() {
               </div>
 
               {/* Input */}
-              <form onSubmit={handleSendMessage} className="px-3 py-2 border-t border-slate-100 bg-white flex gap-2 shrink-0 items-center">
+              <form onSubmit={handleSendMessage} className="px-3 py-2 border-t border-border bg-card flex gap-2 shrink-0 items-center">
                 {isRecording ? (
                   <div className="flex-1 bg-red-50 px-4 py-2 text-xs rounded-full flex items-center justify-between border border-red-200">
                     <div className="flex items-center gap-2 text-red-500 font-medium animate-pulse">
@@ -258,7 +254,7 @@ export default function ProviderMessagesPage() {
                   <input
                     type="text"
                     placeholder="Type a message..."
-                    className="flex-1 bg-slate-100 px-4 py-2 text-sm rounded-full text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400 border border-slate-200"
+                    className="flex-1 bg-muted px-4 py-2 text-sm rounded-full text-foreground focus:outline-none focus:ring-1 focus:ring-brand border border-border"
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     disabled={isUploadingVoice}
@@ -269,12 +265,12 @@ export default function ProviderMessagesPage() {
                     <Square className="h-4 w-4 fill-current" />
                   </button>
                 ) : (
-                  <button type="button" onClick={startRecording} disabled={isUploadingVoice} className="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
+                  <button type="button" onClick={startRecording} disabled={isUploadingVoice} className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors">
                     <Mic className="h-4 w-4" />
                   </button>
                 )}
                 {!isRecording && (
-                  <button type="submit" disabled={isUploadingVoice || !messageText.trim()} className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-40 transition-colors">
+                  <button type="submit" disabled={isUploadingVoice || !messageText.trim()} className="p-2 rounded-full bg-brand hover:bg-brand-hover text-white disabled:opacity-40 transition-colors">
                     <Send className="h-4 w-4" />
                   </button>
                 )}
@@ -282,11 +278,11 @@ export default function ProviderMessagesPage() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6">
-              <div className="h-12 w-12 bg-slate-100 rounded-full flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-slate-300" />
+              <div className="h-12 w-12 bg-muted rounded-full flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-muted-foreground" />
               </div>
-              <p className="font-semibold text-sm text-slate-500">Select a conversation</p>
-              <p className="text-xs text-slate-400 text-center max-w-xs">Pick a chat from the left panel to start messaging.</p>
+              <p className="font-semibold text-sm text-muted-foreground">Select a conversation</p>
+              <p className="text-xs text-muted-foreground text-center max-w-xs">Pick a chat from the left panel to start messaging.</p>
             </div>
           )}
         </div>

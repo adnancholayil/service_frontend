@@ -173,26 +173,26 @@ export default function PaymentPage() {
     {process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID && (
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
     )}
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center px-3 py-6 sm:px-6 sm:py-8 md:p-10">
+    <div className="min-h-screen w-full bg-muted/50 flex flex-col items-center justify-center px-3 py-6 sm:px-6 sm:py-8 md:p-10">
       <div className="max-w-5xl w-full">
 
         {/* Header — compact on mobile */}
         <div className="text-center mb-4 sm:mb-6 lg:mb-8">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight">
             Secure Checkout
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 font-medium">
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground font-medium">
             Complete your payment to activate the{' '}
-            <span className="text-emerald-600 font-bold uppercase">{plan}</span> plan
+            <span className="text-brand font-bold uppercase">{plan}</span> plan
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-5 lg:gap-8">
 
           {/* Payment Form */}
-          <div className="lg:col-span-2 bg-white p-4 sm:p-5 md:p-7 rounded-xl sm:rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 mb-3 sm:mb-4 flex items-center gap-2">
-              <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500" />
+          <div className="lg:col-span-2 bg-card p-4 sm:p-5 md:p-7 rounded-xl sm:rounded-2xl shadow-sm border border-border">
+            <h2 className="text-sm sm:text-base font-bold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 sm:h-5 sm:w-5 text-brand" />
               Select Payment Method
             </h2>
 
@@ -202,11 +202,11 @@ export default function PaymentPage() {
                 onClick={() => setPaymentMethod('razorpay')}
                 className={`group flex flex-col items-center justify-center py-2.5 px-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-200 ${
                   paymentMethod === 'razorpay'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
-                    : 'border-slate-100 bg-slate-50 hover:border-emerald-200 text-slate-500'
+                    ? 'border-brand bg-brand/10 text-brand shadow-sm'
+                    : 'border-border bg-muted/50 hover:border-brand/40 text-muted-foreground'
                 }`}
               >
-                <CreditCard className={`h-5 w-5 mb-1 ${paymentMethod === 'razorpay' ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-500'}`} />
+                <CreditCard className={`h-5 w-5 mb-1 ${paymentMethod === 'razorpay' ? 'text-brand' : 'text-muted-foreground group-hover:text-brand'}`} />
                 <span className="text-[11px] sm:text-xs font-bold text-center leading-tight">
                   Pay Online<br />
                   <span className="font-medium text-[9px] sm:text-[10px] opacity-70">(Cards, UPI, NetBanking)</span>
@@ -216,11 +216,11 @@ export default function PaymentPage() {
                 onClick={() => setPaymentMethod('offline')}
                 className={`group flex flex-col items-center justify-center py-2.5 px-2 sm:p-3 rounded-lg sm:rounded-xl border-2 transition-all duration-200 ${
                   paymentMethod === 'offline'
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
-                    : 'border-slate-100 bg-slate-50 hover:border-emerald-200 text-slate-500'
+                    ? 'border-brand bg-brand/10 text-brand shadow-sm'
+                    : 'border-border bg-muted/50 hover:border-brand/40 text-muted-foreground'
                 }`}
               >
-                <Landmark className={`h-5 w-5 mb-1 ${paymentMethod === 'offline' ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-500'}`} />
+                <Landmark className={`h-5 w-5 mb-1 ${paymentMethod === 'offline' ? 'text-brand' : 'text-muted-foreground group-hover:text-brand'}`} />
                 <span className="text-[11px] sm:text-xs font-bold text-center leading-tight">
                   Bank Transfer<br />
                   <span className="font-medium text-[9px] sm:text-[10px] opacity-70">(Offline NEFT/RTGS)</span>
@@ -230,25 +230,25 @@ export default function PaymentPage() {
 
             <form onSubmit={handlePayment}>
               {paymentMethod === 'razorpay' && (
-                <div className="mb-4 text-center py-3 sm:py-4 px-3 bg-slate-50 border border-slate-100 rounded-lg sm:rounded-xl">
-                  <p className="text-xs sm:text-sm font-semibold text-slate-700 mb-1">Razorpay Secure Checkout</p>
-                  <p className="text-[10px] sm:text-xs text-slate-500 mb-3 leading-relaxed">
+                <div className="mb-4 text-center py-3 sm:py-4 px-3 bg-muted/50 border border-border rounded-lg sm:rounded-xl">
+                  <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1">Razorpay Secure Checkout</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 leading-relaxed">
                     Redirected to Razorpay to pay via card, UPI, or Net Banking.
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <div className="bg-white border border-slate-200 rounded h-7 w-12 flex items-center justify-center shadow-sm">
-                      <span className="text-slate-700 font-extrabold text-[11px] tracking-tight border-b-2 border-emerald-500 leading-none">UPI</span>
+                    <div className="bg-card border border-border rounded h-7 w-12 flex items-center justify-center shadow-sm">
+                      <span className="text-muted-foreground font-extrabold text-[11px] tracking-tight border-b-2 border-brand leading-none">UPI</span>
                     </div>
-                    <div className="bg-white border border-slate-200 rounded h-7 w-12 flex items-center justify-center shadow-sm">
+                    <div className="bg-card border border-border rounded h-7 w-12 flex items-center justify-center shadow-sm">
                       <span className="text-blue-800 font-black italic text-[13px] tracking-tighter">VISA</span>
                     </div>
-                    <div className="bg-white border border-slate-200 rounded h-7 w-12 flex items-center justify-center shadow-sm overflow-hidden">
+                    <div className="bg-card border border-border rounded h-7 w-12 flex items-center justify-center shadow-sm overflow-hidden">
                       <div className="flex items-center -space-x-1.5">
                         <div className="w-4 h-4 rounded-full bg-[#EB001B] mix-blend-multiply"></div>
                         <div className="w-4 h-4 rounded-full bg-[#F79E1B] mix-blend-multiply"></div>
                       </div>
                     </div>
-                    <div className="bg-white border border-slate-200 rounded h-7 w-12 flex items-center justify-center shadow-sm">
+                    <div className="bg-card border border-border rounded h-7 w-12 flex items-center justify-center shadow-sm">
                       <span className="text-blue-900 font-extrabold italic text-[11px] tracking-tight">Ru<span className="text-orange-500">Pay</span></span>
                     </div>
                   </div>
@@ -256,12 +256,12 @@ export default function PaymentPage() {
               )}
 
               {paymentMethod === 'offline' && (
-                <div className="mb-4 p-3 sm:p-4 bg-slate-50 border border-slate-200 rounded-lg sm:rounded-xl">
+                <div className="mb-4 p-3 sm:p-4 bg-muted/50 border border-border rounded-lg sm:rounded-xl">
                   <div className="flex items-start gap-2">
-                    <Landmark className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <Landmark className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="text-xs font-bold text-slate-800 mb-2">Our Bank Details</h3>
-                      <div className="space-y-1 text-[11px] text-slate-600">
+                      <h3 className="text-xs font-bold text-foreground mb-2">Our Bank Details</h3>
+                      <div className="space-y-1 text-[11px] text-muted-foreground">
                         <p><span className="font-semibold w-24 inline-block">Account Name:</span> Service Finder India Pvt Ltd</p>
                         <p><span className="font-semibold w-24 inline-block">Account No:</span> 99990123456789</p>
                         <p><span className="font-semibold w-24 inline-block">IFSC Code:</span> HDFC0001234</p>
@@ -269,9 +269,9 @@ export default function PaymentPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <p className="text-[10px] text-slate-500 leading-relaxed">
-                      Transfer exactly <strong className="text-slate-800">{formattedAmount}</strong> to the above account. We will verify and activate your subscription within 24 hours.
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-[10px] text-muted-foreground leading-relaxed">
+                      Transfer exactly <strong className="text-foreground">{formattedAmount}</strong> to the above account. We will verify and activate your subscription within 24 hours.
                     </p>
                   </div>
                 </div>
@@ -280,7 +280,7 @@ export default function PaymentPage() {
               <button
                 type="submit"
                 disabled={isProcessing}
-                className="w-full flex items-center justify-center py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-70"
+                className="w-full flex items-center justify-center py-3 bg-brand-hover hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-all shadow-sm hover:shadow-md disabled:opacity-70"
               >
                 {isProcessing ? (
                   <><Loader2 className="animate-spin h-4 w-4 mr-2" /> Processing...</>
@@ -290,39 +290,39 @@ export default function PaymentPage() {
               </button>
             </form>
 
-            <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-slate-400">
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>Payments are 100% secure and encrypted</span>
             </div>
           </div>
 
           {/* Order Summary — compact card on mobile, full card on desktop */}
-          <div className="bg-slate-100 p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200">
-            <h2 className="text-sm sm:text-base font-bold mb-3 text-slate-900">Order Summary</h2>
+          <div className="bg-muted p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-border">
+            <h2 className="text-sm sm:text-base font-bold mb-3 text-foreground">Order Summary</h2>
 
-            <div className="space-y-2 mb-3 text-xs sm:text-sm text-slate-600">
+            <div className="space-y-2 mb-3 text-xs sm:text-sm text-muted-foreground">
               <div className="flex justify-between items-center">
                 <span>Subscription Plan</span>
-                <span className="font-bold text-slate-900 bg-white px-2 py-0.5 rounded-full border border-slate-200 text-[10px] sm:text-xs uppercase">{plan}</span>
+                <span className="font-bold text-foreground bg-card px-2 py-0.5 rounded-full border border-border text-[10px] sm:text-xs uppercase">{plan}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Subtotal</span>
-                <span className="font-semibold text-slate-900">{formattedAmount}</span>
+                <span className="font-semibold text-foreground">{formattedAmount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Taxes</span>
-                <span className="text-emerald-600 font-medium">Included</span>
+                <span className="text-brand font-medium">Included</span>
               </div>
             </div>
 
-            <div className="border-t border-slate-300 pt-3 mb-3">
+            <div className="border-t border-border pt-3 mb-3">
               <div className="flex justify-between items-center">
-                <span className="text-xs sm:text-sm font-bold text-slate-700">Total</span>
-                <span className="text-xl sm:text-2xl font-extrabold text-emerald-600 tracking-tight">{formattedAmount}</span>
+                <span className="text-xs sm:text-sm font-bold text-muted-foreground">Total</span>
+                <span className="text-xl sm:text-2xl font-extrabold text-brand tracking-tight">{formattedAmount}</span>
               </div>
             </div>
 
-            <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-[10px] sm:text-xs text-emerald-800 leading-relaxed">
+            <div className="bg-brand/10 border border-emerald-100 rounded-lg p-2.5 text-[10px] sm:text-xs text-emerald-800 leading-relaxed">
               By proceeding, you agree to our Terms of Service and auto-renewal policy. You can cancel at any time.
             </div>
           </div>
@@ -332,15 +332,15 @@ export default function PaymentPage() {
     </div>
 
     {isSuccess && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 max-w-xs sm:max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
-          <div className="bg-emerald-100 p-4 sm:p-5 rounded-full mb-4 sm:mb-6">
-            <CheckCircle className="h-10 w-10 sm:h-14 sm:w-14 text-emerald-600" />
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm">
+        <div className="bg-card rounded-2xl sm:rounded-3xl p-6 sm:p-10 max-w-xs sm:max-w-sm w-full mx-4 shadow-2xl flex flex-col items-center text-center">
+          <div className="bg-brand/20 p-4 sm:p-5 rounded-full mb-4 sm:mb-6">
+            <CheckCircle className="h-10 w-10 sm:h-14 sm:w-14 text-brand" />
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 sm:mb-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2 sm:mb-3">
             {paymentMethod === 'offline' ? 'Request Submitted!' : 'Payment Successful!'}
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-slate-500 flex items-center justify-center gap-2">
+          <p className="text-xs sm:text-sm font-medium text-muted-foreground flex items-center justify-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" /> Redirecting to dashboard...
           </p>
         </div>

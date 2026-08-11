@@ -104,50 +104,50 @@ export default function ProviderProfile() {
   };
 
   if (loading) {
-    return <div className="p-12 text-center text-slate-400">Loading profile...</div>;
+    return <div className="p-12 text-center text-muted-foreground">Loading profile...</div>;
   }
 
   return (
-    <div className="flex flex-col p-4 max-w-[1400px] mx-auto w-full h-full overflow-hidden bg-slate-50/50">
+    <div className="p-5 sm:p-8 space-y-6 max-w-[1600px] mx-auto animate-in fade-in duration-500">
       
       {/* Premium Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 shrink-0 pb-4 border-b border-slate-200/60 mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-            Business Profile <User className="h-5 w-5 text-emerald-500" />
+          <h1 className="text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
+            Business Profile <User className="h-6 w-6 text-brand" />
           </h1>
-          <p className="text-slate-500 mt-1 text-xs font-medium">Manage your online presence beautifully.</p>
+          <p className="text-sm font-medium text-muted-foreground mt-1">Manage your online presence beautifully.</p>
         </div>
         <button 
           onClick={handleSave}
           disabled={updating}
-          className={`flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-500/20 ${updating ? 'opacity-50' : ''}`}
+          className={`flex items-center gap-2 bg-brand hover:bg-brand-hover text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-brand/20 hover:shadow-brand/30 hover:-translate-y-0.5 ${updating ? 'opacity-50 pointer-events-none' : ''}`}
         >
           {updating ? 'Saving...' : 'Save Changes'}
         </button>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Sidebar - Profile & Sub (4 columns) */}
-        <div className="lg:col-span-4 flex flex-col gap-4 overflow-y-auto pr-1.5 pb-4 custom-scrollbar">
+        <div className="lg:col-span-4 flex flex-col gap-6">
           
           {/* Elegant Profile Card */}
-          <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-5 flex flex-col items-center text-center">
+          <div className="bg-card rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-border p-5 flex flex-col items-center text-center">
             <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-emerald-100 to-teal-50 p-1 shadow-inner mb-3 mx-auto">
-              <div className="w-full h-full rounded-full overflow-hidden bg-white border-2 border-white flex items-center justify-center">
+              <div className="w-full h-full rounded-full overflow-hidden bg-background border-2 border-background flex items-center justify-center">
                 {(user?.avatar || data?.providerProfile?.user?.avatar) ? (
                    <img src={user?.avatar || data?.providerProfile?.user?.avatar} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                   <User className="h-10 w-10 text-slate-300" />
+                   <User className="h-10 w-10 text-muted-foreground" />
                 )}
               </div>
             </div>
             
-            <h2 className="text-base font-black text-slate-900">{businessName || 'Your Business'}</h2>
-            <p className="text-[10px] text-emerald-600 font-bold mt-0.5 uppercase tracking-widest">{data?.providerProfile?.subscriptionStatus === 'ACTIVE' ? 'Premium Member' : 'Basic Member'}</p>
+            <h2 className="text-base font-black text-foreground">{businessName || 'Your Business'}</h2>
+            <p className="text-[10px] text-brand font-bold mt-0.5 uppercase tracking-widest">{data?.providerProfile?.subscriptionStatus === 'ACTIVE' ? 'Premium Member' : 'Basic Member'}</p>
             
-            <div className="w-full pt-4 mt-3 border-t border-slate-100 px-2">
+            <div className="w-full pt-4 mt-3 border-t border-border px-2">
               <ImageUpload 
                 label="Update Photo" 
                 variant="button"
@@ -160,42 +160,44 @@ export default function ProviderProfile() {
           </div>
 
           {/* Premium Subscription Card */}
-          <div className="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-2xl shadow-lg p-5 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-3 opacity-10">
-              <ShieldCheck className="w-20 h-20" />
+          <div className="bg-slate-900 dark:bg-slate-950 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden group hover:shadow-xl transition-shadow">
+            <div className="absolute -top-12 -right-12 p-8 bg-brand/10 rounded-full blur-2xl group-hover:bg-brand/20 transition-colors w-40 h-40"></div>
+            <div className="absolute top-4 right-4 text-brand/20 group-hover:text-brand/30 transition-colors">
+              <ShieldCheck className="w-12 h-12" />
             </div>
-            <div className="relative z-10 space-y-4">
+            
+            <div className="relative z-10 space-y-5">
               <div>
-                <p className="text-emerald-100 text-[9px] font-bold uppercase tracking-widest mb-1">Current Plan</p>
+                <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest mb-1.5">Current Plan</p>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-black">{data?.providerProfile?.subscriptionPlan || 'NONE'}</h3>
-                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm ${
+                  <h3 className="text-2xl font-black tracking-tight">{data?.providerProfile?.subscriptionPlan || 'Basic'}</h3>
+                  <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-md shadow-sm border ${
                     data?.providerProfile?.subscriptionStatus === 'ACTIVE' 
-                      ? 'bg-white text-emerald-700' 
-                      : 'bg-amber-400 text-amber-900'
+                      ? 'bg-brand/10 text-brand border-brand/20' 
+                      : 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                   }`}>
-                    {data?.providerProfile?.subscriptionStatus || 'N/A'}
+                    {data?.providerProfile?.subscriptionStatus || 'FREE'}
                   </span>
                 </div>
               </div>
 
-              <ul className="text-[11px] font-medium text-emerald-50 space-y-1.5 py-2 border-y border-emerald-500/30">
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-300"/> Premium profile badge</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-300"/> Unlimited job requests</li>
-                <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-300"/> Priority support</li>
+              <ul className="text-xs font-medium text-muted-foreground space-y-2 py-3 border-y border-slate-800">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-brand"/> Premium profile badge</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-brand"/> Unlimited job requests</li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-brand"/> Priority support</li>
               </ul>
 
               {data?.providerProfile?.subscriptionStatus === 'ACTIVE' && data?.providerProfile?.subscriptionExpiry && (
-                <div className="flex justify-between items-center bg-black/10 rounded-lg p-2.5">
-                  <span className="text-[9px] font-bold text-emerald-100 uppercase tracking-wider">Expires In</span>
-                  <span className="text-[11px] font-black text-white flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-emerald-300"/>
+                <div className="flex justify-between items-center bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Expires In</span>
+                  <span className="text-xs font-black text-white flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-brand"/>
                     {Math.max(0, Math.ceil((new Date(data.providerProfile.subscriptionExpiry) - new Date()) / (1000 * 60 * 60 * 24)))} days
                   </span>
                 </div>
               )}
 
-              <a href="/provider/subscription" className="block w-full bg-white hover:bg-emerald-50 text-emerald-700 text-center py-2 rounded-lg text-xs font-bold shadow-md transition-all mt-1">
+              <a href="/provider/subscription" className="block w-full bg-brand hover:bg-brand-hover text-white text-center py-2.5 rounded-xl text-xs font-bold shadow-[0_0_15px_rgba(14,165,233,0.3)] hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all mt-2">
                 Upgrade / Renew Plan
               </a>
             </div>
@@ -203,56 +205,57 @@ export default function ProviderProfile() {
         </div>
 
         {/* Right Main Area - Form & Gallery (8 columns) */}
-        <div className="lg:col-span-8 flex flex-col gap-4 overflow-y-auto pr-1.5 pb-4 custom-scrollbar">
+        <div className="lg:col-span-8 flex flex-col gap-6">
           
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
-            <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 mb-4">
-              <Briefcase className="h-4 w-4 text-emerald-500" /> General Details
+          <div className="bg-card border border-border rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
+            <h3 className="text-sm font-black text-foreground flex items-center gap-2 mb-4">
+              <Briefcase className="h-4 w-4 text-brand" /> General Details
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-0.5">Business Name</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Business Name</label>
                 <input 
                   type="text" 
                   value={businessName}
                   onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all hover:bg-white" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all hover:bg-muted/50 shadow-sm shadow-black/5" 
                   placeholder="Your Business Name" 
                 />
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-0.5 flex items-center gap-1.5"><MapPin className="h-3 w-3" /> Service Area</label>
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1 flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 text-muted-foreground/70" /> Service Area</label>
                 <input 
                   type="text" 
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all hover:bg-white" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-semibold text-foreground focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all hover:bg-muted/50 shadow-sm shadow-black/5" 
                   placeholder="City, State or Full Address" 
                 />
               </div>
               
-              <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-0.5">Business Bio</label>
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest pl-1">Business Bio</label>
                 <textarea 
-                  rows={3} 
+                  rows={4} 
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500 transition-all hover:bg-white resize-none" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium text-foreground focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all hover:bg-muted/50 resize-none shadow-sm shadow-black/5 leading-relaxed" 
                   placeholder="Tell customers about your experience and expertise..." 
                 />
               </div>
             </div>
           </div>
 
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-card border border-border rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
               <div>
-                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
-                  <ImageIcon className="h-4 w-4 text-emerald-500" /> Portfolio Gallery
+                <h3 className="text-sm font-black text-foreground flex items-center gap-2">
+                  <ImageIcon className="h-4 w-4 text-brand" /> Portfolio Gallery
                 </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5 font-medium pl-6">Showcase your best work (Max 5MB per image).</p>
+                <p className="text-[10px] font-bold text-muted-foreground mt-1">Showcase your best work (Max 5MB per image)</p>
               </div>
+              
               <div className="scale-75 origin-right">
                 <ImageUpload 
                   label="Upload New Photo"
@@ -266,28 +269,28 @@ export default function ProviderProfile() {
             </div>
 
             {portfolio.length > 0 ? (
-              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
                 {portfolio.map((img, idx) => (
-                  <div key={idx} className="relative group rounded-xl overflow-hidden border border-slate-100 aspect-square shadow-[0_2px_10px_rgb(0,0,0,0.02)]">
-                    <img src={img} alt="Portfolio item" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                  <div key={idx} className="relative group rounded-2xl overflow-hidden border border-border aspect-square shadow-sm">
+                    <img src={img} alt="Portfolio item" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[2px]">
                       <button 
                         onClick={() => setPortfolio(prev => prev.filter((_, i) => i !== idx))}
-                        className="bg-rose-500 hover:bg-rose-600 text-white rounded-full p-1.5 transform scale-75 group-hover:scale-100 transition-all shadow-md"
+                        className="bg-background hover:bg-red-500/10 text-red-500 rounded-full p-2 transform scale-75 group-hover:scale-100 transition-all shadow-lg"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <X className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="w-full rounded-xl border border-dashed border-slate-200 bg-slate-50/50 py-8 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 bg-white rounded-full shadow-sm flex items-center justify-center mb-2 text-slate-300">
-                  <ImageIcon className="w-4 h-4" />
+              <div className="w-full rounded-2xl border-2 border-dashed border-border/80 bg-muted/20 py-12 flex flex-col items-center justify-center text-center transition-colors hover:bg-muted/40">
+                <div className="w-14 h-14 bg-background rounded-2xl shadow-sm border border-border flex items-center justify-center mb-4 text-brand">
+                  <ImageIcon className="w-6 h-6" />
                 </div>
-                <p className="text-xs font-bold text-slate-600">No portfolio images yet</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Upload images to attract more customers.</p>
+                <p className="text-sm font-bold text-foreground">No portfolio images yet</p>
+                <p className="text-xs text-muted-foreground mt-1 max-w-xs">Upload high-quality images of your previous work to attract more customers.</p>
               </div>
             )}
           </div>
@@ -296,14 +299,14 @@ export default function ProviderProfile() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Unsaved Changes</h3>
-            <p className="text-sm text-slate-500 mb-6">You have unsaved changes. Do you want to leave without saving your work?</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/40 backdrop-blur-sm">
+          <div className="bg-card rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4 animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-foreground mb-2">Unsaved Changes</h3>
+            <p className="text-sm text-muted-foreground mb-6">You have unsaved changes. Do you want to leave without saving your work?</p>
             <div className="flex items-center gap-3 justify-end">
               <button 
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-sm font-bold text-muted-foreground hover:bg-muted rounded-lg transition-colors"
               >
                 Cancel
               </button>

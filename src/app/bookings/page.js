@@ -52,6 +52,21 @@ export default function BookingsPage() {
   const bookings = data?.bookings || [];
   const [filterStatus, setFilterStatus] = useState('all');
 
+  const parseDate = (dStr) => {
+    if (!dStr) return null;
+    return /^\d+$/.test(dStr) ? new Date(parseInt(dStr, 10)) : new Date(dStr);
+  };
+
+  const getFormattedDate = (dateVal) => {
+    const d = parseDate(dateVal);
+    return d ? d.toLocaleDateString() : 'Invalid Date';
+  };
+
+  const getFormattedTime = (dateVal) => {
+    const d = parseDate(dateVal);
+    return d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Invalid Time';
+  };
+
   const getStatusVariant = (status) => {
     switch (status?.toUpperCase()) {
       case 'COMPLETED': return 'success';
@@ -129,35 +144,35 @@ export default function BookingsPage() {
             <Card key={b.id} className="bg-card flex flex-col relative overflow-hidden">
               <CardBody className="p-4 sm:p-5 flex-1 flex flex-col">
                 
-                {/* Card Header (ID & Status Badges) */}
-                <div className="flex items-center justify-between mb-4 border-b border-border pb-3">
-                  <span className="text-[10px] sm:text-xs font-extrabold text-muted-foreground uppercase tracking-wider">
-                    ID: #{b.id}
-                  </span>
-                  <div className="flex gap-2">
-                    <Badge variant={getStatusVariant(b.status)} className="text-[9px] sm:text-[10px] px-2 py-0.5">{b.status}</Badge>
-                    <Badge variant={b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'success' : 'default'} className="text-[9px] sm:text-[10px] px-2 py-0.5">
-                      {b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'Paid' : 'Unpaid'}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Main Details */}
-                <div className="flex-1 space-y-4">
-                  <div className="flex justify-between items-start gap-3">
-                    <div>
-                      <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">{b.service.name}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">Service Partner: <span className="font-semibold text-brand">{b.provider.businessName}</span></p>
-                    </div>
-                  </div>
-                  
-                  {/* Info Grid */}
-                  <div className="bg-brand/5 dark:bg-brand/10 border border-brand/10 rounded-xl p-3 grid grid-cols-2 gap-3 text-xs font-medium text-foreground/80">
-                    <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleDateString()}</span>
-                    <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {new Date(b.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    <span className="flex items-center gap-1.5 col-span-2 text-wrap"><MapPin className="h-3.5 w-3.5 shrink-0 text-brand" /> {b.location?.address || 'Address not set'}</span>
-                  </div>
-                </div>
+                 {/* Card Header (ID & Status Badges) */}
+                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4 border-b border-border pb-3">
+                   <span className="text-[10px] sm:text-xs font-extrabold text-muted-foreground uppercase tracking-wider truncate max-w-[200px] sm:max-w-none" title={`ID: #${b.id}`}>
+                     ID: #{b.id}
+                   </span>
+                   <div className="flex gap-1.5 shrink-0">
+                     <Badge variant={getStatusVariant(b.status)} className="text-[9px] sm:text-[10px] px-2 py-0.5">{b.status}</Badge>
+                     <Badge variant={b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'success' : 'default'} className="text-[9px] sm:text-[10px] px-2 py-0.5">
+                       {b.paymentStatus === 'paid' || b.paymentStatus === 'PAID' ? 'Paid' : 'Unpaid'}
+                     </Badge>
+                   </div>
+                 </div>
+ 
+                 {/* Main Details */}
+                 <div className="flex-1 space-y-4">
+                   <div className="flex justify-between items-start gap-3">
+                     <div>
+                       <h3 className="text-base sm:text-lg font-bold text-foreground leading-snug">{b.service.name}</h3>
+                       <p className="text-xs text-muted-foreground mt-1">Service Partner: <span className="font-semibold text-brand">{b.provider.businessName}</span></p>
+                     </div>
+                   </div>
+                   
+                   {/* Info Grid */}
+                   <div className="bg-brand/5 dark:bg-brand/10 border border-brand/10 rounded-xl p-3 grid grid-cols-2 gap-3 text-xs font-medium text-foreground/80">
+                     <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5 text-brand" /> {getFormattedDate(b.bookingDate)}</span>
+                     <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5 text-brand" /> {getFormattedTime(b.bookingDate)}</span>
+                     <span className="flex items-center gap-1.5 col-span-2 text-wrap"><MapPin className="h-3.5 w-3.5 shrink-0 text-brand" /> {b.location?.address || 'Address not set'}</span>
+                   </div>
+                 </div>
                 
                 {/* Footer (Price & Actions) */}
                 <div className="mt-4 pt-4 border-t border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0">

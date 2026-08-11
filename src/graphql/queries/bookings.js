@@ -17,10 +17,18 @@ export const GET_MY_BOOKINGS = gql`
           avatar
         }
       }
+      customer {
+        id
+        name
+        email
+        phone
+        avatar
+      }
       location {
         address
       }
       bookingDate
+      customerPhone
       notes
       status
       paymentStatus
@@ -53,7 +61,9 @@ export const GET_BOOKING_BY_ID = gql`
         name
         email
       }
-      address
+      location {
+        address
+      }
       bookingDate
       notes
       status
@@ -80,10 +90,18 @@ export const BOOKING_SUBSCRIPTION = gql`
           avatar
         }
       }
+      customer {
+        id
+        name
+        email
+        phone
+        avatar
+      }
       location {
         address
       }
       bookingDate
+      customerPhone
       notes
       status
       paymentStatus

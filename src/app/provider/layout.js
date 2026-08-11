@@ -9,14 +9,22 @@ import { useQuery } from '@apollo/client/react';
 import { GET_PROVIDER_PROFILE } from '../../graphql/queries/provider';
 import {
   LayoutDashboard, CalendarRange, Wrench, Star, BarChart3,
-  User, Shield, LogOut, MessageCircle, Loader2, ChevronRight
+  User, Shield, LogOut, MessageCircle, Loader2, ChevronRight,
+  Sun, Moon
 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export default function ProviderLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const { data, loading } = useQuery(GET_PROVIDER_PROFILE, {
     variables: { userId: user?.id },
@@ -85,28 +93,28 @@ export default function ProviderLayout({ children }) {
   const initials = providerName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
 
   return (
-    <div className="flex overflow-hidden h-[100dvh]">
+    <div className="flex w-full h-full min-h-0 bg-background text-foreground">
 
       {/* ── Sidebar ── */}
-      <aside className="hidden md:flex w-56 h-full flex-col bg-white border-r border-slate-100 shrink-0">
+      <aside className="hidden md:flex w-64 h-full flex-col bg-card border-r border-border shrink-0 shadow-sm z-10 sticky top-0">
 
         {/* Nav Items */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto no-scrollbar">
-          <p className="px-3 mb-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Shield className="h-3 w-3 text-emerald-500" /> Partner Portal
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto no-scrollbar">
+          <p className="px-3 mb-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+            <Shield className="h-3.5 w-3.5 text-brand" /> Partner Portal
           </p>
           {menuItems.map(({ label, href, icon: Icon }) => {
             const isActive = pathname === href || (href !== '/provider/dashboard' && pathname.startsWith(href));
             return (
               <Link key={href} href={href}>
-                <span className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-150 cursor-pointer group ${
+                <span className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-bold transition-all duration-200 cursor-pointer group ${
                   isActive
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+                    ? 'bg-brand text-white shadow-md shadow-brand/20'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 }`}>
-                  <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-emerald-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                  <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : 'text-muted-foreground group-hover:text-brand transition-colors'}`} />
                   {label}
-                  {isActive && <ChevronRight className="h-3 w-3 ml-auto text-emerald-400" />}
+                  {isActive && <ChevronRight className="h-3.5 w-3.5 ml-auto text-white/70" />}
                 </span>
               </Link>
             );
@@ -114,35 +122,48 @@ export default function ProviderLayout({ children }) {
         </nav>
 
         {/* Bottom user area */}
-        <div className="px-3 py-4 border-t border-slate-100 shrink-0">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm font-semibold text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition-all duration-150"
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            Log Out
-          </button>
-          <div className="flex items-center gap-2.5 px-3 pt-3 mt-2 border-t border-slate-100">
+        <div className="p-4 border-t border-border shrink-0 bg-muted/30">
+          <div className="flex items-center justify-between mb-4 px-1">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-brand animate-pulse shadow-[0_0_8px_rgba(14,165,233,0.5)]" />
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Active</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="text-muted-foreground hover:text-foreground hover:bg-muted transition-all p-1.5 rounded-lg"
+                title="Toggle Theme"
+              >
+                {mounted && theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all p-1.5 rounded-lg"
+                title="Log Out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3 bg-card border border-border p-2.5 rounded-xl shadow-sm">
             {user?.avatar ? (
-              <img src={user.avatar} alt="Avatar" className="h-7 w-7 rounded-full object-cover shrink-0" />
+              <img src={user.avatar} alt="Avatar" className="h-9 w-9 rounded-lg object-cover shrink-0 shadow-sm" />
             ) : (
-              <div className="h-7 w-7 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 text-white text-[10px] font-bold">
+              <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center shrink-0 text-white text-xs font-bold shadow-sm">
                 {initials}
               </div>
             )}
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-slate-800 truncate">{providerName}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <p className="text-[10px] text-slate-400 font-medium">Active</p>
-              </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground truncate">{providerName}</p>
+              <p className="text-[10px] font-bold text-brand uppercase tracking-wider mt-0.5 truncate">{subscriptionStatus === 'ACTIVE' ? 'Premium' : 'Provider'}</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 overflow-y-auto bg-slate-50/70 min-w-0">
+      <main className="flex-1 min-w-0 relative flex flex-col h-full overflow-y-auto">
         {children}
       </main>
 

@@ -33,12 +33,12 @@ export const GET_PROVIDER_DETAILS = gql`
 `;
 
 export const GET_PROVIDERS_PAGE_DATA = gql`
-  query GetProvidersPageData($category: ID, $page: Int, $limit: Int) {
+  query GetProvidersPageData($category: ID, $longitude: Float, $latitude: Float, $maxDistance: Float, $page: Int, $limit: Int) {
     categories {
       id
       name
     }
-    providers(category: $category, page: $page, limit: $limit) {
+    providers(category: $category, longitude: $longitude, latitude: $latitude, maxDistance: $maxDistance, page: $page, limit: $limit) {
       data {
         id
         businessName
@@ -46,6 +46,10 @@ export const GET_PROVIDERS_PAGE_DATA = gql`
         rating
         reviewsCount
         verificationStatus
+        address
+        location {
+          coordinates
+        }
         user {
           id
           name
@@ -119,6 +123,9 @@ export const GET_PROVIDER_REVIEWS = gql`
       id
       rating
       comment
+      isReported
+      reportReason
+      reportStatus
       createdAt
       customer {
         name

@@ -113,8 +113,8 @@ export default function AuthModals() {
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
-      toast.error('Please fill in all fields');
+    if (!name || !email || !phone || !password) {
+      toast.error('Please fill in all fields including Mobile Number');
       return;
     }
     if (password.length < 6) {

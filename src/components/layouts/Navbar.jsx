@@ -8,8 +8,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from 'next-themes';
 import {
   Sun, Moon, Bell, MessageSquare, User, LogOut, Settings,
-  Shield, Briefcase, Calendar, Home,
-  Users, LayoutDashboard, Wrench, Search, ChevronDown
+  Shield, Briefcase, Calendar, Home, Menu, X, BarChart3, Star, CalendarRange,
+  Users, LayoutDashboard, Wrench, Search, ChevronDown, ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -26,6 +26,7 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -68,10 +69,8 @@ export function Navbar() {
 
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
 
-  // Hide on admin/provider dashboard pages
-  if (pathname && (pathname.startsWith('/admin') || pathname === '/provider' || pathname.startsWith('/provider/'))) {
-    return null;
-  }
+  // Hide desktop nav on admin/provider dashboard pages, but keep mobile nav
+  const isDashboard = pathname && (pathname.startsWith('/admin') || pathname === '/provider' || pathname.startsWith('/provider/'));
 
   // ─── Desktop nav links ────────────────────────────────────
   const getNavLinks = () => {
@@ -118,7 +117,7 @@ export function Navbar() {
       { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
       { label: 'Bookings',  href: '/provider/bookings',  icon: Calendar },
       { label: 'Services',  href: '/provider/services',  icon: Wrench },
-      { label: 'Profile',   href: '/provider/profile',   icon: User },
+      { label: 'More',      href: '#',                   icon: Menu, onClick: () => setMobileMenuOpen(true) },
     ];
     return [
       { label: 'Home',     href: '/',         icon: Home },
@@ -138,13 +137,14 @@ export function Navbar() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* DESKTOP STICKY HEADER                                   */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <nav
-        className={`hidden md:flex sticky top-0 z-40 w-full transition-all duration-300 ${
-          scrolled
-            ? 'bg-card/90 backdrop-blur-xl border-b border-border shadow-sm'
-            : 'bg-card/70 backdrop-blur-md border-b border-border/50'
-        }`}
-      >
+      {!isDashboard && (
+        <nav
+          className={`hidden md:flex sticky top-0 z-40 w-full transition-all duration-300 ${
+            scrolled
+              ? 'bg-card/90 backdrop-blur-xl border-b border-border shadow-sm'
+              : 'bg-card/70 backdrop-blur-md border-b border-border/50'
+          }`}
+        >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
           <div className="flex h-16 items-center justify-between gap-4">
 
@@ -284,6 +284,7 @@ export function Navbar() {
           </div>
         </div>
       </nav>
+      )}
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* MOBILE TOP MINI-BAR (logo + icons, hidden on desktop)  */}
@@ -324,7 +325,7 @@ export function Navbar() {
                   </span>
                 )}
               </button>
-              <Link href="/profile" className="ml-1 active:scale-95 transition-transform">
+              <Link href={user?.role?.toLowerCase() === 'provider' ? '/provider/profile' : user?.role?.toLowerCase() === 'admin' ? '/admin/profile' : '/profile'} className="ml-1 active:scale-95 transition-transform">
                 <Avatar src={user?.avatar} alt={user?.name} size="sm" className="h-8 w-8 ring-2 ring-transparent hover:ring-brand/30 transition-all" />
               </Link>
             </>
@@ -394,6 +395,66 @@ export function Navbar() {
           })}
         </div>
       </nav>
+
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* FULL SCREEN MOBILE MENU (For "More" tab)               */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background md:hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex items-center justify-between px-4 sm:px-6 h-14 border-b border-border">
+            <h2 className="text-lg font-bold text-foreground">Menu</h2>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 -mr-2 text-muted-foreground hover:bg-muted rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+            <div className="space-y-1">
+              <p className="px-2 text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Menu</p>
+              {[
+                { label: 'Dashboard', href: '/provider/dashboard', icon: LayoutDashboard },
+                { label: 'Bookings', href: '/provider/bookings', icon: CalendarRange },
+                { label: 'Services', href: '/provider/services', icon: Wrench },
+                { label: 'Messages', href: '/provider/messages', icon: MessageSquare },
+                { label: 'Reviews', href: '/provider/reviews', icon: Star },
+                { label: 'Earnings', href: '/provider/earnings', icon: BarChart3 },
+                { label: 'Profile', href: '/provider/profile', icon: User },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold transition-colors ${
+                    isActive(link.href)
+                      ? 'bg-brand/10 text-brand'
+                      : 'text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <link.icon className="h-5 w-5" />
+                  {link.label}
+                  <ChevronRight className="h-4 w-4 ml-auto opacity-50" />
+                </Link>
+              ))}
+            </div>
+
+            <div className="space-y-1 pt-6 border-t border-border">
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center gap-4 px-4 py-3.5 rounded-xl font-bold text-red-500 hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

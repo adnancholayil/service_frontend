@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Star, Search, Filter, Sparkles, User, Calendar } from 'lucide-react';
+import { Star, Search, Filter, Sparkles, User, Calendar, MapPin, Compass, X, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 import { useQuery } from '@apollo/client/react';
@@ -19,10 +19,20 @@ function ServicesContent() {
   const categoryParam = searchParams.get('category') || 'all';
   const searchParam = searchParams.get('search') || '';
   const pageParam = parseInt(searchParams.get('page') || '1', 10);
+  const locationParam = searchParams.get('location') || '';
+  const nearMeParam = searchParams.get('nearMe') === 'true';
+  const latParam = searchParams.get('lat') ? parseFloat(searchParams.get('lat')) : null;
+  const lngParam = searchParams.get('lng') ? parseFloat(searchParams.get('lng')) : null;
+  const radiusParam = parseInt(searchParams.get('radius') || '50', 10);
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
   const [searchTerm, setSearchTerm] = useState(searchParam);
   const [currentPage, setCurrentPage] = useState(pageParam);
+  const [locationText, setLocationText] = useState(locationParam);
+  const [nearMe, setNearMe] = useState(nearMeParam);
+  const [coordinates, setCoordinates] = useState({ lat: latParam, lng: lngParam });
+  const [radius, setRadius] = useState(radiusParam);
+  const [isLocating, setIsLocating] = useState(false);
 
   // Sync category state when query param changes
   useEffect(() => {
@@ -39,12 +49,33 @@ function ServicesContent() {
     setCurrentPage(pageParam);
   }, [pageParam]);
 
+  // Sync location states when query params change
+  useEffect(() => {
+    setLocationText(locationParam);
+  }, [locationParam]);
+
+  useEffect(() => {
+    setNearMe(nearMeParam);
+  }, [nearMeParam]);
+
+  useEffect(() => {
+    setCoordinates({ lat: latParam, lng: lngParam });
+  }, [latParam, lngParam]);
+
+  useEffect(() => {
+    setRadius(radiusParam);
+  }, [radiusParam]);
+
   // Fetch from GraphQL
   const limit = 12;
   const { data, loading, error } = useQuery(GET_SERVICES_PAGE_DATA, {
     variables: { 
       category: selectedCategory === 'all' ? null : selectedCategory,
       search: searchTerm.trim() === '' ? null : searchTerm.trim(),
+      longitude: nearMe && coordinates.lng ? coordinates.lng : null,
+      latitude: nearMe && coordinates.lat ? coordinates.lat : null,
+      maxDistance: nearMe ? parseFloat(radius) : null,
+      locationText: locationText.trim() === '' ? null : locationText.trim(),
       page: currentPage,
       limit
     }
@@ -54,30 +85,93 @@ function ServicesContent() {
   const filteredServices = data?.globalServices?.data || [];
   const totalPages = data?.globalServices?.totalPages || 1;
 
-  const handleCategorySelect = (catId) => {
-    setSelectedCategory(catId);
-    // Update URL query parameters
+  const updateFilters = (newParams) => {
     const params = new URLSearchParams(window.location.search);
-    if (catId === 'all') {
-      params.delete('category');
-    } else {
-      params.set('category', catId);
-    }
+    
+    // Merge new filters
+    Object.entries(newParams).forEach(([key, val]) => {
+      if (val === null || val === undefined || val === '') {
+        params.delete(key);
+      } else {
+        params.set(key, val.toString());
+      }
+    });
+    
     params.set('page', '1');
     router.replace(`/services?${params.toString()}`);
+  };
+
+  const handleCategorySelect = (catId) => {
+    setSelectedCategory(catId);
+    updateFilters({ category: catId === 'all' ? '' : catId });
   };
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setSearchTerm(value);
-    const params = new URLSearchParams(window.location.search);
-    if (value.trim() === '') {
-      params.delete('search');
+    updateFilters({ search: value.trim() === '' ? '' : value.trim() });
+  };
+
+  const handleLocationChange = (e) => {
+    const value = e.target.value;
+    setLocationText(value);
+    updateFilters({ location: value.trim() === '' ? '' : value.trim() });
+  };
+
+  const handleNearMeToggle = () => {
+    if (!nearMe) {
+      setIsLocating(true);
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser');
+        setIsLocating(false);
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setCoordinates({ lat, lng });
+          setNearMe(true);
+          setIsLocating(false);
+          updateFilters({
+            nearMe: 'true',
+            lat: lat.toString(),
+            lng: lng.toString(),
+            radius: radius.toString()
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          alert('Could not access your location. Please check browser permissions or enter a location manually.');
+          setIsLocating(false);
+        }
+      );
     } else {
-      params.set('search', value.trim());
+      setNearMe(false);
+      setCoordinates({ lat: null, lng: null });
+      updateFilters({
+        nearMe: null,
+        lat: null,
+        lng: null,
+        radius: null
+      });
     }
-    params.set('page', '1');
-    router.replace(`/services?${params.toString()}`);
+  };
+
+  const handleRadiusChange = (e) => {
+    const val = e.target.value;
+    setRadius(val);
+    updateFilters({ radius: val });
+  };
+
+  const handleClearAll = () => {
+    setSelectedCategory('all');
+    setSearchTerm('');
+    setLocationText('');
+    setNearMe(false);
+    setCoordinates({ lat: null, lng: null });
+    setRadius(50);
+    router.replace('/services');
   };
 
   const handlePageChange = (newPage) => {
@@ -86,6 +180,21 @@ function ServicesContent() {
     params.set('page', newPage.toString());
     router.push(`/services?${params.toString()}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return null;
+    const R = 6371; // Earth radius in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2)
+      ; 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    const d = R * c; 
+    return d.toFixed(1);
   };
 
 
@@ -102,46 +211,146 @@ function ServicesContent() {
         </p>
       </div>
 
-      {/* Filters: Search bar and category list */}
-      <div className="space-y-3 sm:space-y-4 w-full">
-        {/* Search */}
-        <div className="relative w-full sm:max-w-lg bg-card border border-border p-1.5 rounded-xl shadow-xs flex items-center gap-2">
-          <Search className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground ml-2" />
-          <input
-            type="text"
-            placeholder="Search service catalog..."
-            className="w-full bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm py-1.5"
-            value={searchTerm}
-            onChange={handleSearchChange}
-          />
+      {/* Filters Dashboard */}
+      <div className="bg-card border border-border p-4 sm:p-6 rounded-2xl shadow-xs space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground">Search Catalog</label>
+            <div className="relative w-full bg-muted/40 border border-border px-3 py-2 rounded-xl flex items-center gap-2 focus-within:border-brand transition-colors">
+              <Search className="h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search services..."
+                className="w-full bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm p-0"
+                value={searchTerm}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
+
+          {/* Location */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground">Location</label>
+            <div className="relative w-full bg-muted/40 border border-border px-3 py-2 rounded-xl flex items-center gap-2 focus-within:border-brand transition-colors">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Enter city or address..."
+                className="w-full bg-transparent border-none text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-0 text-sm p-0"
+                value={locationText}
+                onChange={handleLocationChange}
+              />
+            </div>
+          </div>
+
+          {/* Near Me Toggle */}
+          <div className="space-y-1.5 flex flex-col justify-end">
+            <div className="flex items-center justify-between bg-muted/40 border border-border px-3 py-2 rounded-xl h-[38px] sm:h-[40px]">
+              <div className="flex items-center gap-2">
+                <Compass className={`h-4 w-4 ${nearMe ? 'text-brand animate-pulse' : 'text-muted-foreground'}`} />
+                <span className="text-xs font-semibold text-foreground">Find Services Near Me</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleNearMeToggle}
+                disabled={isLocating}
+                className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  nearMe ? 'bg-brand' : 'bg-zinc-300 dark:bg-zinc-700'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                    nearMe ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Categories Horizontal Scroll */}
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
-          <button
-            onClick={() => handleCategorySelect('all')}
-            className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
-              selectedCategory === 'all'
-                ? 'bg-brand text-white border-brand shadow-sm'
-                : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
-            }`}
-          >
-            All Services
-          </button>
-          {categories.map((cat) => (
+        <div className="space-y-1.5 pt-2">
+          <label className="text-xs font-bold text-foreground">Service Type</label>
+          <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar px-1">
             <button
-              key={cat.id}
-              onClick={() => handleCategorySelect(cat.slug || cat.id)}
+              onClick={() => handleCategorySelect('all')}
               className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
-                selectedCategory === (cat.slug || cat.id)
+                selectedCategory === 'all'
                   ? 'bg-brand text-white border-brand shadow-sm'
-                  : 'bg-muted text-muted-foreground hover:text-foreground border-transparent hover:bg-zinc-200 dark:hover:bg-zinc-800'
+                  : 'bg-muted text-muted-foreground hover:bg-brand/10 hover:text-brand border-transparent'
               }`}
             >
-              {cat.name}
+              All Services
             </button>
-          ))}
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => handleCategorySelect(cat.slug || cat.id)}
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold shrink-0 transition-all border cursor-pointer ${
+                  selectedCategory === cat.slug || selectedCategory === cat.id
+                    ? 'bg-brand text-white border-brand shadow-sm'
+                    : 'bg-muted text-muted-foreground hover:bg-brand/10 hover:text-brand border-transparent'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Active Filters, Distance Slider & Clear All button */}
+        {(nearMe || locationText || searchTerm || selectedCategory !== 'all') && (
+          <div className="pt-4 border-t border-border flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4 flex-1">
+              {nearMe && (
+                <div className="flex items-center gap-3 bg-muted/40 px-3 py-1.5 rounded-xl border border-border w-full sm:w-auto">
+                  <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Distance Radius:</span>
+                  <input
+                    type="range"
+                    min="5"
+                    max="100"
+                    step="5"
+                    value={radius}
+                    onChange={handleRadiusChange}
+                    className="w-32 h-1 bg-zinc-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-brand"
+                  />
+                  <span className="text-xs font-bold text-foreground whitespace-nowrap">{radius} km</span>
+                </div>
+              )}
+              
+              <div className="flex flex-wrap items-center gap-2">
+                {searchTerm && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-brand/10 text-brand border border-brand/20">
+                    Keyword: {searchTerm}
+                  </span>
+                )}
+                {selectedCategory !== 'all' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-brand/10 text-brand border border-brand/20">
+                    Category: {categories.find(c => c.slug === selectedCategory || c.id === selectedCategory)?.name || selectedCategory}
+                  </span>
+                )}
+                {locationText && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-brand/10 text-brand border border-brand/20">
+                    Location: {locationText}
+                  </span>
+                )}
+                {nearMe && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-brand/10 text-brand border border-brand/20">
+                    Near Me ({radius}km)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={handleClearAll}
+              className="text-xs font-semibold text-brand hover:text-brand-dark flex items-center gap-1 px-2.5 py-1 bg-brand/5 hover:bg-brand/10 rounded-lg transition-colors cursor-pointer"
+            >
+              <X className="h-3 w-3" /> Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Grid listing */}
@@ -154,7 +363,7 @@ function ServicesContent() {
       ) : filteredServices.length === 0 ? (
         <div className="text-center py-20 bg-card border border-border rounded-2xl flex flex-col items-center justify-center space-y-3">
           <Filter className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground opacity-40" />
-          <h3 className="font-bold text-base sm:text-lg text-muted-foreground">No services found</h3>
+          <h3 className="font-bold text-base sm:text-lg text-muted-foreground">No services matched all filters</h3>
           <p className="text-xs text-muted-foreground">Try clearing search terms or picking another category.</p>
         </div>
       ) : (
@@ -184,6 +393,17 @@ function ServicesContent() {
                           <div className="flex-1 min-w-0">
                             <h4 className="text-xs sm:text-sm font-bold text-foreground truncate leading-tight">{provider.businessName}</h4>
                             <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight mt-0.5">{provider.user?.name}</p>
+                            {provider.address && (
+                              <p className="text-[10px] text-muted-foreground truncate flex items-center gap-1 mt-1.5" title={provider.address}>
+                                <MapPin className="h-3 w-3 shrink-0 text-brand" />
+                                <span className="truncate">{provider.address}</span>
+                                {nearMe && coordinates.lat && provider.location?.coordinates && (
+                                  <span className="font-semibold text-brand whitespace-nowrap">
+                                    • {getDistance(coordinates.lat, coordinates.lng, provider.location.coordinates[1], provider.location.coordinates[0])} km away
+                                  </span>
+                                )}
+                              </p>
+                            )}
                           </div>
                         </div>
                       </div>

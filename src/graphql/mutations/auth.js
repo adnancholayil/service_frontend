@@ -9,6 +9,7 @@ export const LOGIN_MUTATION = gql`
         id
         name
         email
+        phone
         role
         avatar
       }
@@ -17,14 +18,15 @@ export const LOGIN_MUTATION = gql`
 `;
 
 export const REGISTER_MUTATION = gql`
-  mutation Register($name: String!, $email: String!, $password: String!, $role: UserRole!, $providerDetails: ProviderRegisterInput) {
-    register(name: $name, email: $email, password: $password, role: $role, providerDetails: $providerDetails) {
+  mutation Register($name: String!, $email: String!, $phone: String!, $password: String!, $role: UserRole!, $providerDetails: ProviderRegisterInput) {
+    register(name: $name, email: $email, phone: $phone, password: $password, role: $role, providerDetails: $providerDetails) {
       accessToken
       refreshToken
       user {
         id
         name
         email
+        phone
         role
         avatar
       }
@@ -41,6 +43,7 @@ export const GOOGLE_LOGIN_MUTATION = gql`
         id
         name
         email
+        phone
         role
         avatar
       }
@@ -85,6 +88,19 @@ export const UPDATE_USER_AVATAR = gql`
   mutation UpdateUserAvatar($avatar: String!) {
     updateUserAvatar(avatar: $avatar) {
       id
+      avatar
+    }
+  }
+`;
+
+export const UPDATE_USER_PROFILE = gql`
+  mutation UpdateUserProfile($name: String, $phone: String, $avatar: String) {
+    updateUserProfile(name: $name, phone: $phone, avatar: $avatar) {
+      id
+      name
+      email
+      phone
+      role
       avatar
     }
   }

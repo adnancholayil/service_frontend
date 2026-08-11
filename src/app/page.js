@@ -27,7 +27,7 @@ const iconMap = {
 
 const getCategoryIcon = (cat) => {
   if (cat.icon && iconMap[cat.icon]) return iconMap[cat.icon];
-  
+
   const name = cat.name?.toLowerCase() || '';
   if (name.includes('ac ') || name.includes('air')) return Fan;
   if (name.includes('room') || name.includes('home')) return Home;
@@ -40,7 +40,7 @@ const getCategoryIcon = (cat) => {
   if (name.includes('salon') || name.includes('hair') || name.includes('beauty')) return Scissors;
   if (name.includes('photo') || name.includes('camera')) return Camera;
   if (name.includes('company') || name.includes('business')) return Briefcase;
-  
+
   return Sparkles; // fallback
 };
 
@@ -83,9 +83,9 @@ function SectionLabel({ children }) {
 /* ─── Trust badges ───────────────────────────────────────── */
 const TRUST = [
   { icon: ShieldCheck, label: '100% Verified', color: 'text-emerald-500' },
-  { icon: BadgeCheck,  label: 'Quality Guarantee', color: 'text-brand' },
-  { icon: Star,        label: '4.9 / 5 Rating', color: 'text-yellow-500' },
-  { icon: Clock,       label: 'Fast Response', color: 'text-violet-500' },
+  { icon: BadgeCheck, label: 'Quality Guarantee', color: 'text-brand' },
+  { icon: Star, label: '4.9 / 5 Rating', color: 'text-yellow-500' },
+  { icon: Clock, label: 'Fast Response', color: 'text-violet-500' },
 ];
 
 /* ─── HOW IT WORKS steps ─────────────────────────────────── */
@@ -103,11 +103,11 @@ export default function HomePage() {
   const [bannerIdx, setBannerIdx] = useState(0);
 
   const { data, loading } = useQuery(GET_HOME_DATA);
-  const categories   = data?.categories    || [];
-  const providers    = data?.providers?.data || [];
+  const categories = data?.categories || [];
+  const providers = data?.providers?.data || [];
   const publicReviews = data?.publicReviews || [];
   const publicBanners = data?.publicBanners || [];
-  const allServices  = providers.flatMap(p =>
+  const allServices = providers.flatMap(p =>
     p.services.map(s => ({ ...s, providerRating: p.rating, providerName: p.businessName, providerId: p.id }))
   );
 
@@ -156,7 +156,7 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-24 text-center">
-          
+
           {/* Label pill */}
           <motion.div
             initial={{ opacity: 0, y: -12 }}
@@ -295,38 +295,64 @@ export default function HomePage() {
           </div>
         </section>
       )}
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* 3. HOW IT WORKS                                        */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <section className="section-py bg-card border-t border-border">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <AnimSection className="text-center mb-6 sm:mb-14">
+            <SectionLabel>Simple Process</SectionLabel>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Book in 3 easy steps</h2>
+          </AnimSection>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 relative">
+            {/* Connector line (desktop) */}
+            <div className="hidden sm:block absolute top-9 left-[calc(16.66%)] right-[calc(16.66%)] h-px bg-border z-0" />
+            {HOW_STEPS.map((step, i) => (
+              <AnimSection key={step.n} delay={i * 120} className="relative z-10 flex flex-col items-center text-center">
+                <div className="h-16 w-16 rounded-2xl bg-brand/10 border-2 border-brand/20 flex items-center justify-center mb-4 shadow-md shadow-brand/10">
+                  <span className="text-2xl font-extrabold gradient-text">{step.n}</span>
+                </div>
+                <h3 className="text-base font-bold text-foreground mb-1">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+              </AnimSection>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════ */}
-      {/* 3. CATEGORIES                                          */}
+      {/* 4. CATEGORIES                                          */}
       {/* ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
-        <section className="py-6 sm:py-16 bg-card border-t border-border">
+        <section className="py-8 sm:py-16 bg-background border-t border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-end justify-between mb-2 sm:mb-6">
+            <AnimSection className="flex items-end justify-between mb-4 sm:mb-10">
               <div>
                 <SectionLabel>Browse by Category</SectionLabel>
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">What do you need?</h2>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">What do you need?</h2>
               </div>
               <Link
                 href="/services"
-                className="text-sm font-bold text-brand hover:text-brand-hover flex items-center gap-1.5 shrink-0 ml-4"
+                className="text-sm font-bold text-brand hover:text-brand-hover flex items-center gap-1.5 shrink-0 ml-4 group transition-colors"
               >
-                See All <ArrowRight className="h-4 w-4" />
+                See All <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </AnimSection>
 
             {/* All devices: horizontal scroll */}
-            <div className="flex gap-3 overflow-x-auto no-scrollbar py-5 sm:py-3 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar py-6 sm:py-4 -mx-4 px-4 sm:mx-0 sm:px-0">
               {categories.map((cat, i) => {
                 const Icon = getCategoryIcon(cat);
                 return (
                   <AnimSection key={cat.id} delay={i * 40} className="shrink-0">
-                    <Link href={`/services?category=${cat.id}`} className="block pb-2">
-                      <div className="group flex flex-col items-center justify-center gap-1 sm:gap-1.5 p-2 sm:p-3 w-[80px] h-[80px] sm:w-[105px] sm:h-[105px] border-2 border-brand/20 rounded-full bg-brand/5 hover:border-brand hover:bg-brand hover:-translate-y-1 transition-all duration-300 cursor-pointer text-center shadow-sm hover:shadow-brand/30 hover:shadow-lg">
-                        <span className="flex items-center justify-center text-brand group-hover:text-white transition-colors duration-300">
-                          <Icon className="h-5 w-5 sm:h-6 sm:w-6 drop-shadow-sm" />
-                        </span>
-                        <span className="text-[9px] sm:text-[11px] font-bold text-foreground group-hover:text-white transition-colors duration-300 line-clamp-2 px-1 leading-[1.1]">
+                    <Link href={`/services?category=${cat.id}`} className="block">
+                      <div className="group flex flex-col items-center justify-start gap-3 sm:gap-4 w-[90px] sm:w-[110px] transition-all duration-300 cursor-pointer">
+                        <div className="relative flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] bg-card border border-border/50 shadow-sm group-hover:shadow-xl group-hover:shadow-brand/20 group-hover:-translate-y-2 group-hover:border-brand/30 transition-all duration-300 overflow-hidden">
+                          {/* Inner gradient/glow on hover */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                          <Icon className="relative z-10 h-7 w-7 sm:h-8 sm:w-8 text-foreground/70 group-hover:text-brand group-hover:scale-110 transition-all duration-300 drop-shadow-sm" />
+                        </div>
+                        <span className="text-xs sm:text-[13px] font-semibold text-foreground/80 group-hover:text-brand transition-colors duration-300 text-center leading-snug px-1">
                           {cat.name}
                         </span>
                       </div>
@@ -340,7 +366,7 @@ export default function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════ */}
-      {/* 4. POPULAR SERVICES                                    */}
+      {/* 5. POPULAR SERVICES                                    */}
       {/* ═══════════════════════════════════════════════════════ */}
       {allServices.length > 0 && (
         <section className="section-py bg-background">
@@ -399,30 +425,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ═══════════════════════════════════════════════════════ */}
-      {/* 5. HOW IT WORKS                                        */}
-      {/* ═══════════════════════════════════════════════════════ */}
-      <section className="section-py bg-card border-t border-border">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <AnimSection className="text-center mb-6 sm:mb-14">
-            <SectionLabel>Simple Process</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Book in 3 easy steps</h2>
-          </AnimSection>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 relative">
-            {/* Connector line (desktop) */}
-            <div className="hidden sm:block absolute top-9 left-[calc(16.66%)] right-[calc(16.66%)] h-px bg-border z-0" />
-            {HOW_STEPS.map((step, i) => (
-              <AnimSection key={step.n} delay={i * 120} className="relative z-10 flex flex-col items-center text-center">
-                <div className="h-16 w-16 rounded-2xl bg-brand/10 border-2 border-brand/20 flex items-center justify-center mb-4 shadow-md shadow-brand/10">
-                  <span className="text-2xl font-extrabold gradient-text">{step.n}</span>
-                </div>
-                <h3 className="text-base font-bold text-foreground mb-1">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
-              </AnimSection>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 6. TOP RATED PROVIDERS                                 */}
@@ -544,7 +546,7 @@ export default function HomePage() {
         {/* Decorative circles */}
         <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5" />
         <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/5" />
-        
+
         <AnimSection className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center">
           <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-3">For Service Professionals</p>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-4">

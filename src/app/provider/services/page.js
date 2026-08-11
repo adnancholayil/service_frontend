@@ -144,53 +144,53 @@ export default function ProviderServices() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-            My Services <Wrench className="h-6 w-6 text-emerald-500" />
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-3">
+            My Services <Wrench className="h-6 w-6 text-brand" />
           </h1>
-          <p className="text-slate-500 mt-2 text-sm font-medium">Manage your service offerings, pricing, and availability.</p>
+          <p className="text-muted-foreground mt-2 text-sm font-medium">Manage your service offerings, pricing, and availability.</p>
         </div>
-        <button onClick={openAddModal} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-emerald-500/20">
+        <button onClick={openAddModal} className="flex items-center gap-2 bg-brand hover:bg-brand-hover text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-brand/20">
           <Plus className="h-4 w-4" /> Add Service
         </button>
       </div>
 
       {/* Content Area */}
       {profileLoading ? (
-        <div className="min-h-[300px] flex items-center justify-center text-slate-400 font-bold">Loading services...</div>
+        <div className="min-h-[300px] flex items-center justify-center text-muted-foreground font-bold">Loading services...</div>
       ) : services.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[500px] flex flex-col items-center justify-center text-center p-12">
-          <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-            <LayoutGrid className="h-8 w-8 text-slate-300" />
+        <div className="bg-card border border-border rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden min-h-[500px] flex flex-col items-center justify-center text-center p-12">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <LayoutGrid className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">You haven't added any services yet</h2>
-          <p className="text-sm font-medium text-slate-500 mt-2 max-w-md">Create your first service to start accepting bookings from customers in your area.</p>
-          <button onClick={openAddModal} className="mt-6 flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
+          <h2 className="text-xl font-bold text-foreground">You haven't added any services yet</h2>
+          <p className="text-sm font-medium text-muted-foreground mt-2 max-w-md">Create your first service to start accepting bookings from customers in your area.</p>
+          <button onClick={openAddModal} className="mt-6 flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-5 py-2.5 rounded-xl text-sm font-bold transition-all">
             <Plus className="h-4 w-4" /> Create First Service
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service) => (
-            <div key={service.id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all flex flex-col justify-between h-full">
+            <div key={service.id} className="bg-card border border-border rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all flex flex-col justify-between h-full">
               <div>
                 <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{service.name}</h3>
+                  <h3 className="font-bold text-foreground text-lg leading-tight">{service.name}</h3>
                   <span className={`text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider ${
-                    service.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                    service.isActive ? 'bg-brand/10 text-brand' : 'bg-muted text-muted-foreground'
                   }`}>
                     {service.isActive ? 'Active' : 'Hidden'}
                   </span>
                 </div>
-                <p className="text-2xl font-black text-emerald-600">₹{service.price}</p>
+                <p className="text-2xl font-black text-brand">₹{service.price}</p>
                 {service.description && (
-                  <p className="text-sm text-slate-500 mt-2 line-clamp-2">{service.description}</p>
+                  <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{service.description}</p>
                 )}
               </div>
-              <div className="mt-6 flex gap-2 pt-4 border-t border-slate-100 justify-end">
-                <button onClick={() => openEditModal(service)} className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer" title="Edit">
+              <div className="mt-6 flex gap-2 pt-4 border-t border-border justify-end">
+                <button onClick={() => openEditModal(service)} className="p-2 text-muted-foreground hover:text-brand hover:bg-brand/10 rounded-lg transition-colors cursor-pointer" title="Edit">
                   <Edit className="h-4.5 w-4.5" />
                 </button>
-                <button onClick={() => handleDelete(service.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer" title="Delete">
+                <button onClick={() => handleDelete(service.id)} className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer" title="Delete">
                   <Trash2 className="h-4.5 w-4.5" />
                 </button>
               </div>
@@ -201,30 +201,30 @@ export default function ProviderServices() {
 
       {/* Add/Edit Service Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-border animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-slate-900">{isEditMode ? 'Edit Service' : 'Create New Service'}</h2>
-              <button onClick={closeModal} className="p-2 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-full transition-colors">
+              <h2 className="text-2xl font-bold text-foreground">{isEditMode ? 'Edit Service' : 'Create New Service'}</h2>
+              <button onClick={closeModal} className="p-2 text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 rounded-full transition-colors">
                 <X className="h-5 w-5" />
               </button>
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Service Name *</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Service Name *</label>
                 <input 
                   type="text" 
                   required
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-foreground" 
                   placeholder="e.g. Deep Home Cleaning" 
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Category *</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Category *</label>
                 <SelectSearch 
                   options={categoryOptions}
                   value={formData.category}
@@ -235,7 +235,7 @@ export default function ProviderServices() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Price (₹) *</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Price (₹) *</label>
                   <input 
                     type="number" 
                     required
@@ -243,40 +243,40 @@ export default function ProviderServices() {
                     step="0.01"
                     value={formData.price}
                     onChange={e => setFormData({...formData, price: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-foreground" 
                     placeholder="0.00" 
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Duration (mins)</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Duration (mins)</label>
                   <input 
                     type="number" 
                     min="0"
                     value={formData.duration}
                     onChange={e => setFormData({...formData, duration: e.target.value})}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                    className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-foreground" 
                     placeholder="60" 
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Description *</label>
+                <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Description *</label>
                 <textarea 
                   required
                   rows={3}
                   value={formData.description}
                   onChange={e => setFormData({...formData, description: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all" 
+                  className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-foreground" 
                   placeholder="Detail what is included in this service..." 
                 />
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
-                 <button type="button" onClick={closeModal} className="px-5 py-2.5 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">
+                 <button type="button" onClick={closeModal} className="px-5 py-2.5 font-bold text-foreground bg-muted hover:bg-muted/80 rounded-xl transition-colors">
                    Cancel
                  </button>
-                 <button type="submit" disabled={creating || updating} className={`px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md shadow-emerald-500/20 transition-all ${(creating || updating) ? 'opacity-50' : ''}`}>
+                 <button type="submit" disabled={creating || updating} className={`px-5 py-2.5 bg-brand hover:bg-brand-hover text-white font-bold rounded-xl shadow-md shadow-brand/20 transition-all ${(creating || updating) ? 'opacity-50' : ''}`}>
                    {creating || updating ? 'Saving...' : (isEditMode ? 'Update Service' : 'Create Service')}
                  </button>
               </div>

@@ -78,3 +78,9 @@ export const DELETE_REVIEW_MUTATION = gql`
     deleteReview(id: $id)
   }
 `;
+
+export const RESOLVE_REVIEW_REPORT_MUTATION = gql`
+  mutation ResolveReviewReport($reviewId: ID!, $action: String!) {
+    resolveReviewReport(reviewId: $reviewId, action: $action)
+  }
+`;
