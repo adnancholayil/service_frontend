@@ -11,6 +11,7 @@ import { store, persistor } from '../../store';
 import { apolloClient } from '../../graphql/client';
 import AuthModals from '../auth/AuthModals';
 import LogoutConfirmModal from '../auth/LogoutConfirmModal';
+import NotificationSync from './NotificationSync';
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
@@ -57,6 +58,7 @@ export default function Providers({ children }) {
             <ApolloProvider client={apolloClient}>
               <QueryClientProvider client={queryClient}>
                 {children}
+                <NotificationSync />
                 <AuthModals />
                 <LogoutConfirmModal />
                 <Toaster

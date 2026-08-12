@@ -4,13 +4,18 @@ import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Bell, Sparkles, Check, Trash2, Calendar, MessageSquare, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useMutation } from '@apollo/client/react';
 
 import { markAsRead, markAllAsRead, deleteNotification } from '../../store/slices/notificationSlice';
+import { MARK_ALL_NOTIFICATIONS_AS_READ, MARK_NOTIFICATION_AS_READ } from '../../graphql/mutations/notifications';
 import Button from '../../components/ui/Button';
 
 export default function NotificationsPage() {
   const dispatch = useDispatch();
   const { notifications } = useSelector((state) => state.notification);
+
+  const [markAllReadMut] = useMutation(MARK_ALL_NOTIFICATIONS_AS_READ);
+  const [markReadMut] = useMutation(MARK_NOTIFICATION_AS_READ);
 
   const getIcon = (type) => {
     switch (type) {
@@ -23,9 +28,23 @@ export default function NotificationsPage() {
     }
   };
 
-  const handleMarkAllRead = () => {
+  const handleMarkAllRead = async () => {
     dispatch(markAllAsRead());
     toast.success('All notifications marked as read');
+    try {
+      await markAllReadMut();
+    } catch (e) {
+      console.error('Failed to mark all notifications as read:', e);
+    }
+  };
+
+  const handleMarkRead = async (id) => {
+    dispatch(markAsRead(id));
+    try {
+      await markReadMut({ variables: { id } });
+    } catch (e) {
+      console.error('Failed to mark notification as read:', e);
+    }
   };
 
   const handleDelete = (id) => {
@@ -65,7 +84,7 @@ export default function NotificationsPage() {
               }`}
             >
               <div className="mt-0.5 p-2 bg-muted rounded-lg">{getIcon(notif.type)}</div>
-              <div className="flex-1 pr-6" onClick={() => dispatch(markAsRead(notif.id))}>
+              <div className="flex-1 pr-6 cursor-pointer" onClick={() => handleMarkRead(notif.id)}>
                 <h4 className="text-sm font-bold leading-snug">{notif.title}</h4>
                 <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
                 <span className="text-[10px] text-muted-foreground block mt-2">

@@ -20,7 +20,7 @@ const SocialIcon = ({ href, label, children }) => (
 
 const FooterLink = ({ href, children }) => (
   <li>
-    <Link href={href} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+    <Link href={href} className="text-sm text-muted-foreground dark:text-zinc-400 hover:text-foreground dark:hover:text-white transition-colors">
       {children}
     </Link>
   </li>
@@ -59,7 +59,7 @@ export function Footer() {
                 Ser<span className="text-brand">vio</span>
               </span>
             </Link>
-            <p className="text-sm leading-relaxed max-w-xs">
+            <p className="text-sm leading-relaxed max-w-xs dark:text-zinc-400">
               On-demand local service professionals at your doorstep. Reliable, background-verified, and highly rated.
             </p>
 
@@ -130,13 +130,13 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground dark:text-zinc-500">
             © {new Date().getFullYear()} Servio. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <Link href="#" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Terms of Service</Link>
-            <Link href="#" className="hover:text-foreground transition-colors">Contact</Link>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground dark:text-zinc-400">
+            <Link href="#" className="hover:text-foreground dark:hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="#" className="hover:text-foreground dark:hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="#" className="hover:text-foreground dark:hover:text-white transition-colors">Contact</Link>
           </div>
         </div>
       </div>

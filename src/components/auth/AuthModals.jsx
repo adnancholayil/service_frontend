@@ -8,7 +8,10 @@ import { useEffect } from 'react';
 import { Sparkles, User, Briefcase } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { GoogleLogin } from '@react-oauth/google';
+import { motion, AnimatePresence } from 'framer-motion';
 import CreatableSelect from 'react-select/creatable';
+import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 import { loginStart, loginSuccess, loginFailure } from '../../store/slices/authSlice';
 import { closeAuthModal, openAuthModal } from '../../store/slices/appSlice';
@@ -22,6 +25,7 @@ import Input from '../ui/Input';
 export default function AuthModals() {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
@@ -229,47 +233,64 @@ export default function AuthModals() {
       title={authModalType === 'login' ? 'Sign In' : 'Create Account'}
       size="lg"
     >
-      <div className="space-y-6">
+      <motion.div layout className="space-y-6 overflow-hidden">
         
         {/* Title logo inside modal */}
-        <div className="text-center">
+        <motion.div layout className="text-center">
           <div className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-foreground">
-            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-brand text-white shadow-sm">
-              <Sparkles className="h-5 w-5" />
-            </span>
+            <Image
+              src="/assets/LOGO.png"
+              alt="Servio Logo"
+              width={32}
+              height={32}
+            />
             <span>Service<span className="text-brand">Hub</span></span>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {authModalType === 'login' ? (
-              <>
-                Don&apos;t have an account?{' '}
-                <button type="button" onClick={() => switchModal('register')} className="font-semibold text-brand hover:text-brand-hover">
-                  Sign up here
-                </button>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <button type="button" onClick={() => switchModal('login')} className="font-semibold text-brand hover:text-brand-hover">
-                  Sign in
-                </button>
-              </>
-            )}
-          </p>
-        </div>
+          <div className="mt-6 mx-auto max-w-sm">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
+              <button
+                type="button"
+                onClick={() => switchModal('login')}
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                  authModalType === 'login'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => switchModal('register')}
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+                  authModalType === 'register'
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
         {!(authModalType === 'register' && role === 'PROVIDER') && (
-          <>
-            <div className="flex justify-center w-full py-2">
+          <motion.div layout>
+            <motion.div
+              layout
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex justify-center w-full py-3"
+            >
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => toast.error('Google Login failed')}
                 shape="rectangular"
-                theme="outline"
-                text={authModalType === 'login' ? 'signin_with' : 'signup_with'}
+                theme={resolvedTheme === 'dark' ? 'filled_black' : 'outline'}
+                text="signin_with"
                 size="large"
               />
-            </div>
+            </motion.div>
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -279,11 +300,21 @@ export default function AuthModals() {
                 <span className="bg-card px-2 text-muted-foreground">Or continue with email</span>
               </div>
             </div>
-          </>
+          </motion.div>
         )}
 
-        {authModalType === 'login' ? (
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
+        <AnimatePresence mode="popLayout">
+          {authModalType === 'login' ? (
+            <motion.form
+              key="login"
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.2 }}
+              onSubmit={handleLoginSubmit}
+              className="space-y-4"
+            >
             <Input
               id="email-address-login"
               name="email"
@@ -316,9 +347,17 @@ export default function AuthModals() {
             <Button type="submit" isLoading={isLoading} className="w-full justify-center mt-6">
               Log In
             </Button>
-          </form>
+          </motion.form>
         ) : (
-          <>
+          <motion.div
+            key="register"
+            layout
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
             {/* Role Selector Tabs for Register */}
             <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-xl">
               <button
@@ -489,9 +528,10 @@ export default function AuthModals() {
                 Sign Up as {role === 'PROVIDER' ? 'Service Partner' : 'Customer'}
               </Button>
             </form>
-          </>
+          </motion.div>
         )}
-      </div>
+        </AnimatePresence>
+      </motion.div>
     </Modal>
   );
 }

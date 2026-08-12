@@ -107,8 +107,13 @@ export default function HomePage() {
   const providers = data?.providers?.data || [];
   const publicReviews = data?.publicReviews || [];
   const publicBanners = data?.publicBanners || [];
+  const parseDate = (dStr) => {
+    if (!dStr) return null;
+    return /^\d+$/.test(dStr) ? new Date(parseInt(dStr, 10)) : new Date(dStr);
+  };
+
   const allServices = providers.flatMap(p =>
-    p.services.map(s => ({ ...s, providerRating: p.rating, providerName: p.businessName, providerId: p.id }))
+    (p.services || []).map(s => ({ ...s, providerRating: p.rating, providerName: p.businessName, providerId: p.id }))
   );
 
   // Auto-play banners
@@ -137,35 +142,29 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background text-foreground">
 
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 1. HERO                                                */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="relative w-full min-h-[70vh] sm:min-h-[88vh] flex items-center justify-center">
-        {/* BG Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2000&auto=format&fit=crop"
-            alt="Professional service background"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/80" />
-          {/* subtle brand tint */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-sky-900/30 to-transparent" />
-        </div>
+      <section className="relative w-full min-h-[75vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden bg-background text-foreground animate-fade-in">
+        {/* Glow Effects */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-brand/20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-500/20 blur-[120px] pointer-events-none" />
 
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-24 text-center">
+        {/* Mesh Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-60 z-0 pointer-events-none" />
 
-          {/* Label pill */}
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-24 text-center">
+          {/* Label Pill */}
           <motion.div
             initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white text-xs sm:text-sm font-semibold mb-4 sm:mb-6"
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-foreground/5 border border-border backdrop-blur-md text-foreground text-xs sm:text-sm font-semibold mb-6 sm:mb-8"
           >
-            <Award className="h-3.5 w-3.5 text-yellow-400" />
-            Trusted by 50,000+ Homeowners
+            <Award className="h-4 w-4 text-amber-500 fill-amber-500/20" />
+            <span>Trusted by 50,000+ Happy Homeowners</span>
           </motion.div>
 
           {/* Headline */}
@@ -173,10 +172,10 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.15] mb-4 sm:mb-5"
+            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6"
           >
-            Quality Home Services,{' '}
-            <span className="gradient-text">Instantly Booked.</span>
+            Quality Home Services, <br />
+            <span className="bg-gradient-to-r from-brand via-sky-400 to-violet-400 bg-clip-text text-transparent">Instantly Booked.</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -184,7 +183,7 @@ export default function HomePage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-zinc-300 text-sm sm:text-lg max-w-xl mx-auto leading-relaxed mb-6 sm:mb-8"
+            className="text-muted-foreground text-sm sm:text-xl max-w-2xl mx-auto leading-relaxed mb-8 sm:mb-10"
           >
             Connect with background-verified plumbers, electricians, cleaners & more — at upfront flat rates.
           </motion.p>
@@ -195,14 +194,14 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
             onSubmit={handleSearchSubmit}
-            className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl mx-auto"
+            className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl mx-auto bg-foreground/5 p-2 rounded-2xl border border-border backdrop-blur-lg"
           >
-            <div className="flex-1 w-full flex items-center bg-white rounded-2xl px-4 gap-3 h-14 min-h-[56px] shadow-xl shadow-black/20">
-              <Search className="h-5 w-5 text-zinc-400 shrink-0" />
+            <div className="flex-1 w-full flex items-center bg-card rounded-xl px-4 gap-3 h-14 min-h-[56px] shadow-sm">
+              <Search className="h-5 w-5 text-muted-foreground shrink-0" />
               <input
                 type="text"
                 placeholder="What service do you need?"
-                className="flex-1 h-full w-full bg-transparent text-zinc-900 placeholder:text-zinc-400 text-sm sm:text-base !outline-none !ring-0 border-none"
+                className="flex-1 h-full w-full bg-transparent text-foreground placeholder:text-muted-foreground text-sm sm:text-base outline-none ring-0 border-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -210,23 +209,23 @@ export default function HomePage() {
             <Button
               type="submit"
               variant="accent"
-              className="w-full sm:w-auto h-14 min-h-[56px] px-8 text-base font-bold rounded-2xl shadow-xl shadow-accent/30 shrink-0"
+              className="w-full sm:w-auto h-14 min-h-[56px] px-8 text-base font-bold rounded-xl shadow-lg shrink-0 cursor-pointer"
             >
               Find Services
             </Button>
           </motion.form>
 
-          {/* Trust chips */}
+          {/* Trust Chips */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="flex flex-wrap justify-center gap-x-3 sm:gap-x-5 gap-y-2 mt-6 sm:mt-8"
+            className="flex flex-wrap justify-center gap-4 sm:gap-6 mt-10 sm:mt-12"
           >
             {TRUST.map(({ icon: Icon, label, color }) => (
-              <div key={label} className="flex items-center gap-1 sm:gap-1.5 text-white/80 text-[10px] sm:text-sm font-semibold">
-                <Icon className={`h-3 w-3 sm:h-4 sm:w-4 ${color}`} />
-                {label}
+              <div key={label} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-foreground/5 border border-border text-foreground/80 text-xs sm:text-sm font-semibold">
+                <Icon className={"h-4 w-4 " + color} />
+                <span>{label}</span>
               </div>
             ))}
           </motion.div>
@@ -245,25 +244,25 @@ export default function HomePage() {
       {/* 2. PROMO BANNERS                                       */}
       {/* ═══════════════════════════════════════════════════════ */}
       {publicBanners.length > 0 && (
-        <section className="section-py bg-background">
+        <section className="section-py bg-background relative overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <AnimSection>
               <SectionLabel>Exclusive Deals</SectionLabel>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6">Special Offers</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground mb-8">Special Offers</h2>
             </AnimSection>
 
             <AnimSection delay={100}>
               <div className="relative w-full [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_2%,black_98%,transparent)]">
                 {/* Scrollable Container */}
                 <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-                  {publicBanners.map((banner, idx) => {
+                  {publicBanners.map((banner) => {
                     const Wrapper = banner.link ? Link : 'div';
                     const wrapperProps = banner.link ? { href: banner.link } : {};
                     return (
                       <Wrapper
                         key={banner.id}
                         {...wrapperProps}
-                        className="relative h-[220px] sm:h-[280px] lg:h-[340px] w-full max-w-[90vw] sm:max-w-none sm:w-[80%] lg:w-[70%] shrink-0 snap-center overflow-hidden group cursor-pointer"
+                        className="relative h-[220px] sm:h-[300px] lg:h-[360px] w-full max-w-[90vw] sm:max-w-none sm:w-[80%] lg:w-[70%] shrink-0 snap-center overflow-hidden rounded-2xl group cursor-pointer border border-border/40 shadow-sm"
                       >
                         <img
                           src={banner.imageUrl}
@@ -271,16 +270,16 @@ export default function HomePage() {
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                           onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x400/0EA5E9/white?text=Special+Offer'; }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center">
-                          <div className="p-6 sm:p-10 max-w-xl">
-                            <span className="inline-block px-3 py-1 mb-3 text-[10px] sm:text-xs font-bold text-white bg-brand rounded-full uppercase tracking-wider">
-                              Promo
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/40 to-transparent flex items-center">
+                          <div className="p-6 sm:p-12 max-w-xl">
+                            <span className="inline-block px-3 py-1 mb-4 text-[10px] sm:text-xs font-bold text-white bg-brand rounded-full uppercase tracking-wider">
+                              Promo Deal
                             </span>
-                            <h3 className="text-white font-extrabold text-2xl sm:text-3xl lg:text-4xl leading-tight mb-4">
+                            <h3 className="text-white font-extrabold text-2xl sm:text-4xl lg:text-5xl leading-tight mb-4">
                               {banner.title}
                             </h3>
                             {banner.link && (
-                              <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-zinc-900 font-bold text-xs sm:text-sm rounded-full hover:bg-brand hover:text-white transition-all shadow-lg">
+                              <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-zinc-900 font-bold text-xs sm:text-sm rounded-xl hover:bg-brand hover:text-white transition-all shadow-md">
                                 Claim Offer <ArrowRight className="h-4 w-4" />
                               </span>
                             )}
@@ -295,25 +294,26 @@ export default function HomePage() {
           </div>
         </section>
       )}
+
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 3. HOW IT WORKS                                        */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="section-py bg-card border-t border-border">
+      <section className="section-py bg-card border-y border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <AnimSection className="text-center mb-6 sm:mb-14">
+          <AnimSection className="text-center mb-8 sm:mb-16">
             <SectionLabel>Simple Process</SectionLabel>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Book in 3 easy steps</h2>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Book in 3 Easy Steps</h2>
           </AnimSection>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 relative">
             {/* Connector line (desktop) */}
-            <div className="hidden sm:block absolute top-9 left-[calc(16.66%)] right-[calc(16.66%)] h-px bg-border z-0" />
+            <div className="hidden sm:block absolute top-10 left-[calc(16.66%)] right-[calc(16.66%)] h-0.5 bg-border z-0" />
             {HOW_STEPS.map((step, i) => (
-              <AnimSection key={step.n} delay={i * 120} className="relative z-10 flex flex-col items-center text-center">
-                <div className="h-16 w-16 rounded-2xl bg-brand/10 border-2 border-brand/20 flex items-center justify-center mb-4 shadow-md shadow-brand/10">
-                  <span className="text-2xl font-extrabold gradient-text">{step.n}</span>
+              <AnimSection key={step.n} delay={i * 120} className="relative z-10 flex flex-col items-center text-center group">
+                <div className="h-20 w-20 rounded-2xl bg-brand/5 border-2 border-brand/20 group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:shadow-lg group-hover:shadow-brand/10 flex items-center justify-center mb-5 transition-all duration-300">
+                  <span className="text-3xl font-extrabold bg-gradient-to-r from-brand to-sky-400 bg-clip-text text-transparent">{step.n}</span>
                 </div>
-                <h3 className="text-base font-bold text-foreground mb-1">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed px-2">{step.desc}</p>
               </AnimSection>
             ))}
           </div>
@@ -324,42 +324,42 @@ export default function HomePage() {
       {/* 4. CATEGORIES                                          */}
       {/* ═══════════════════════════════════════════════════════ */}
       {categories.length > 0 && (
-        <section className="py-8 sm:py-16 bg-background border-t border-border">
+        <section className="py-12 sm:py-24 bg-background">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-end justify-between mb-4 sm:mb-10">
+            <AnimSection className="flex items-end justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Browse by Category</SectionLabel>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">What do you need?</h2>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">What Do You Need?</h2>
               </div>
               <Link
                 href="/services"
-                className="text-sm font-bold text-brand hover:text-brand-hover flex items-center gap-1.5 shrink-0 ml-4 group transition-colors"
+                className="text-sm font-bold text-brand hover:text-brand-dark flex items-center gap-1.5 shrink-0 ml-4 group transition-colors cursor-pointer"
               >
                 See All <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </AnimSection>
 
-            {/* All devices: horizontal scroll */}
-            <div className="flex gap-4 sm:gap-8 overflow-x-auto no-scrollbar py-6 sm:py-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-              {categories.map((cat, i) => {
-                const Icon = getCategoryIcon(cat);
-                return (
-                  <AnimSection key={cat.id} delay={i * 40} className="shrink-0">
-                    <Link href={`/services?category=${cat.id}`} className="block">
-                      <div className="group flex flex-col items-center justify-start gap-3 sm:gap-4 w-[90px] sm:w-[110px] transition-all duration-300 cursor-pointer">
-                        <div className="relative flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-[1.5rem] bg-card border border-border/50 shadow-sm group-hover:shadow-xl group-hover:shadow-brand/20 group-hover:-translate-y-2 group-hover:border-brand/30 transition-all duration-300 overflow-hidden">
-                          {/* Inner gradient/glow on hover */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-brand/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <Icon className="relative z-10 h-7 w-7 sm:h-8 sm:w-8 text-foreground/70 group-hover:text-brand group-hover:scale-110 transition-all duration-300 drop-shadow-sm" />
+            {/* Scrollable Row for single row premium layout */}
+            <div className="relative w-full [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] sm:[mask-image:linear-gradient(to_right,transparent,black_2%,black_98%,transparent)]">
+              <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory no-scrollbar py-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+                {categories.map((cat, i) => {
+                  const Icon = getCategoryIcon(cat);
+                  return (
+                    <AnimSection key={cat.id} delay={i * 40} className="shrink-0 snap-center">
+                      <Link href={"/services?category=" + (cat.slug || cat.id)} className="block">
+                        <div className="group flex flex-col items-center justify-center p-5 rounded-2xl bg-card border border-border/50 hover:border-brand/30 hover:shadow-xl hover:shadow-brand/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer h-full text-center w-[120px] sm:w-[140px]">
+                          <div className="w-14 h-14 rounded-2xl bg-brand/5 border border-brand/10 text-brand flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-brand group-hover:text-white transition-all duration-300">
+                            <Icon className="h-6 w-6" />
+                          </div>
+                          <span className="text-xs sm:text-[13px] font-bold text-foreground group-hover:text-brand transition-colors leading-tight line-clamp-2">
+                            {cat.name}
+                          </span>
                         </div>
-                        <span className="text-xs sm:text-[13px] font-semibold text-foreground/80 group-hover:text-brand transition-colors duration-300 text-center leading-snug px-1">
-                          {cat.name}
-                        </span>
-                      </div>
-                    </Link>
-                  </AnimSection>
-                );
-              })}
+                      </Link>
+                    </AnimSection>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </section>
@@ -369,50 +369,50 @@ export default function HomePage() {
       {/* 5. POPULAR SERVICES                                    */}
       {/* ═══════════════════════════════════════════════════════ */}
       {allServices.length > 0 && (
-        <section className="section-py bg-background">
+        <section className="section-py bg-card border-t border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-center justify-between mb-4 sm:mb-8">
+            <AnimSection className="flex items-center justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Most Booked</SectionLabel>
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Popular Services</h2>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Popular Services</h2>
               </div>
-              <span className="chip chip-brand ml-4">
+              <span className="flex items-center gap-1.5 text-xs font-bold text-brand bg-brand/5 border border-brand/10 px-3 py-1.5 rounded-full ml-4">
                 <TrendingUp className="h-3.5 w-3.5" /> Trending
               </span>
             </AnimSection>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {allServices.slice(0, 6).map((srv, i) => (
                 <AnimSection key={srv.id} delay={i * 70} className="h-full">
-                  <Link href={`/providers/${srv.providerId}`} className="block h-full">
-                    <Card hoverable className="group h-full">
-                      <CardBody className="flex flex-col p-5 sm:p-6 h-full">
-                        {/* Top row */}
+                  <Link href={"/providers/" + srv.providerId} className="block h-full">
+                    <Card hoverable className="group h-full flex flex-col bg-background border border-border/50 hover:border-brand/30 hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                      <CardBody className="flex flex-col p-6 h-full">
+                        {/* Tag & Rating */}
                         <div className="flex items-center justify-between mb-4">
-                          <span className="chip chip-muted text-[11px] font-bold">
+                          <span className="text-[10px] font-extrabold text-brand bg-brand/5 border border-brand/10 px-2.5 py-1 rounded-md uppercase tracking-wider">
                             {srv.category?.name || 'Service'}
                           </span>
-                          <span className="flex items-center gap-1 text-xs font-bold text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-full">
-                            <Star className="h-3 w-3 fill-yellow-500" /> {srv.providerRating || 5.0}
+                          <span className="flex items-center gap-1 text-xs font-bold text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full">
+                            <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" /> {srv.providerRating || 5.0}
                           </span>
                         </div>
 
                         {/* Name */}
-                        <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-brand transition-colors leading-tight">
+                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-brand transition-colors leading-tight">
                           {srv.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-5 leading-relaxed flex-1">
+                        <p className="text-sm text-muted-foreground mb-6 leading-relaxed flex-1">
                           {srv.description}
                         </p>
 
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-4 border-t border-border/30 mt-auto">
+                        {/* Price footer */}
+                        <div className="flex items-center justify-between pt-5 border-t border-border/40 mt-auto">
                           <div>
-                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-0.5">Starting from</p>
-                            <p className="text-xl font-extrabold text-foreground">₹{srv.price}</p>
+                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mb-0.5">Price starting from</p>
+                            <p className="text-2xl font-extrabold text-foreground">₹{srv.price}</p>
                           </div>
-                          <span className="text-[11px] sm:text-xs font-bold text-brand bg-brand/10 px-4 sm:px-4 py-2.5 sm:py-2 rounded-full group-hover:bg-brand group-hover:text-white transition-all shadow-sm">
-                            Book →
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-brand bg-brand/5 border border-brand/10 px-4 py-2.5 rounded-xl group-hover:bg-brand group-hover:text-white group-hover:border-brand transition-all cursor-pointer">
+                            Book Service <ArrowRight className="h-3.5 w-3.5" />
                           </span>
                         </div>
                       </CardBody>
@@ -425,65 +425,65 @@ export default function HomePage() {
         </section>
       )}
 
-
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 6. TOP RATED PROVIDERS                                 */}
       {/* ═══════════════════════════════════════════════════════ */}
       {providers.length > 0 && (
         <section className="section-py bg-background">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="flex items-end justify-between mb-4 sm:mb-8">
+            <AnimSection className="flex items-end justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Top Professionals</SectionLabel>
-                <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Highly Rated Partners</h2>
+                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Highly Rated Partners</h2>
               </div>
               <Link
                 href="/providers"
-                className="text-sm font-bold text-brand hover:text-brand-hover flex items-center gap-1.5 shrink-0 ml-4"
+                className="text-sm font-bold text-brand hover:text-brand-dark flex items-center gap-1.5 shrink-0 ml-4 cursor-pointer"
               >
                 View All <ArrowRight className="h-4 w-4" />
               </Link>
             </AnimSection>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {providers.slice(0, 4).map((prov, i) => (
                 <AnimSection key={prov.id} delay={i * 80} className="h-full">
-                  <Card hoverable className="group h-full">
-                    <CardBody className="flex flex-col p-5 h-full">
-                      {/* Header with Avatar */}
-                      <div className="flex items-center gap-3 mb-4">
+                  <Card hoverable className="group h-full flex flex-col bg-card border border-border/50 hover:border-brand/30 hover:shadow-2xl transition-all duration-300 overflow-hidden">
+                    <CardBody className="flex flex-col p-6 h-full">
+                      {/* Provider info card top */}
+                      <div className="flex items-start gap-4 mb-4">
                         <Avatar
                           src={prov.user?.avatar}
                           alt={prov.businessName}
                           size="md"
-                          className="h-12 w-12 rounded-full border border-border group-hover:ring-2 group-hover:ring-brand/30 transition-all shrink-0"
+                          className="h-14 w-14 rounded-2xl border border-border/60 group-hover:ring-2 group-hover:ring-brand/20 transition-all shrink-0"
                         />
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-sm sm:text-base font-bold text-foreground leading-tight flex items-center gap-1.5 truncate">
+                          <h3 className="text-base font-bold text-foreground leading-tight flex items-center gap-1.5 truncate">
                             <span className="truncate">{prov.businessName}</span>
-                            <CheckCircle className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
+                            <CheckCircle className="h-4 w-4 text-emerald-500 shrink-0" />
                           </h3>
-                          <div className="flex items-center justify-between gap-1 mt-0.5">
-                            <p className="text-xs font-semibold text-brand truncate">{prov.category?.name}</p>
+                          <p className="text-xs font-bold text-brand mt-1 truncate">{prov.category?.name}</p>
+                          <div className="flex items-center gap-1 mt-1.5">
                             <span className="flex items-center gap-0.5 text-[10px] font-bold text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded-full shrink-0">
-                              <Star className="h-2.5 w-2.5 fill-yellow-500" /> {prov.rating}
+                              <Star className="h-2.5 w-2.5 fill-yellow-500 text-yellow-500" /> {prov.rating}
                             </span>
+                            <span className="text-[10px] text-muted-foreground">({prov.reviewsCount} reviews)</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Body */}
-                      <p className="text-xs sm:text-sm text-muted-foreground mb-5 leading-relaxed flex-1">
-                        {prov.description || 'Professional local service provider ready to assist you.'}
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground mb-6 leading-relaxed flex-1 line-clamp-3">
+                        {prov.description || 'Verified local service provider equipped to handle your home and commercial service tasks.'}
                       </p>
 
-                      {/* Footer Actions */}
-                      <div className="flex items-center gap-2 pt-4 border-t border-border/30 mt-auto">
-                        <Link href={`/providers/${prov.id}`} className="flex-1">
-                          <Button variant="outline" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold px-1 rounded-lg">Profile</Button>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2.5 pt-5 border-t border-border/40 mt-auto">
+                        <Link href={"/providers/" + prov.id} className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full h-10 text-xs font-bold rounded-xl cursor-pointer">Profile</Button>
                         </Link>
-                        <Link href={`/providers/${prov.id}?book=true`} className="flex-1">
-                          <Button variant="primary" size="sm" className="w-full h-11 sm:h-10 text-[11px] sm:text-xs font-bold px-1 rounded-lg shadow-sm">Book</Button>
+                        <Link href={"/providers/" + prov.id + "?book=true"} className="flex-1">
+                          <Button variant="primary" size="sm" className="w-full h-10 text-xs font-bold rounded-xl shadow-sm cursor-pointer">Book Now</Button>
                         </Link>
                       </div>
                     </CardBody>
@@ -501,33 +501,33 @@ export default function HomePage() {
       {publicReviews.length > 0 && (
         <section className="section-py bg-card border-t border-border overflow-hidden">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <AnimSection className="text-center mb-4 sm:mb-10">
+            <AnimSection className="text-center mb-6 sm:mb-12">
               <SectionLabel>Real Reviews</SectionLabel>
-              <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Loved by our customers</h2>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Loved by Our Customers</h2>
             </AnimSection>
 
             {/* Marquee loop container */}
-            <div className="relative overflow-hidden w-full py-2">
-              <div className="flex gap-4 sm:gap-6 animate-marquee w-max hover:[animation-play-state:paused]">
+            <div className="relative overflow-hidden w-full py-4">
+              <div className="flex gap-6 animate-marquee w-max hover:[animation-play-state:paused]">
                 {[...publicReviews, ...publicReviews].map((review, i) => (
                   <Card
-                    key={`${review.id}-${i}`}
-                    className="w-[260px] sm:w-[280px] shrink-0 flex flex-col cursor-grab active:cursor-grabbing"
+                    key={review.id + "-" + i}
+                    className="w-[280px] sm:w-[320px] shrink-0 flex flex-col bg-background border border-border/50 shadow-sm"
                   >
-                    <CardBody className="p-4 sm:p-5 flex flex-col h-full">
-                      <div className="flex items-center gap-1 text-yellow-500 mb-3">
+                    <CardBody className="p-5 sm:p-6 flex flex-col h-full">
+                      <div className="flex items-center gap-1 text-yellow-500 mb-4">
                         {[1, 2, 3, 4, 5].map(s => (
-                          <Star key={s} className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${s <= review.rating ? 'fill-yellow-500' : 'text-zinc-300 fill-zinc-300 dark:text-zinc-700 dark:fill-zinc-700'}`} />
+                          <Star key={s} className={"h-3.5 w-3.5 " + (s <= review.rating ? 'fill-yellow-500 text-yellow-500' : 'text-zinc-300 fill-zinc-300 dark:text-zinc-700 dark:fill-zinc-700')} />
                         ))}
                       </div>
-                      <p className="text-xs sm:text-sm text-muted-foreground italic leading-relaxed flex-1 mb-5 line-clamp-4">
+                      <p className="text-sm text-muted-foreground italic leading-relaxed flex-1 mb-6 line-clamp-4">
                         &ldquo;{review.comment}&rdquo;
                       </p>
-                      <div className="flex items-center gap-3 pt-3 border-t border-border/30 mt-auto">
-                        <Avatar src={review.customer?.avatar} alt={review.customer?.name} size="sm" className="h-8 w-8 shrink-0 rounded-full border border-border" />
+                      <div className="flex items-center gap-3.5 pt-4 border-t border-border/40 mt-auto">
+                        <Avatar src={review.customer?.avatar} alt={review.customer?.name} size="sm" className="h-10 w-10 shrink-0 rounded-full border border-border" />
                         <div>
                           <p className="text-xs font-bold text-foreground">{review.customer?.name || 'Anonymous'}</p>
-                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mt-0.5">{new Date(Number(review.createdAt)).toLocaleDateString()}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mt-0.5">{parseDate(review.createdAt)?.toLocaleDateString() || 'Recent'}</p>
                         </div>
                       </div>
                     </CardBody>
@@ -542,29 +542,28 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 8. CTA — Join as Provider                              */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="py-8 sm:py-24 bg-gradient-to-br from-brand to-sky-600 relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-white/5" />
-        <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/5" />
+      <section className="py-16 sm:py-24 bg-card border-y border-border text-foreground relative overflow-hidden">
+        {/* Glow decoration */}
+        <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-brand/10 blur-[100px] pointer-events-none" />
 
         <AnimSection className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center">
-          <p className="text-white/80 text-sm font-bold uppercase tracking-wider mb-3">For Service Professionals</p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight mb-4">
+          <p className="text-brand text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4">Grow with Servio</p>
+          <h2 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-6">
             Grow your business with Servio
           </h2>
-          <p className="text-white/80 text-base max-w-lg mx-auto mb-8">
+          <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed">
             Reach thousands of local customers, manage bookings effortlessly, and build your reputation with verified reviews.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               onClick={() => dispatch(openAuthModal('register'))}
-              variant="secondary"
-              className="font-bold h-12 px-8 text-brand shadow-xl"
+              variant="accent"
+              className="font-bold h-12 px-8 text-base shadow-lg cursor-pointer"
             >
               Join as Service Partner
             </Button>
             <Link href="/services">
-              <Button variant="ghost" className="text-white border-2 border-white/30 hover:bg-white/10 h-12 px-8 font-bold">
+              <Button variant="ghost" className="text-foreground border-2 border-border hover:bg-muted h-12 px-8 text-base font-bold cursor-pointer">
                 Browse Services
               </Button>
             </Link>

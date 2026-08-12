@@ -9,14 +9,21 @@ const notificationSlice = createSlice({
   name: 'notification',
   initialState,
   reducers: {
-    addNotification(state, action) {
-      state.notifications.unshift({
-        id: `notif-${Date.now()}`,
-        read: false,
-        createdAt: new Date().toISOString(),
-        ...action.payload
-      });
+    setNotifications(state, action) {
+      state.notifications = action.payload;
       state.unreadCount = state.notifications.filter(n => !n.read).length;
+    },
+    addNotification(state, action) {
+      // Avoid duplicate notifications in redux state
+      const exists = state.notifications.some(n => n.id === action.payload.id);
+      if (!exists) {
+        state.notifications.unshift({
+          read: false,
+          createdAt: new Date().toISOString(),
+          ...action.payload
+        });
+        state.unreadCount = state.notifications.filter(n => !n.read).length;
+      }
     },
     markAsRead(state, action) {
       const notif = state.notifications.find(n => n.id === action.payload);
@@ -38,5 +45,5 @@ const notificationSlice = createSlice({
   }
 });
 
-export const { addNotification, markAsRead, markAllAsRead, deleteNotification } = notificationSlice.actions;
+export const { setNotifications, addNotification, markAsRead, markAllAsRead, deleteNotification } = notificationSlice.actions;
 export default notificationSlice.reducer;

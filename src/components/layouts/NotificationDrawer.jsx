@@ -4,15 +4,38 @@ import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Bell, Check, Trash2, Calendar, MessageSquare, Info } from 'lucide-react';
+import { useMutation } from '@apollo/client/react';
 
 import { setNotificationDrawerOpen } from '../../store/slices/appSlice';
 import { markAsRead, markAllAsRead, deleteNotification } from '../../store/slices/notificationSlice';
+import { MARK_ALL_NOTIFICATIONS_AS_READ, MARK_NOTIFICATION_AS_READ } from '../../graphql/mutations/notifications';
 import Button from '../ui/Button';
 
 export function NotificationDrawer() {
   const dispatch = useDispatch();
   const isOpen = useSelector((state) => state.app.notificationDrawerOpen);
   const { notifications } = useSelector((state) => state.notification);
+
+  const [markAllReadMut] = useMutation(MARK_ALL_NOTIFICATIONS_AS_READ);
+  const [markReadMut] = useMutation(MARK_NOTIFICATION_AS_READ);
+
+  const handleMarkAllAsRead = async () => {
+    dispatch(markAllAsRead());
+    try {
+      await markAllReadMut();
+    } catch (e) {
+      console.error('Failed to mark all notifications as read:', e);
+    }
+  };
+
+  const handleMarkRead = async (id) => {
+    dispatch(markAsRead(id));
+    try {
+      await markReadMut({ variables: { id } });
+    } catch (e) {
+      console.error('Failed to mark notification as read:', e);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -66,7 +89,7 @@ export function NotificationDrawer() {
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => dispatch(markAllAsRead())}
+                    onClick={handleMarkAllAsRead}
                     className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                     title="Mark all as read"
                   >
@@ -100,7 +123,7 @@ export function NotificationDrawer() {
                       }`}
                     >
                       <div className="mt-0.5">{getIcon(notif.type)}</div>
-                      <div className="flex-1 pr-6" onClick={() => dispatch(markAsRead(notif.id))}>
+                      <div className="flex-1 pr-6 cursor-pointer" onClick={() => handleMarkRead(notif.id)}>
                         <h4 className="text-sm font-semibold leading-tight">{notif.title}</h4>
                         <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
                         <span className="text-[10px] text-muted-foreground block mt-2">
