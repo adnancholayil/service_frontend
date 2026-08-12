@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -112,9 +112,14 @@ export default function HomePage() {
     return /^\d+$/.test(dStr) ? new Date(parseInt(dStr, 10)) : new Date(dStr);
   };
 
-  const allServices = providers.flatMap(p =>
-    (p.services || []).map(s => ({ ...s, providerRating: p.rating, providerName: p.businessName, providerId: p.id }))
-  );
+  const allServices = useMemo(() => {
+    return providers.flatMap(p =>
+      (p.services || []).map(s => ({ ...s, providerRating: p.rating, providerName: p.businessName, providerId: p.id }))
+    );
+  }, [providers]);
+
+  const topServices = useMemo(() => allServices.slice(0, 6), [allServices]);
+  const topProviders = useMemo(() => providers.slice(0, 4), [providers]);
 
   // Auto-play banners
   useEffect(() => {
@@ -172,7 +177,7 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6"
+            className="text-3xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6"
           >
             Quality Home Services, <br />
             <span className="bg-gradient-to-r from-brand via-sky-400 to-violet-400 bg-clip-text text-transparent">Instantly Booked.</span>
@@ -298,22 +303,23 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 3. HOW IT WORKS                                        */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="section-py bg-card border-y border-border">
+      <section className="section-py bg-gradient-to-b from-[#f8fafc] dark:from-[#0c0e12] to-card dark:to-[#161a23] border-y
+     border-border">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <AnimSection className="text-center mb-8 sm:mb-16">
             <SectionLabel>Simple Process</SectionLabel>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Book in 3 Easy Steps</h2>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground">Book in 3 Easy Steps</h2>
           </AnimSection>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 relative">
             {/* Connector line (desktop) */}
             <div className="hidden sm:block absolute top-10 left-[calc(16.66%)] right-[calc(16.66%)] h-0.5 bg-border z-0" />
             {HOW_STEPS.map((step, i) => (
               <AnimSection key={step.n} delay={i * 120} className="relative z-10 flex flex-col items-center text-center group">
-                <div className="h-20 w-20 rounded-2xl bg-brand/5 border-2 border-brand/20 group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:shadow-lg group-hover:shadow-brand/10 flex items-center justify-center mb-5 transition-all duration-300">
-                  <span className="text-3xl font-extrabold bg-gradient-to-r from-brand to-sky-400 bg-clip-text text-transparent">{step.n}</span>
+                <div className="h-14 w-14 sm:h-20 sm:w-20 rounded-2xl bg-brand/5 border-2 border-brand/20 group-hover:border-brand/40 group-hover:bg-brand/10 group-hover:shadow-lg group-hover:shadow-brand/10 flex items-center justify-center mb-3 sm:mb-5 transition-all duration-300">
+                  <span className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-brand to-sky-400 bg-clip-text text-transparent">{step.n}</span>
                 </div>
-                <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed px-2">{step.desc}</p>
+                <h3 className="text-base sm:text-lg font-bold text-foreground mb-1.5 sm:mb-2">{step.title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed px-2">{step.desc}</p>
               </AnimSection>
             ))}
           </div>
@@ -329,7 +335,7 @@ export default function HomePage() {
             <AnimSection className="flex items-end justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Browse by Category</SectionLabel>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">What Do You Need?</h2>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight">What Do You Need?</h2>
               </div>
               <Link
                 href="/services"
@@ -347,11 +353,11 @@ export default function HomePage() {
                   return (
                     <AnimSection key={cat.id} delay={i * 40} className="shrink-0 snap-center">
                       <Link href={"/services?category=" + (cat.slug || cat.id)} className="block">
-                        <div className="group flex flex-col items-center justify-center p-5 rounded-2xl bg-card border border-border/50 hover:border-brand/30 hover:shadow-xl hover:shadow-brand/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer h-full text-center w-[120px] sm:w-[140px]">
-                          <div className="w-14 h-14 rounded-2xl bg-brand/5 border border-brand/10 text-brand flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-brand group-hover:text-white transition-all duration-300">
-                            <Icon className="h-6 w-6" />
+                        <div className="group flex flex-col items-center justify-center p-4 sm:p-5 rounded-2xl bg-card border border-border/50 hover:border-brand/30 hover:shadow-xl hover:shadow-brand/5 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer h-full text-center w-[100px] sm:w-[140px]">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand/5 border border-brand/10 text-brand flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 group-hover:bg-brand group-hover:text-white transition-all duration-300">
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                           </div>
-                          <span className="text-xs sm:text-[13px] font-bold text-foreground group-hover:text-brand transition-colors leading-tight line-clamp-2">
+                          <span className="text-[11px] sm:text-[13px] font-bold text-foreground group-hover:text-brand transition-colors leading-tight line-clamp-2">
                             {cat.name}
                           </span>
                         </div>
@@ -374,7 +380,7 @@ export default function HomePage() {
             <AnimSection className="flex items-center justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Most Booked</SectionLabel>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Popular Services</h2>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground">Popular Services</h2>
               </div>
               <span className="flex items-center gap-1.5 text-xs font-bold text-brand bg-brand/5 border border-brand/10 px-3 py-1.5 rounded-full ml-4">
                 <TrendingUp className="h-3.5 w-3.5" /> Trending
@@ -382,7 +388,7 @@ export default function HomePage() {
             </AnimSection>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-              {allServices.slice(0, 6).map((srv, i) => (
+              {topServices.map((srv, i) => (
                 <AnimSection key={srv.id} delay={i * 70} className="h-full">
                   <Link href={"/providers/" + srv.providerId} className="block h-full">
                     <Card hoverable className="group h-full flex flex-col bg-background border border-border/50 hover:border-brand/30 hover:shadow-2xl transition-all duration-300 overflow-hidden">
@@ -434,7 +440,7 @@ export default function HomePage() {
             <AnimSection className="flex items-end justify-between mb-6 sm:mb-12">
               <div>
                 <SectionLabel>Top Professionals</SectionLabel>
-                <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Highly Rated Partners</h2>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground">Highly Rated Partners</h2>
               </div>
               <Link
                 href="/providers"
@@ -445,7 +451,7 @@ export default function HomePage() {
             </AnimSection>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {providers.slice(0, 4).map((prov, i) => (
+              {topProviders.map((prov, i) => (
                 <AnimSection key={prov.id} delay={i * 80} className="h-full">
                   <Card hoverable className="group h-full flex flex-col bg-card border border-border/50 hover:border-brand/30 hover:shadow-2xl transition-all duration-300 overflow-hidden">
                     <CardBody className="flex flex-col p-6 h-full">
@@ -503,7 +509,7 @@ export default function HomePage() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <AnimSection className="text-center mb-6 sm:mb-12">
               <SectionLabel>Real Reviews</SectionLabel>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground">Loved by Our Customers</h2>
+              <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground">Loved by Our Customers</h2>
             </AnimSection>
 
             {/* Marquee loop container */}
@@ -542,13 +548,13 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════ */}
       {/* 8. CTA — Join as Provider                              */}
       {/* ═══════════════════════════════════════════════════════ */}
-      <section className="py-16 sm:py-24 bg-card border-y border-border text-foreground relative overflow-hidden">
+      <section className="py-16 sm:py-24 bg-gradient-to-b from-card dark:from-[#161a23] to-[#f8fafc] dark:to-[#0c0e12] border-y border-border text-foreground relative overflow-hidden">
         {/* Glow decoration */}
         <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-brand/10 blur-[100px] pointer-events-none" />
 
         <AnimSection className="relative z-10 mx-auto max-w-3xl px-4 sm:px-6 text-center">
           <p className="text-brand text-xs sm:text-sm font-extrabold uppercase tracking-widest mb-4">Grow with Servio</p>
-          <h2 className="text-3xl sm:text-5xl font-extrabold leading-tight mb-6">
+          <h2 className="text-2xl sm:text-5xl font-extrabold leading-tight mb-4 sm:mb-6">
             Grow your business with Servio
           </h2>
           <p className="text-muted-foreground text-sm sm:text-lg max-w-xl mx-auto mb-8 sm:mb-10 leading-relaxed">
